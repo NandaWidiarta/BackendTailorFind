@@ -5,6 +5,7 @@ import { Request, Response, NextFunction } from "express";
 
 export const publicRouter = express.Router();
 
-publicRouter.post("/api/users", CustomerController.register);
+publicRouter.post("/customers/register", CustomerController.register);
+publicRouter.post("/customers/login", CustomerController.login);
 publicRouter.get("/testis", CustomerController.tes);
 publicRouter.get("/get-customer", CustomerController.getCustomer);

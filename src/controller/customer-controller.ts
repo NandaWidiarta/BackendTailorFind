@@ -1,5 +1,5 @@
 import {Request, Response, NextFunction} from "express";
-import { CreateCustomerRequest} from "../model/customer-model";
+import { CreateCustomerRequest, LoginCustomerRequest} from "../model/customer-model";
 import { CustomerService } from "../service/customer-service";
 import { CustomerRequest } from "../type/user-request";
 
@@ -9,6 +9,18 @@ export class CustomerController {
         try {
             const request: CreateCustomerRequest = req.body as CreateCustomerRequest;
             const response = await CustomerService.register(request);
+            res.status(200).json({
+                data: response
+            })
+        } catch (e) {
+            next(e);
+        }
+    }
+
+    static async login(req: Request, res: Response, next: NextFunction) {
+        try {
+            const request: LoginCustomerRequest = req.body as LoginCustomerRequest;
+            const response = await CustomerService.login(request);
             res.status(200).json({
                 data: response
             })

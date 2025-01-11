@@ -1,7 +1,7 @@
 import { Customer } from "@prisma/client";
 import { prismaClient } from "../application/database";
 import { ResponseError } from "../error/response-error";
-import { CreateCustomerRequest, CustomerResponse, CustomersResponse, toCustomerResponse } from "../model/customer-model";
+import { CreateCustomerRequest, CustomerResponse, CustomersResponse, LoginCustomerRequest, toCustomerResponse } from "../model/customer-model";
 import { CustomerValidation } from "../validation/customer-validation";
 import { Validation } from "../validation/validation";
 import bcrypt from "bcrypt"
@@ -12,14 +12,14 @@ export class CustomerService {
     static async register(request: CreateCustomerRequest): Promise<CustomerResponse> {
         const registerRequest = Validation.validate(CustomerValidation.REGISTER, request);
 
-        const totalUserWithSameUsername = await prismaClient.customer.count({
+        const totalUserWithSameEmail = await prismaClient.customer.count({
             where: {
-                username: registerRequest.username
+                email: registerRequest.email
             }
         });
 
-        if(totalUserWithSameUsername != 0){
-            throw new ResponseError(400, "Username already exist");
+        if(totalUserWithSameEmail != 0){
+            throw new ResponseError(400, "Email already exist");
         }
 
         registerRequest.password = await bcrypt.hash(registerRequest.password, 10);
@@ -29,6 +29,38 @@ export class CustomerService {
         });
 
         return toCustomerResponse(customer);
+    }
+
+    static async login(request: LoginCustomerRequest): Promise<CustomerResponse> {
+        const loginRequest = Validation.validate(CustomerValidation.LOGIN, request);
+
+        let customer = await prismaClient.customer.findUnique({
+            where: {
+                email: loginRequest.email
+            }
+        })
+
+        if(!customer){
+            throw new ResponseError(401, "Email or password is wrong")
+        }
+
+        const isPasswordValid = await bcrypt.compare(loginRequest.password, customer.password)
+        if (!isPasswordValid) {
+            throw new ResponseError(401, "Email or password is wrong");
+        }
+
+        customer = await prismaClient.customer.update({
+            where : {
+                email: loginRequest.email
+            },
+            data : {
+                token: uuid()
+            }
+        })
+
+        const response = toCustomerResponse(customer)
+        response.token = customer.token!
+        return response
     }
 
     static async getCustomers() : Promise<CreateCustomerRequest[]> {

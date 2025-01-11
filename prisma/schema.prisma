@@ -15,10 +15,13 @@ datasource db {
 }
 
 model Customer {
-  username String  @id @db.VarChar(100)
-  password String  @db.VarChar(100)
-  name     String  @db.VarChar(100)
-  token    String? @db.VarChar(100)
+  id          Int      @id @default(autoincrement()) // ID unik yang auto-increment
+  firstname   String   @db.VarChar(100)             // Nama depan
+  lastname    String?  @db.VarChar(100)             // Nama belakang
+  email       String   @unique @db.VarChar(100)     // Email unik
+  phoneNumber String   @db.VarChar(20)              // Nomor telepon
+  password    String   @db.VarChar(100)             // Password
+  token       String?  @db.VarChar(100)             // Token (opsional)
 
-  @@map("customers")
+  @@map("customers") // Pemetaan ke tabel "customers" di database
 }
