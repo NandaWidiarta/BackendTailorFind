@@ -4,7 +4,7 @@
   "main": "src/index.ts",
   "scripts": {
     "dev": "npx nodemon ./src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1", 
+    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "prisma generate && npm run build && nodemon dist/index.js",
     "build": "tsc",
     "postinstall": "prisma generate"
@@ -19,6 +19,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "idn-area-data": "^3.1.1",
     "uuid": "^11.0.3",
     "winston": "^3.17.0",
     "zod": "^3.24.1"

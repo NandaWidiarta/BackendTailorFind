@@ -23,5 +23,67 @@ model Customer {
   password    String   @db.VarChar(100)             // Password
   token       String?  @db.VarChar(100)             // Token (opsional)
 
-  @@map("customers") // Pemetaan ke tabel "customers" di database
+  @@map("Customer") // Pemetaan ke tabel "customers" di database
+}
+
+model Province {
+  code      String       @id @unique
+  name      String
+  regencies Regency[]    // Relasi satu-ke-banyak ke Regency
+  tailors   Tailor[]     @relation("ProvinceTailors") // Relasi dua arah ke Tailor
+}
+
+model Regency {
+  code            String      @id @unique
+  name            String
+  province_code   String      // Menghubungkan dengan `code` dari Province
+  province        Province    @relation(fields: [province_code], references: [code]) // Menghubungkan ke Province
+  districts       District[]  // Relasi satu-ke-banyak ke District
+  tailors         Tailor[]    @relation("RegencyTailors") // Relasi dua arah ke Tailor
+}
+
+model District {
+  code            String      @id @unique
+  name            String
+  regency_code    String      // Menghubungkan dengan `code` dari Regency
+  regency         Regency     @relation(fields: [regency_code], references: [code]) // Menghubungkan ke Regency
+  villages        Village[]   // Relasi satu-ke-banyak ke Village
+  tailors         Tailor[]    @relation("DistrictTailors") // Relasi dua arah ke Tailor
+}
+
+model Village {
+  code            String      @id @unique
+  name            String
+  district_code   String      // Menghubungkan dengan `code` dari District
+  district        District    @relation(fields: [district_code], references: [code]) // Menghubungkan ke District
+  tailors         Tailor[]    @relation("VillageTailors") // Relasi dua arah ke Tailor
+}
+
+model Tailor {
+  id                Int         @id @default(autoincrement())
+  firstname         String      @db.VarChar(100)
+  lastname          String?     @db.VarChar(100)
+  email             String      @unique @db.VarChar(100)
+  phoneNumber       String      @db.VarChar(20)
+  password          String      @db.VarChar(100)
+  provinceId        String      // Menghubungkan dengan `code` dari Province
+  regencyId         String      // Menghubungkan dengan `code` dari Regency
+  districtId        String      // Menghubungkan dengan `code` dari District
+  villageId         String      // Menghubungkan dengan `code` dari Village
+  addressDetail     String
+  workEstimation    String
+  priceRange        String
+  specialization    String[]    // Array of string
+  businessDescription String
+  profilePicture    String?
+  certificate       String?
+  createdAt         DateTime    @default(now())
+  token             String?     @db.VarChar(100)
+
+  province          Province    @relation("ProvinceTailors", fields: [provinceId], references: [code])
+  regency           Regency     @relation("RegencyTailors", fields: [regencyId], references: [code])
+  district          District    @relation("DistrictTailors", fields: [districtId], references: [code])
+  village           Village     @relation("VillageTailors", fields: [villageId], references: [code])
+
+  @@map("Tailor")
 }
