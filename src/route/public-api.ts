@@ -3,6 +3,7 @@ import { CustomerController } from "../controller/customer-controller";
 import { CustomerService } from "../service/customer-service";
 import { Request, Response, NextFunction } from "express";
 import { GeneralController } from "../controller/general-controller";
+import { TailorController } from "../controller/tailor-controller";
 
 export const publicRouter = express.Router();
 
@@ -18,4 +19,5 @@ publicRouter.get("/district/:regencyCode", GeneralController.getDistrict);
 publicRouter.get("/village/:districtCode", GeneralController.getVillage);
 
 //tailor
-publicRouter.post("/tailors/register", CustomerController.register);
+publicRouter.post("/tailors/register", TailorController.register);
+publicRouter.post("/tailors/login", TailorController.login);
