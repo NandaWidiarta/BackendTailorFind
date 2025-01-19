@@ -1,5 +1,5 @@
 import {Request, Response, NextFunction} from "express";
-import { CreateCustomerRequest, LoginCustomerRequest} from "../model/customer-model";
+import { CreateCustomerRequest, LoginCustomerRequest, RatingReviewRequest} from "../model/customer-model";
 import { CustomerService } from "../service/customer-service";
 import { CustomerRequest } from "../type/user-request";
 
@@ -54,6 +54,18 @@ export class CustomerController {
     static async get(req: CustomerRequest, res: Response, next: NextFunction) {
         try {
             const response = await CustomerService.get(req.customer!);
+            res.status(200).json({
+                data: response
+            })
+        } catch (e) {
+            next(e);
+        }
+    }
+
+    static async addRatingReview(req: Request, res: Response, next: NextFunction) {
+        try {
+            const request: RatingReviewRequest = req.body as RatingReviewRequest;
+            const response = await CustomerService.addRatingReview(request);
             res.status(200).json({
                 data: response
             })

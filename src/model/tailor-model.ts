@@ -16,7 +16,7 @@ export type CreateTailorRequest = {
     specialization: string[];
     businessDescription: string;
     profilePicture?: string | null;
-    certificate?: string | null;
+    certificate?: string[];
   };
   
   export type TailorResponse = {
@@ -35,7 +35,7 @@ export type CreateTailorRequest = {
     specialization: string[];
     businessDescription: string;
     profilePicture?: string | null;
-    certificate?: string | null;
+    certificate?: string[];
     createdAt: Date;
     token?: string | null;
   };
@@ -57,7 +57,7 @@ export type CreateTailorRequest = {
       specialization: tailor.specialization, // Assumes specialization is an array in 'Tailor'
       businessDescription: tailor.businessDescription,
       profilePicture: tailor.profilePicture || null,
-      certificate: tailor.certificate || null,
+      certificate: tailor.certificate,
       createdAt: tailor.createdAt,
       token: tailor.token || null // Handle optional token field
     };

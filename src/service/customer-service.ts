@@ -1,7 +1,7 @@
 import { Customer } from "@prisma/client";
 import { prismaClient } from "../application/database";
 import { ResponseError } from "../error/response-error";
-import { CreateCustomerRequest, CustomerResponse, CustomersResponse, LoginCustomerRequest, toCustomerResponse } from "../model/customer-model";
+import { CreateCustomerRequest, CustomerResponse, CustomersResponse, LoginCustomerRequest, RatingReviewRequest, toCustomerResponse } from "../model/customer-model";
 import { CustomerValidation } from "../validation/customer-validation";
 import { Validation } from "../validation/validation";
 import bcrypt from "bcrypt"
@@ -74,5 +74,29 @@ export class CustomerService {
 
     static async get(customer: Customer): Promise<CustomerResponse> {
         return toCustomerResponse(customer)
+    }
+
+    static async addRatingReview(request: RatingReviewRequest): Promise<String> {
+      const customer = await prismaClient.ratingReview.create({
+        data: request,
+      });
+
+      // Hitung ulang rata-rata rating untuk tailor terkait
+      const avgRating = await prismaClient.ratingReview.aggregate({
+        where: { tailorId: request.tailorId },
+        _avg: {
+          rating: true,
+        },
+      });
+
+      // Update nilai averageRating di tabel Tailor
+      await prismaClient.tailor.update({
+        where: { id: request.tailorId },
+        data: {
+          averageRating: avgRating._avg.rating ?? 0,
+        },
+      });
+
+      return "Success Add Review";
     }
 }

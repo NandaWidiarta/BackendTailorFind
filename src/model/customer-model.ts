@@ -30,6 +30,13 @@ export type LoginCustomerRequest = {
     password: string;
 }
 
+export type RatingReviewRequest = {
+    rating: number;
+    review?: string;
+    tailorId: number;
+    customerId: number;
+}
+
 export function toCustomerResponse(customer: Customer): CustomerResponse {
     return {
         firstName: customer.firstname,

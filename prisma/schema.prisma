@@ -22,6 +22,7 @@ model Customer {
   phoneNumber String   @db.VarChar(20)              // Nomor telepon
   password    String   @db.VarChar(100)             // Password
   token       String?  @db.VarChar(100)             // Token (opsional)
+  ratings     RatingReview[]
 
   @@map("Customer") // Pemetaan ke tabel "customers" di database
 }
@@ -76,7 +77,9 @@ model Tailor {
   specialization    String[]    // Array of string
   businessDescription String
   profilePicture    String?
-  certificate       String?
+  certificate       String[]
+  ratingReviews     RatingReview[]
+  averageRating     Float           @default(0.0)
   createdAt         DateTime    @default(now())
   token             String?     @db.VarChar(100)
 
@@ -86,4 +89,18 @@ model Tailor {
   village           Village     @relation("VillageTailors", fields: [villageId], references: [code])
 
   @@map("Tailor")
+}
+
+
+model RatingReview {
+  id        Int      @id @default(autoincrement())
+  rating    Int      @db.SmallInt   // Nilai dari 1-5
+  review    String?   @db.VarChar(50)
+  tailorId  Int      // Relasi ke Tailor
+  customerId Int     // Relasi ke Customer
+  tailor    Tailor   @relation(fields: [tailorId], references: [id])
+  customer  Customer @relation(fields: [customerId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@map("RatingReview")
 }
