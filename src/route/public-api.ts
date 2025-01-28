@@ -12,8 +12,8 @@ export const publicRouter = express.Router();
 publicRouter.post("/customers/register", CustomerController.register);
 publicRouter.post("/customers/login", CustomerController.login);
 publicRouter.post("/customers/add-rating-review", CustomerController.addRatingReview);
-publicRouter.get("/testis", CustomerController.tes);
 publicRouter.get("/get-customer", CustomerController.getCustomer);
+publicRouter.get("/testis", CustomerController.tes);
 
 //general
 publicRouter.get("/province", GeneralController.getProvince);
