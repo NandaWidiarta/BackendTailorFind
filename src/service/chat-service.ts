@@ -53,13 +53,20 @@ export class ChatService {
   }
 
   // 5. Kirim pesan (disimpan di tabel Chat)
-  static async sendMessage(roomId: number, senderId: number, senderType: string, message: string) {
+  static async sendMessage(
+    roomId: number,
+    senderId: number,
+    senderType: string,
+    message: string,
+    type: string
+  ) {
     return prismaClient.chat.create({
       data: {
         roomId,
         senderId,
         senderType,
-        message
+        message,
+        type
       }
     });
   }

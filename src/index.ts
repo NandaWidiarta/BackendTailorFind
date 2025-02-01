@@ -29,22 +29,26 @@ io.on("connection", (socket) => {
   });
 
   // Client kirim pesan
-  socket.on("sendMessage", async (data: {
-    roomId: number;
-    senderId: number;
-    senderType: string;
-    message: string;
-  }) => {
-    console.log("masuk ke send message", data.roomId, data.senderId, data.senderType)
-    // Simpan ke DB
-    await ChatService.sendMessage(data.roomId, data.senderId, data.senderType, data.message);
+  // data: { roomId, senderId, senderType, message, type }
+  socket.on("sendMessage", async (data) => {
+    console.log("sendMessage data:", data);
 
-    // Broadcast real-time ke semua user di room
+    // 1) Simpan ke DB
+    const newChat = await ChatService.sendMessage(
+      data.roomId,
+      data.senderId,
+      data.senderType,
+      data.message,    // untuk image: ini URL supabase
+      data.type || "text" 
+    );
+
+    // 2) Broadcast
     io.to(`room-${data.roomId}`).emit("newMessage", {
-      senderId: data.senderId,
-      senderType: data.senderType,
-      message: data.message,
-      time: new Date().toISOString()
+      senderId: newChat.senderId,
+      senderType: newChat.senderType,
+      message: newChat.message,
+      type: newChat.type,
+      createdAt: newChat.createdAt
     });
   });
 

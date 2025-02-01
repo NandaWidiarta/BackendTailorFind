@@ -53,8 +53,8 @@ export class RoomChatController {
   static async sendMessage(req: Request, res: Response) {
     try {
       const roomId = parseInt(req.params.roomId);
-      const { senderId, senderType, message } = req.body; 
-      const chat = await ChatService.sendMessage(roomId, senderId, senderType, message);
+      const { senderId, senderType, message, type } = req.body; 
+      const chat = await ChatService.sendMessage(roomId, senderId, senderType, message, type);
       res.json(chat);
     } catch (e) {
       res.status(500).json({ error: getErrorMessage(e) });

@@ -131,7 +131,8 @@ model Chat {
   room       RoomChat @relation(fields: [roomId], references: [id])
 
   senderId   Int
-  senderType String   // misalnya "customer" atau "tailor"
+  senderType String   // "customer" or "tailor"
   message    String
+  type       String   @default("text") // "text" or "image"
   createdAt  DateTime @default(now())
 }

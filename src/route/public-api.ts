@@ -44,7 +44,6 @@ publicRouter.get("/rooms/:roomId/chats", RoomChatController.getChatsInRoom);
 // Endpoint untuk kirim pesan via HTTP (opsional, atau pakai socket.io)
 publicRouter.post("/rooms/:roomId/chats", RoomChatController.sendMessage);
 
-
 //tailor
 // publicRouter.post("/tailors/register", TailorController.register);
 publicRouter.post("/tailors/login", TailorController.login);
