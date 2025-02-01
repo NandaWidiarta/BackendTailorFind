@@ -23,6 +23,7 @@ model Customer {
   password    String   @db.VarChar(100)             // Password
   token       String?  @db.VarChar(100)             // Token (opsional)
   ratings     RatingReview[]
+  roomsAsCustomer RoomChat[] @relation("CustomerRooms")
 
   @@map("Customer") // Pemetaan ke tabel "customers" di database
 }
@@ -87,6 +88,7 @@ model Tailor {
   regency           Regency     @relation("RegencyTailors", fields: [regencyId], references: [code])
   district          District    @relation("DistrictTailors", fields: [districtId], references: [code])
   village           Village     @relation("VillageTailors", fields: [villageId], references: [code])
+  roomsAsTailor     RoomChat[] @relation("TailorRooms")
 
   @@map("Tailor")
 }
@@ -103,4 +105,33 @@ model RatingReview {
   createdAt DateTime @default(now())
 
   @@map("RatingReview")
+}
+
+model RoomChat {
+  id         Int      @id @default(autoincrement())
+  customerId Int
+  tailorId   Int
+
+  createdAt  DateTime @default(now())
+
+  // Relasi ke Customer & Tailor
+  customer   Customer @relation("CustomerRooms", fields: [customerId], references: [id])
+  tailor     Tailor   @relation("TailorRooms", fields: [tailorId], references: [id])
+
+  // Relasi ke Chat (banyak pesan)
+  chats      Chat[]
+
+  // Mencegah duplikasi room 1–1 (customerId, tailorId) sama
+  @@unique([customerId, tailorId])
+}
+
+model Chat {
+  id         Int      @id @default(autoincrement())
+  roomId     Int
+  room       RoomChat @relation(fields: [roomId], references: [id])
+
+  senderId   Int
+  senderType String   // misalnya "customer" atau "tailor"
+  message    String
+  createdAt  DateTime @default(now())
 }

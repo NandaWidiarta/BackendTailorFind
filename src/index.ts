@@ -2,14 +2,11 @@ import dotenv from "dotenv";
 import { web } from "./application/web";
 import { createServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
+import { ChatService } from "./service/chat-service";
 
 dotenv.config();
 
 const PORT = process.env.PORT;
-
-// web.listen(PORT, () => {
-//     console.log(`Server is running on http://localhost:${PORT}`);
-// });
 
 const httpServer = createServer(web);
 
@@ -20,75 +17,39 @@ const io = new SocketIOServer(httpServer, {
   },
 });
 
-// HIDUPIN INI BUAT JALANIN CHAT UNGU
-// type UserList = Map<string, Set<string>>;
-// let userList: UserList = new Map();
-
-// io.on("connection", (socket) => {
-//   const userName = socket.handshake.query.userName as string;
-
-//   if (userName) {
-//     addUser(userName, socket.id);
-
-//     // Emit updated user list
-//     io.emit("user-list", Array.from(userList.keys()));
-
-//     // Handle message event
-//     socket.on("message", (msg: string) => {
-//       io.emit("message-broadcast", { message: msg, userName });
-//     });
-
-//     // Handle disconnect event
-//     socket.on("disconnect", () => {
-//       removeUser(userName, socket.id);
-//       io.emit("user-list", Array.from(userList.keys()));
-//     });
-//   }
-// });
-
-// // Helper functions
-// function addUser(userName: string, id: string): void {
-//   if (!userList.has(userName)) {
-//     userList.set(userName, new Set([id]));
-//   } else {
-//     userList.get(userName)?.add(id);
-//   }
-// }
-
-// function removeUser(userName: string, id: string): void {
-//   if (userList.has(userName)) {
-//     const userIds = userList.get(userName);
-//     userIds?.delete(id);
-//     if (userIds?.size === 0) {
-//       userList.delete(userName);
-//     }
-//   }
-// }
-
 //INI BUAT JALANIN CHAT YANG ADA ROOM NYA 
-// Handle socket.io events
+// EVENT SOCKET
 io.on("connection", (socket) => {
-  console.log("A user connected");
+  console.log("A user connected:", socket.id);
 
-  socket.on("join", (data: { room: string }) => {
-    socket.join(data.room);
-    console.log(`User joined room: ${data.room}`);
-    socket.broadcast.to(data.room).emit("user joined");
+  // Client akan memanggil join, bawa roomId
+  socket.on("joinRoom", (data: { roomId: number }) => {
+    socket.join(`room-${data.roomId}`);
+    console.log(`User joined room: room-${data.roomId}`);
   });
 
-  socket.on(
-    "message",
-    (data: { room: string; user: string; message: string }) => {
-      console.log(`Message received in room ${data.room}: ${data.message}`);
-      io.in(data.room).emit("new message", {
-        user: data.user,
-        message: data.message,
-      });
-    }
-  );
+  // Client kirim pesan
+  socket.on("sendMessage", async (data: {
+    roomId: number;
+    senderId: number;
+    senderType: string;
+    message: string;
+  }) => {
+    console.log("masuk ke send message", data.roomId, data.senderId, data.senderType)
+    // Simpan ke DB
+    await ChatService.sendMessage(data.roomId, data.senderId, data.senderType, data.message);
+
+    // Broadcast real-time ke semua user di room
+    io.to(`room-${data.roomId}`).emit("newMessage", {
+      senderId: data.senderId,
+      senderType: data.senderType,
+      message: data.message,
+      time: new Date().toISOString()
+    });
+  });
 
   socket.on("disconnect", () => {
-    console.log("A user disconnected");
+    console.log("A user disconnected:", socket.id);
   });
 });
 

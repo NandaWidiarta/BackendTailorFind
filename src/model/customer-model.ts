@@ -1,6 +1,7 @@
 import { Customer } from "@prisma/client";
 
 export type CustomerResponse = {
+    id : number;
     firstName: string;
     lastName?: string;
     email: string;
@@ -39,6 +40,7 @@ export type RatingReviewRequest = {
 
 export function toCustomerResponse(customer: Customer): CustomerResponse {
     return {
+        id : customer.id,
         firstName: customer.firstname,
         lastName: customer.lastname || undefined,
         email: customer.email,

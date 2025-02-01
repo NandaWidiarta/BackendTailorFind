@@ -132,4 +132,3 @@ class TailorService {
     }
 }
 exports.TailorService = TailorService;
-//
