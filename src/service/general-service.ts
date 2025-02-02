@@ -7,7 +7,7 @@ import { Validation } from "../validation/validation";
 import bcrypt from "bcrypt"
 import {v4 as uuid} from "uuid";
 import { CustomerRequest } from "../type/user-request";
-import { DistrictResponse, ProvinceResponse, RegencyResponse, VillageResponse } from "../model/general-model";
+import { ChatResponse, DistrictResponse, ProvinceResponse, RegencyResponse, VillageResponse } from "../model/general-model";
 
 
 export class GeneralService {

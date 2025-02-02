@@ -20,3 +20,14 @@ export type VillageResponse = {
     name: string;
     district_code: string;
 }
+
+export type ChatResponse = {
+    id: number;
+    room: string;
+    senderId: number;
+    senderType: string;
+    message: string;
+    createdAt: Date;
+    customerId: number | null;
+    tailorId: number | null;
+}
