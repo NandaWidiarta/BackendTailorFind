@@ -54,7 +54,7 @@ export class TailorService {
     });
 
     if (!tailor) {
-      throw new ResponseError(401, "Email or password is wrong");
+      throw new ResponseError(401, "Email or password is wrongg");
     }
 
     const isPasswordValid = await bcrypt.compare(
