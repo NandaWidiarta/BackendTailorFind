@@ -12,7 +12,7 @@ import { CustomerValidation } from "../validation/customer-validation";
 import { Validation } from "../validation/validation";
 import bcrypt from "bcrypt";
 import { v4 as uuid } from "uuid";
-import { CustomerRequest } from "../type/user-request";
+import { CustomerRequest } from "../type/customer-request";
 import {
   CreateTailorRequest,
   TailorResponse,
@@ -65,12 +65,24 @@ export class TailorService {
       throw new ResponseError(401, "Email or password is wrong");
     }
 
+    let newToken = uuid()
+    let existingToken = await prismaClient.customer.findFirst({
+        where: { token: newToken },
+    });
+
+    while (existingToken) {
+        newToken = uuid()
+        existingToken = await prismaClient.customer.findFirst({
+            where: { token: newToken },
+        });
+    }
+
     tailor = await prismaClient.tailor.update({
       where: {
         email: loginRequest.email,
       },
       data: {
-        token: uuid(),
+        token: newToken,
       },
     });
 
@@ -86,21 +98,21 @@ export class TailorService {
   ): Promise<TailorResponse> {
     // Validasi request (opsional)
     const registerRequest = request;
-  
+
     // Cek jika email sudah terdaftar
     const totalUserWithSameEmail = await prismaClient.tailor.count({
       where: {
         email: registerRequest.email,
       },
     });
-  
+
     if (totalUserWithSameEmail !== 0) {
       throw new ResponseError(400, "Email already exist");
     }
-  
+
     // Hash password
     registerRequest.password = await bcrypt.hash(registerRequest.password, 10);
-  
+
     // Upload profile picture jika ada
     let profilePictureUrl: string | null = null;
     if (profilePictureFile) {
@@ -110,16 +122,19 @@ export class TailorService {
         .upload(fileName, profilePictureFile.buffer, {
           contentType: profilePictureFile.mimetype,
         });
-  
+
       if (error) {
         throw new ResponseError(500, "Failed to upload profile picture");
       }
-  
+
       profilePictureUrl = data?.path
-        ? `${supabase.storage.from("profile").getPublicUrl(data.path).data.publicUrl}`
+        ? `${
+            supabase.storage.from("profile").getPublicUrl(data.path).data
+              .publicUrl
+          }`
         : null;
     }
-  
+
     // Upload certificates jika ada
     let certificateUrls: string[] = [];
     if (certificateFiles && certificateFiles.length > 0) {
@@ -130,29 +145,30 @@ export class TailorService {
           .upload(fileName, file.buffer, {
             contentType: file.mimetype,
           });
-  
+
         if (error) {
           throw new ResponseError(500, "Failed to upload certificate");
         }
-  
+
         if (data?.path) {
-          const publicUrl = `${supabase.storage
-            .from("certificates")
-            .getPublicUrl(data.path).data.publicUrl}`;
+          const publicUrl = `${
+            supabase.storage.from("certificates").getPublicUrl(data.path).data
+              .publicUrl
+          }`;
           certificateUrls.push(publicUrl); // Tambahkan URL ke array
         }
       }
     }
-  
+
     // Set URLs ke request
     registerRequest.profilePicture = profilePictureUrl;
     registerRequest.certificate = certificateUrls;
-  
+
     // Simpan ke database
     const tailor = await prismaClient.tailor.create({
       data: registerRequest,
     });
-  
+
     return toTailorResponse(tailor);
   }
 }

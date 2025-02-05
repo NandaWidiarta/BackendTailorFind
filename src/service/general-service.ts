@@ -6,7 +6,7 @@ import { CustomerValidation } from "../validation/customer-validation";
 import { Validation } from "../validation/validation";
 import bcrypt from "bcrypt"
 import {v4 as uuid} from "uuid";
-import { CustomerRequest } from "../type/user-request";
+import { CustomerRequest } from "../type/customer-request";
 import { ChatResponse, DistrictResponse, ProvinceResponse, RegencyResponse, VillageResponse } from "../model/general-model";
 
 

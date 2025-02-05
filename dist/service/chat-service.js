@@ -67,14 +67,15 @@ class ChatService {
         });
     }
     // 5. Kirim pesan (disimpan di tabel Chat)
-    static sendMessage(roomId, senderId, senderType, message) {
+    static sendMessage(roomId, senderId, senderType, message, type) {
         return __awaiter(this, void 0, void 0, function* () {
             return database_1.prismaClient.chat.create({
                 data: {
                     roomId,
                     senderId,
                     senderType,
-                    message
+                    message,
+                    type
                 }
             });
         });

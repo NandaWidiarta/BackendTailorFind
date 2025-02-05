@@ -36,16 +36,19 @@ io.on("connection", (socket) => {
         console.log(`User joined room: room-${data.roomId}`);
     });
     // Client kirim pesan
+    // data: { roomId, senderId, senderType, message, type }
     socket.on("sendMessage", (data) => __awaiter(void 0, void 0, void 0, function* () {
-        console.log("masuk ke send message", data.roomId, data.senderId, data.senderType);
-        // Simpan ke DB
-        yield chat_service_1.ChatService.sendMessage(data.roomId, data.senderId, data.senderType, data.message);
-        // Broadcast real-time ke semua user di room
+        console.log("sendMessage data:", data);
+        // 1) Simpan ke DB
+        const newChat = yield chat_service_1.ChatService.sendMessage(data.roomId, data.senderId, data.senderType, data.message, // untuk image: ini URL supabase
+        data.type || "text");
+        // 2) Broadcast
         io.to(`room-${data.roomId}`).emit("newMessage", {
-            senderId: data.senderId,
-            senderType: data.senderType,
-            message: data.message,
-            time: new Date().toISOString()
+            senderId: newChat.senderId,
+            senderType: newChat.senderType,
+            message: newChat.message,
+            type: newChat.type,
+            createdAt: newChat.createdAt
         });
     }));
     socket.on("disconnect", () => {

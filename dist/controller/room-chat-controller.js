@@ -70,9 +70,10 @@ class RoomChatController {
     static sendMessage(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                console.log("masuk controller sendMessage");
                 const roomId = parseInt(req.params.roomId);
-                const { senderId, senderType, message } = req.body;
-                const chat = yield chat_service_1.ChatService.sendMessage(roomId, senderId, senderType, message);
+                const { senderId, senderType, message, type } = req.body;
+                const chat = yield chat_service_1.ChatService.sendMessage(roomId, senderId, senderType, message, type);
                 res.json(chat);
             }
             catch (e) {

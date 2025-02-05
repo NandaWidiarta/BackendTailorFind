@@ -26,9 +26,15 @@ export class ChatService {
     return prismaClient.roomChat.findMany({
       where: { customerId },
       include: {
-        // opsional: bawa data penjahit
-        tailor: true,
-        // Atau last message, dsb
+        tailor: {
+          select: {
+            id: true,
+            firstname: true,
+            lastname: true,
+            email: true,
+            phoneNumber: true
+          }
+        },
       }
     });
   }
@@ -38,11 +44,18 @@ export class ChatService {
     return prismaClient.roomChat.findMany({
       where: { tailorId },
       include: {
-        // opsional: bawa data customer
-        customer: true,
+        customer: {
+          select: {
+            id: true,
+            firstname: true,
+            lastname: true,
+            email: true,
+            phoneNumber: true
+          }
+        }
       }
     });
-  }
+  }  
 
   // 4. Ambil semua chat dalam 1 room
   static async getChatsInRoom(roomId: number) {
@@ -60,6 +73,7 @@ export class ChatService {
     message: string,
     type: string
   ) {
+    console.log(roomId, senderId, senderType, message, type)
     return prismaClient.chat.create({
       data: {
         roomId,

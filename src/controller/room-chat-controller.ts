@@ -1,5 +1,7 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { ChatService } from "../service/chat-service";
+import { v4 as uuid } from "uuid";
+import { supabase } from "../supabase-client";
 
 
 export class RoomChatController {
@@ -61,6 +63,40 @@ export class RoomChatController {
     }
   }
 
+  static async sendMessageV2(req: Request, res: Response, next: NextFunction) {
+    try {
+      const roomId = parseInt(req.params.roomId)
+      const { senderId, senderType, message, type } = req.body
+      const file = req.file
+
+      let finalMessage = message
+      let finalType = type
+      const senderIdNum = parseInt(senderId, 10)
+
+      console.log('masuk sendMessageV2')
+
+      if (file) {
+        const publicURL = await uploadFileToSupabase(file, roomId);
+        if (!publicURL) {
+          res
+            .status(500)
+            .json({ error: 'Failed to upload file to Supabase' });
+        }
+
+        finalMessage = publicURL;
+        finalType = 'image';
+      }
+
+      const chat = await ChatService.sendMessage(roomId, senderIdNum, senderType, finalMessage, finalType);
+      
+      res.status(200).json({
+        data: chat,
+    });
+    } catch (e) {
+      next(e);
+    }
+  }
+
   // Ambil daftar room milik customer
   static async tes(req: Request, res: Response) {
     try {
@@ -80,4 +116,40 @@ function getErrorMessage(e: unknown): string {
         return e.message;
     }
     return 'An unknown error occurred';
+}
+
+async function uploadFileToSupabase(
+  file: Express.Multer.File,
+  roomId: number
+): Promise<string | null> {
+  try {
+    const extension = file.originalname.split('.').pop();
+    const fileName = `${uuid()}-${Date.now()}.${extension || ''}`;
+    const path = `${roomId}/${fileName}`;
+
+    const { data, error } = await supabase.storage
+      .from('chat-images')
+      .upload(path, file.buffer, {
+        contentType: file.mimetype,
+        upsert: false, 
+      });
+
+    if (error) {
+      console.error('Supabase upload error:', error);
+      return null;
+    }
+
+    let publicURL: string | null = null;
+    if (data && data.path) {
+      const { data: publicData } = supabase.storage
+        .from('chat-images')
+        .getPublicUrl(data.path);
+      publicURL = publicData?.publicUrl ?? null;
+    }
+
+    return publicURL;
+  } catch (err) {
+    console.error('Exception uploading to Supabase:', err);
+    return null;
+  }
 }

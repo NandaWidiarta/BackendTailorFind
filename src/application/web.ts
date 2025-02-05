@@ -3,37 +3,18 @@ import { publicRouter } from "../route/public-api";
 import { errorMiddleware } from "../middleware/error-middleware";
 import { createServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
+import { customerApiRouter } from "../route/customer-api";
+import { tailorApiRouter } from "../route/tailor-api";
 
-export const web = express();
+export const web = express()
 
-web.use(express.json());
-web.use(express.urlencoded({ extended: true }));
+web.use(express.json())
+web.use(express.urlencoded({ extended: true }))
 
-web.use(publicRouter);
-web.use(errorMiddleware);
+web.use(publicRouter)
+web.use("/customers", customerApiRouter)
+web.use("/tailors", tailorApiRouter)
+web.use(errorMiddleware)
 
 
-// // Create HTTP server and attach socket.io
-// export const server = createServer(web);
-// export const io = new SocketIOServer(server);
-
-// // Handle socket.io events
-// io.on("connection", (socket) => {
-//     console.log("A user connected");
-
-//     socket.on("join", (data: { room: string }) => {
-//         socket.join(data.room);
-//         console.log(`User joined room: ${data.room}`);
-//         socket.broadcast.to(data.room).emit("user joined");
-//     });
-
-//     socket.on("message", (data: { room: string; user: string; message: string }) => {
-//         console.log(`Message received in room ${data.room}: ${data.message}`);
-//         io.in(data.room).emit("new message", { user: data.user, message: data.message });
-//     });
-
-//     socket.on("disconnect", () => {
-//         console.log("A user disconnected");
-//     });
-// });
 

@@ -12,7 +12,7 @@ export const publicRouter = express.Router();
 
 publicRouter.post("/customers/register", CustomerController.register);
 publicRouter.post("/customers/login", CustomerController.login);
-publicRouter.post("/customers/add-rating-review", CustomerController.addRatingReview);
+
 publicRouter.get("/get-customer", CustomerController.getCustomer);
 publicRouter.get("/testis/1", CustomerController.tes);
 publicRouter.get("/testis", CustomerController.tes);
@@ -28,11 +28,11 @@ publicRouter.get("/village/:districtCode", GeneralController.getVillage);
 
 //ini handling ganti ke autheticated api 
 
-// Endpoint untuk create/get room
-publicRouter.post("/rooms", RoomChatController.createOrGetRoom);
+// Endpoint untuk create/get room (udh pindah ke customer api)
+publicRouter.post("/rooms", RoomChatController.createOrGetRoom); //v
 
 // Endpoint untuk load semua room milik Customer (opsional)
-publicRouter.get("/rooms/customer/:customerId", RoomChatController.getRoomsByCustomer);
+publicRouter.get("/rooms/customer/:customerId", RoomChatController.getRoomsByCustomer); //v
 publicRouter.get("/rooms/customer", RoomChatController.tes);
 
 // Endpoint untuk load semua room milik Tailor (opsional)
