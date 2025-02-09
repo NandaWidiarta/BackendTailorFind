@@ -2,17 +2,17 @@ import { NextFunction, Request, Response } from "express";
 import { ChatService } from "../service/chat-service";
 import { v4 as uuid } from "uuid";
 import { supabase } from "../supabase-client";
+import { Role } from "@prisma/client";
 
 
 export class RoomChatController {
-  // Buat atau ambil room 1–1 antara customer & tailor
   static async createOrGetRoom(req: Request, res: Response) {
     try {
-      const { customerId, tailorId } = req.body; // misal { customerId: 10, tailorId: 5 }
-      const room = await ChatService.createOrGetRoom(customerId, tailorId);
-      res.json(room);
+      const { customerId, tailorId } = req.body
+      const room = await ChatService.createOrGetRoom(customerId, tailorId)
+      res.json(room)
     } catch (e) {
-        res.status(500).json({ error: getErrorMessage(e) });
+        res.status(500).json({ error: getErrorMessage(e) })
     }
   }
 
@@ -20,95 +20,92 @@ export class RoomChatController {
   static async getRoomsByCustomer(req: Request, res: Response) {
     try {
         console.log("masuk controller try")
-      const customerId = parseInt(req.params.customerId);
-      const rooms = await ChatService.getRoomsByCustomer(customerId);
-      res.json(rooms);
+      const customerId = req.params.customerId
+      const rooms = await ChatService.getRoomsByCustomer(customerId)
+      res.json(rooms)
     } catch (e) {
         console.log("masuk controller catch")
-      res.status(500).json({ error: getErrorMessage(e) });
+      res.status(500).json({ error: getErrorMessage(e) })
     }
   }
 
   // Ambil daftar room milik tailor
   static async getRoomsByTailor(req: Request, res: Response) {
     try {
-      const tailorId = parseInt(req.params.tailorId);
-      const rooms = await ChatService.getRoomsByTailor(tailorId);
-      res.json(rooms);
+      const tailorId = req.params.tailorId
+      const rooms = await ChatService.getRoomsByTailor(tailorId)
+      res.json(rooms)
     } catch (e) {
-      res.status(500).json({ error: getErrorMessage(e) });
+      res.status(500).json({ error: getErrorMessage(e) })
     }
   }
 
   // Ambil semua chat di room
-  static async getChatsInRoom(req: Request, res: Response) {
+  static async getChatsInRoomByTailor(req: Request, res: Response) {
     try {
-      const roomId = parseInt(req.params.roomId);
-      const chats = await ChatService.getChatsInRoom(roomId);
-      res.json(chats);
+      const roomId = req.params.roomId
+      const chats = await ChatService.getChatsInRoom(roomId, Role.TAILOR)
+      res.json(chats)
     } catch (e) {
-      res.status(500).json({ error: getErrorMessage(e) });
+      res.status(500).json({ error: getErrorMessage(e) })
+    }
+  }
+
+  static async getChatsInRoomByCustomer(req: Request, res: Response) {
+    try {
+      const roomId = req.params.roomId
+      const chats = await ChatService.getChatsInRoom(roomId, Role.CUSTOMER)
+      res.json(chats)
+    } catch (e) {
+      res.status(500).json({ error: getErrorMessage(e) })
     }
   }
 
   // Kirim pesan (opsional, jika pakai HTTP)
   static async sendMessage(req: Request, res: Response) {
     try {
-      const roomId = parseInt(req.params.roomId);
-      const { senderId, senderType, message, type } = req.body; 
-      const chat = await ChatService.sendMessage(roomId, senderId, senderType, message, type);
-      res.json(chat);
+      const roomId = req.params.roomId
+      const { senderId, senderType, message, type } = req.body
+      const chat = await ChatService.sendMessage(roomId, senderId, senderType, message, type)
+      res.json(chat)
     } catch (e) {
-      res.status(500).json({ error: getErrorMessage(e) });
+      res.status(500).json({ error: getErrorMessage(e) })
     }
   }
 
   static async sendMessageV2(req: Request, res: Response, next: NextFunction) {
     try {
-      const roomId = parseInt(req.params.roomId)
+      const roomId = req.params.roomId
       const { senderId, senderType, message, type } = req.body
       const file = req.file
 
       let finalMessage = message
       let finalType = type
-      const senderIdNum = parseInt(senderId, 10)
 
       console.log('masuk sendMessageV2')
 
       if (file) {
-        const publicURL = await uploadFileToSupabase(file, roomId);
+        const publicURL = await uploadFileToSupabase(file, roomId)
         if (!publicURL) {
           res
             .status(500)
-            .json({ error: 'Failed to upload file to Supabase' });
+            .json({ error: 'Failed to upload file to Supabase' })
         }
 
-        finalMessage = publicURL;
-        finalType = 'image';
+        finalMessage = publicURL
+        finalType = 'image'
       }
 
-      const chat = await ChatService.sendMessage(roomId, senderIdNum, senderType, finalMessage, finalType);
+      const chat = await ChatService.sendMessage(roomId, senderId, senderType, finalMessage, finalType)
       
       res.status(200).json({
         data: chat,
     });
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
-  // Ambil daftar room milik customer
-  static async tes(req: Request, res: Response) {
-    try {
-        console.log("masuk controller try")
-      const customerId = 3;
-      const rooms = await ChatService.getRoomsByCustomer(customerId);
-      res.json(rooms);
-    } catch (e) {
-        console.log("masuk controller catch")
-      res.status(500).json({ error: getErrorMessage(e) });
-    }
-  }
 }
 
 function getErrorMessage(e: unknown): string {
@@ -120,7 +117,7 @@ function getErrorMessage(e: unknown): string {
 
 async function uploadFileToSupabase(
   file: Express.Multer.File,
-  roomId: number
+  roomId: string
 ): Promise<string | null> {
   try {
     const extension = file.originalname.split('.').pop();

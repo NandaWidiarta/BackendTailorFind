@@ -1,11 +1,12 @@
-import { Customer } from "@prisma/client";
+import { Role, User } from "@prisma/client";
 
 export type CustomerResponse = {
-    id : number;
+    id : string;
     firstName: string;
     lastName?: string;
     email: string;
     phoneNumber: string;
+    role: Role;
     token?: string;
 }
 
@@ -15,6 +16,7 @@ export type CreateCustomerRequest = {
     email: string;
     phoneNumber: string;
     password: string;
+    role: Role;
 }
 
 export type CustomersResponse = {
@@ -34,17 +36,18 @@ export type LoginCustomerRequest = {
 export type RatingReviewRequest = {
     rating: number;
     review?: string;
-    tailorId: number;
-    customerId: number;
+    tailorId: string;
+    customerId: string;
 }
 
-export function toCustomerResponse(customer: Customer): CustomerResponse {
+export function toCustomerResponse(customer: User): CustomerResponse {
     return {
         id : customer.id,
         firstName: customer.firstname,
         lastName: customer.lastname || undefined,
         email: customer.email,
-        phoneNumber: customer.phoneNumber
+        phoneNumber: customer.phoneNumber, 
+        role: Role.CUSTOMER
     }
 }
 

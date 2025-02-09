@@ -1,4 +1,4 @@
-import { Customer } from "@prisma/client";
+import { Role } from "@prisma/client";
 import { prismaClient } from "../application/database";
 import { ResponseError } from "../error/response-error";
 import {
@@ -13,7 +13,6 @@ import { CustomerValidation } from "../validation/customer-validation";
 import { Validation } from "../validation/validation";
 import bcrypt from "bcrypt";
 import { v4 as uuid } from "uuid";
-import { CustomerRequest } from "../type/customer-request";
 
 export class CustomerService {
   static async register(
@@ -22,38 +21,39 @@ export class CustomerService {
     const registerRequest = Validation.validate(
       CustomerValidation.REGISTER,
       request
-    );
+    )
 
-    const totalUserWithSameEmail = await prismaClient.customer.count({
+    const totalUserWithSameEmail = await prismaClient.user.count({
       where: {
         email: registerRequest.email,
       },
-    });
+    })
 
     if (totalUserWithSameEmail != 0) {
-      throw new ResponseError(400, "Email already exist");
+      throw new ResponseError(400, "Email already exist")
     }
 
     registerRequest.password = await bcrypt.hash(registerRequest.password, 10);
+    registerRequest.role = Role.CUSTOMER
 
-    const customer = await prismaClient.customer.create({
+    const customer = await prismaClient.user.create({
       data: registerRequest,
-    });
+    })
 
-    return toCustomerResponse(customer);
+    return toCustomerResponse(customer)
   }
 
   static async login(request: LoginCustomerRequest): Promise<CustomerResponse> {
-    const loginRequest = Validation.validate(CustomerValidation.LOGIN, request);
+    const loginRequest = Validation.validate(CustomerValidation.LOGIN, request)
 
-    let customer = await prismaClient.customer.findUnique({
+    let customer = await prismaClient.user.findUnique({
       where: {
         email: loginRequest.email,
       },
-    });
+    })
 
     if (!customer) {
-      throw new ResponseError(401, "Email or password is wrong");
+      throw new ResponseError(401, "Email or password is wrong")
     }
 
     const isPasswordValid = await bcrypt.compare(
@@ -61,22 +61,22 @@ export class CustomerService {
       customer.password
     );
     if (!isPasswordValid) {
-      throw new ResponseError(401, "Email or password is wrong");
+      throw new ResponseError(401, "Email or password is wrong")
     }
 
     let newToken = uuid()
-    let existingToken = await prismaClient.customer.findFirst({
+    let existingToken = await prismaClient.user.findFirst({
         where: { token: newToken },
     });
 
     while (existingToken) {
         newToken = uuid()
-        existingToken = await prismaClient.customer.findFirst({
+        existingToken = await prismaClient.user.findFirst({
             where: { token: newToken },
-        });
+        })
     }
 
-    customer = await prismaClient.customer.update({
+    customer = await prismaClient.user.update({
       where: {
         email: loginRequest.email,
       },
@@ -85,28 +85,15 @@ export class CustomerService {
       },
     });
 
-    const response = toCustomerResponse(customer);
-    response.token = customer.token!;
-    return response;
-  }
-
-  static async getCustomers(): Promise<CreateCustomerRequest[]> {
-    const users = await prismaClient.customer.findMany({});
-    if (!users) {
-      throw new ResponseError(401, "Username or password is wrong");
-    }
-    console.log(users);
-    return users;
-  }
-
-  static async get(customer: Customer): Promise<CustomerResponse> {
-    return toCustomerResponse(customer);
+    const response = toCustomerResponse(customer)
+    response.token = customer.token!
+    return response
   }
 
   static async addRatingReview(request: RatingReviewRequest): Promise<String> {
     const customer = await prismaClient.ratingReview.create({
       data: request,
-    });
+    })
 
     // Hitung ulang rata-rata rating untuk tailor terkait
     const avgRating = await prismaClient.ratingReview.aggregate({
@@ -114,16 +101,16 @@ export class CustomerService {
       _avg: {
         rating: true,
       },
-    });
+    })
 
     // Update nilai averageRating di tabel Tailor
-    await prismaClient.tailor.update({
+    await prismaClient.tailorProfile.update({
       where: { id: request.tailorId },
       data: {
         averageRating: avgRating._avg.rating ?? 0,
       },
-    });
+    })
 
-    return "Success Add Review";
+    return "Success Add Review"
   }
 }
