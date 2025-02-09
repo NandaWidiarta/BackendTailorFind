@@ -1,15 +1,13 @@
+import { Role } from "@prisma/client";
 import { prismaClient } from "../application/database";
 
 export class ChatService {
-  // 1. Buat atau ambil room 1–1
-  static async createOrGetRoom(customerId: number, tailorId: number) {
-    // Cek apakah sudah ada room
+  static async createOrGetRoom(customerId: string, tailorId: string) {
     let room = await prismaClient.roomChat.findFirst({
       where: { customerId, tailorId },
     });
 
     if (!room) {
-      // Kalau belum ada, buat
       room = await prismaClient.roomChat.create({
         data: {
           customerId,
@@ -20,8 +18,7 @@ export class ChatService {
     return room;
   }
 
-  // 2. Ambil daftar room milik customer
-  static async getRoomsByCustomer(customerId: number) {
+  static async getRoomsByCustomer(customerId: string) {
     console.log('masuk')
     return prismaClient.roomChat.findMany({
       where: { customerId },
@@ -39,8 +36,7 @@ export class ChatService {
     });
   }
 
-  // 3. Ambil daftar room milik tailor
-  static async getRoomsByTailor(tailorId: number) {
+  static async getRoomsByTailor(tailorId: string) {
     return prismaClient.roomChat.findMany({
       where: { tailorId },
       include: {
@@ -54,27 +50,32 @@ export class ChatService {
           }
         }
       }
-    });
+    })
   }  
 
-  // 4. Ambil semua chat dalam 1 room
-  static async getChatsInRoom(roomId: number) {
+  static async getChatsInRoom(roomId: string, userType: Role) {
+
+    if (userType == Role.CUSTOMER) {
+      ChatService.markAsRead(roomId, Role.CUSTOMER)
+    } else {
+      ChatService.markAsRead(roomId, Role.TAILOR)
+    }
+    
     return prismaClient.chat.findMany({
       where: { roomId },
       orderBy: { createdAt: "asc" }
-    });
+    })
   }
 
-  // 5. Kirim pesan (disimpan di tabel Chat)
   static async sendMessage(
-    roomId: number,
-    senderId: number,
-    senderType: string,
+    roomId: string,
+    senderId: string,
+    senderType: Role,
     message: string,
     type: string
   ) {
     console.log(roomId, senderId, senderType, message, type)
-    return prismaClient.chat.create({
+    const newChat = await prismaClient.chat.create({
       data: {
         roomId,
         senderId,
@@ -82,6 +83,33 @@ export class ChatService {
         message,
         type
       }
-    });
+    })
+
+    await prismaClient.roomChat.update({
+      where: { id: roomId },
+      data: {
+        latestMessage: message,
+        latestMessageTime: new Date(),
+        unreadCountCustomer: senderType === Role.TAILOR
+          ? { increment: 1 } 
+          : undefined,
+        unreadCountTailor: senderType === Role.CUSTOMER
+          ? { increment: 1 }  
+          : undefined,
+      }
+    })
+    
+    return newChat
   }
+
+  static async markAsRead(roomId: string, userType: Role) {
+    await prismaClient.roomChat.update({
+      where: { id: roomId },
+      data: {
+        unreadCountCustomer: userType === Role.CUSTOMER ? 0 : undefined,
+        unreadCountTailor: userType === Role.TAILOR ? 0 : undefined,
+      }
+    })
+  }
+  
 }

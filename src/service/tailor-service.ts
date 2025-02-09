@@ -1,4 +1,3 @@
-import { Customer } from "@prisma/client";
 import { prismaClient } from "../application/database";
 import { ResponseError } from "../error/response-error";
 import {
@@ -12,46 +11,23 @@ import { CustomerValidation } from "../validation/customer-validation";
 import { Validation } from "../validation/validation";
 import bcrypt from "bcrypt";
 import { v4 as uuid } from "uuid";
-import { CustomerRequest } from "../type/customer-request";
 import {
   CreateTailorRequest,
   TailorResponse,
   toTailorResponse,
 } from "../model/tailor-model";
 import { supabase } from "../supabase-client";
+import { Role } from "@prisma/client";
 
 export class TailorService {
-  // static async register(request: CreateTailorRequest): Promise<TailorResponse> {
-  //   // const registerRequest = Validation.validate(CustomerValidation.REGISTER, request);
-  //   const registerRequest = request;
-
-  //   const totalUserWithSameEmail = await prismaClient.tailor.count({
-  //     where: {
-  //       email: registerRequest.email,
-  //     },
-  //   });
-
-  //   if (totalUserWithSameEmail != 0) {
-  //     throw new ResponseError(400, "Email already exist");
-  //   }
-
-  //   registerRequest.password = await bcrypt.hash(registerRequest.password, 10);
-
-  //   const tailor = await prismaClient.tailor.create({
-  //     data: registerRequest,
-  //   });
-
-  //   return toTailorResponse(tailor);
-  // }
-
   static async login(request: LoginCustomerRequest): Promise<TailorResponse> {
-    const loginRequest = Validation.validate(CustomerValidation.LOGIN, request);
+    const loginRequest = Validation.validate(CustomerValidation.LOGIN, request)
 
-    let tailor = await prismaClient.tailor.findUnique({
+    let tailor = await prismaClient.user.findUnique({
       where: {
         email: loginRequest.email,
       },
-    });
+    })
 
     if (!tailor) {
       throw new ResponseError(401, "Email or password is wrong");
@@ -60,65 +36,70 @@ export class TailorService {
     const isPasswordValid = await bcrypt.compare(
       loginRequest.password,
       tailor.password
-    );
+    )
     if (!isPasswordValid) {
-      throw new ResponseError(401, "Email or password is wrong");
+      throw new ResponseError(401, "Email or password is wrong")
     }
 
     let newToken = uuid()
-    let existingToken = await prismaClient.customer.findFirst({
-        where: { token: newToken },
-    });
+    let existingToken = await prismaClient.user.findFirst({
+      where: { token: newToken },
+    })
 
     while (existingToken) {
-        newToken = uuid()
-        existingToken = await prismaClient.customer.findFirst({
-            where: { token: newToken },
-        });
+      newToken = uuid()
+      existingToken = await prismaClient.user.findFirst({
+        where: { token: newToken },
+      })
     }
 
-    tailor = await prismaClient.tailor.update({
+    tailor = await prismaClient.user.update({
       where: {
         email: loginRequest.email,
       },
       data: {
         token: newToken,
       },
-    });
+      include: {
+        tailorProfile: true,
+      }
+    })
 
-    const response = toTailorResponse(tailor);
-    response.token = tailor.token!;
-    return response;
+    const response = toTailorResponse(tailor)
+    response.token = tailor.token!
+    return response
   }
 
-  static async registerV2(
+  static async register(
     request: CreateTailorRequest,
     profilePictureFile?: Express.Multer.File,
     certificateFiles?: Express.Multer.File[] // Tambahkan array file
   ): Promise<TailorResponse> {
-    // Validasi request (opsional)
     const registerRequest = request;
 
-    // Cek jika email sudah terdaftar
-    const totalUserWithSameEmail = await prismaClient.tailor.count({
-      where: {
-        email: registerRequest.email,
-      },
+    const isEmailExist = await prismaClient.user.count({
+      where: { email: request.email },
     });
 
-    if (totalUserWithSameEmail !== 0) {
+    if (isEmailExist > 0) {
       throw new ResponseError(400, "Email already exist");
     }
 
-    // Hash password
+    const isPhoneExist = await prismaClient.user.count({
+      where: { phoneNumber: request.phoneNumber },
+    });
+
+    if (isPhoneExist > 0) {
+      throw new ResponseError(400, "Phone number already exist");
+    }
+
     registerRequest.password = await bcrypt.hash(registerRequest.password, 10);
 
-    // Upload profile picture jika ada
     let profilePictureUrl: string | null = null;
     if (profilePictureFile) {
-      const fileName = `profile-pictures/${uuid()}`;
+      const fileName = `${registerRequest.email}-${Date.now()}`;
       const { data, error } = await supabase.storage
-        .from("profile") // Ganti dengan bucket storage Anda
+        .from("profile")
         .upload(fileName, profilePictureFile.buffer, {
           contentType: profilePictureFile.mimetype,
         });
@@ -135,13 +116,12 @@ export class TailorService {
         : null;
     }
 
-    // Upload certificates jika ada
     let certificateUrls: string[] = [];
     if (certificateFiles && certificateFiles.length > 0) {
       for (const file of certificateFiles) {
-        const fileName = `certificates/${uuid()}`;
+        const fileName = `${registerRequest.email}-${Date.now()}`;
         const { data, error } = await supabase.storage
-          .from("certificates") // Ganti dengan bucket storage Anda
+          .from("certificates")
           .upload(fileName, file.buffer, {
             contentType: file.mimetype,
           });
@@ -155,18 +135,41 @@ export class TailorService {
             supabase.storage.from("certificates").getPublicUrl(data.path).data
               .publicUrl
           }`;
-          certificateUrls.push(publicUrl); // Tambahkan URL ke array
+          certificateUrls.push(publicUrl);
         }
       }
     }
 
-    // Set URLs ke request
     registerRequest.profilePicture = profilePictureUrl;
     registerRequest.certificate = certificateUrls;
 
-    // Simpan ke database
-    const tailor = await prismaClient.tailor.create({
-      data: registerRequest,
+    const tailor = await prismaClient.user.create({
+      data: {
+        firstname: registerRequest.firstname,
+        lastname: registerRequest.lastname,
+        email: registerRequest.email,
+        phoneNumber: registerRequest.phoneNumber,
+        password: registerRequest.password,
+        role: Role.TAILOR,
+        tailorProfile: {
+          create: {
+            provinceId: registerRequest.provinceId,
+            regencyId: registerRequest.regencyId,
+            districtId: registerRequest.districtId,
+            villageId: registerRequest.villageId,
+            addressDetail: registerRequest.addressDetail,
+            workEstimation: registerRequest.workEstimation,
+            priceRange: registerRequest.priceRange,
+            specialization: registerRequest.specialization,
+            businessDescription: registerRequest.businessDescription,
+            profilePicture: registerRequest.profilePicture,
+            certificate: registerRequest.certificate,
+          },
+        },
+      },
+      include: {
+        tailorProfile: true,
+      },
     });
 
     return toTailorResponse(tailor);

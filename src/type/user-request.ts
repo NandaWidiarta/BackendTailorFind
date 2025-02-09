@@ -1,6 +1,6 @@
-import {Request} from "express";
-import {Customer} from "@prisma/client";
+import { User } from "@prisma/client";
+import { Request } from "express";
 
-export interface CustomerRequest extends Request {
-    customer?: Customer
+export interface UserRequest extends Request {
+    user?: User
 }

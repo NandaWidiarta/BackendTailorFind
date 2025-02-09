@@ -1,4 +1,3 @@
-import { Customer } from "@prisma/client";
 import { prismaClient } from "../application/database";
 import { ResponseError } from "../error/response-error";
 import { CreateCustomerRequest, CustomerResponse, CustomersResponse, LoginCustomerRequest, toCustomerResponse } from "../model/customer-model";
@@ -6,7 +5,7 @@ import { CustomerValidation } from "../validation/customer-validation";
 import { Validation } from "../validation/validation";
 import bcrypt from "bcrypt"
 import {v4 as uuid} from "uuid";
-import { CustomerRequest } from "../type/customer-request";
+// import { CustomerRequest } from "../type/customer-request";
 import { ChatResponse, DistrictResponse, ProvinceResponse, RegencyResponse, VillageResponse } from "../model/general-model";
 
 

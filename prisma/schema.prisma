@@ -14,125 +14,132 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-model Customer {
-  id          Int      @id @default(autoincrement()) // ID unik yang auto-increment
-  firstname   String   @db.VarChar(100)             // Nama depan
-  lastname    String?  @db.VarChar(100)             // Nama belakang
-  email       String   @unique @db.VarChar(100)     // Email unik
-  phoneNumber String   @db.VarChar(20)              // Nomor telepon
-  password    String   @db.VarChar(100)             // Password
-  token       String?  @db.VarChar(100)             // Token (opsional)
-  ratings     RatingReview[]
-  roomsAsCustomer RoomChat[] @relation("CustomerRooms")
+model User {
+  id          String    @id @default(cuid())  
+  firstname   String    @db.VarChar(100)
+  lastname    String?   @db.VarChar(100)
+  email       String    @unique @db.VarChar(100)
+  phoneNumber String    @unique @db.VarChar(20)
+  password    String    @db.VarChar(100)
+  token       String?   @db.VarChar(100)    
+  role        Role  
+  createdAt   DateTime  @default(now())
 
-  @@map("Customer") // Pemetaan ke tabel "customers" di database
+  roomsAsCustomer RoomChat[] @relation("CustomerRooms")
+  roomsAsTailor   RoomChat[] @relation("TailorRooms")
+  tailorProfile   TailorProfile? 
+  givenReviews   RatingReview[] @relation("CustomerReviews")
+  receivedReviews RatingReview[] @relation("TailorReviews")
+
+
+  @@map("User")
+}
+
+model TailorProfile {
+  id                String    @id @default(cuid())  
+  userId            String    @unique
+  provinceId        String
+  regencyId         String
+  districtId        String
+  villageId         String
+  addressDetail     String
+  workEstimation    String
+  priceRange        String
+  specialization    String[]
+  businessDescription String
+  profilePicture    String?
+  certificate       String[]
+  averageRating     Float      @default(0.0)
+
+  user              User        @relation(fields: [userId], references: [id])
+  province          Province    @relation("ProvinceTailors", fields: [provinceId], references: [code])
+  regency           Regency     @relation("RegencyTailors", fields: [regencyId], references: [code])
+  district          District    @relation("DistrictTailors", fields: [districtId], references: [code])
+  village           Village     @relation("VillageTailors", fields: [villageId], references: [code])
+
+  @@map("TailorProfile")
+}
+
+model RoomChat {
+  id         String   @id @default(cuid())  
+  customerId String
+  tailorId   String
+  createdAt  DateTime @default(now())
+
+  customer   User @relation("CustomerRooms", fields: [customerId], references: [id])
+  tailor     User @relation("TailorRooms", fields: [tailorId], references: [id])
+
+  chats      Chat[]
+
+  latestMessage      String?    
+  latestMessageTime  DateTime?  
+  unreadCountCustomer Int @default(0)  
+  unreadCountTailor   Int @default(0)  
+
+  @@unique([customerId, tailorId])
+}
+
+model Chat {
+  id         String   @id @default(cuid())  
+  roomId     String
+  room       RoomChat @relation(fields: [roomId], references: [id])
+
+  senderId   String
+  senderType Role 
+  message    String
+  type       String   @default("text") 
+  createdAt  DateTime @default(now())
+}
+
+model RatingReview {
+  id        String   @id @default(cuid())  
+  rating    Int      @db.SmallInt  
+  review    String?   @db.VarChar(100)
+  tailorId  String
+  customerId String
+  createdAt DateTime @default(now())
+  tailor    User   @relation("TailorReviews", fields: [tailorId], references: [id], onDelete: Cascade)
+  customer  User   @relation("CustomerReviews", fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@map("RatingReview")
 }
 
 model Province {
   code      String       @id @unique
   name      String
-  regencies Regency[]    // Relasi satu-ke-banyak ke Regency
-  tailors   Tailor[]     @relation("ProvinceTailors") // Relasi dua arah ke Tailor
+  regencies Regency[]    
+  tailors   TailorProfile[]     @relation("ProvinceTailors") 
 }
 
 model Regency {
   code            String      @id @unique
   name            String
-  province_code   String      // Menghubungkan dengan `code` dari Province
-  province        Province    @relation(fields: [province_code], references: [code]) // Menghubungkan ke Province
-  districts       District[]  // Relasi satu-ke-banyak ke District
-  tailors         Tailor[]    @relation("RegencyTailors") // Relasi dua arah ke Tailor
+  province_code   String      
+  province        Province    @relation(fields: [province_code], references: [code]) 
+  districts       District[]  
+  tailors         TailorProfile[]    @relation("RegencyTailors") 
 }
 
 model District {
   code            String      @id @unique
   name            String
-  regency_code    String      // Menghubungkan dengan `code` dari Regency
-  regency         Regency     @relation(fields: [regency_code], references: [code]) // Menghubungkan ke Regency
-  villages        Village[]   // Relasi satu-ke-banyak ke Village
-  tailors         Tailor[]    @relation("DistrictTailors") // Relasi dua arah ke Tailor
+  regency_code    String      
+  regency         Regency     @relation(fields: [regency_code], references: [code]) 
+  villages        Village[]  
+  tailors         TailorProfile[]    @relation("DistrictTailors") 
 }
 
 model Village {
   code            String      @id @unique
   name            String
-  district_code   String      // Menghubungkan dengan `code` dari District
-  district        District    @relation(fields: [district_code], references: [code]) // Menghubungkan ke District
-  tailors         Tailor[]    @relation("VillageTailors") // Relasi dua arah ke Tailor
+  district_code   String     
+  district        District    @relation(fields: [district_code], references: [code]) 
+  tailors         TailorProfile[]    @relation("VillageTailors") 
 }
 
-model Tailor {
-  id                Int         @id @default(autoincrement())
-  firstname         String      @db.VarChar(100)
-  lastname          String?     @db.VarChar(100)
-  email             String      @unique @db.VarChar(100)
-  phoneNumber       String      @db.VarChar(20)
-  password          String      @db.VarChar(100)
-  provinceId        String      // Menghubungkan dengan `code` dari Province
-  regencyId         String      // Menghubungkan dengan `code` dari Regency
-  districtId        String      // Menghubungkan dengan `code` dari District
-  villageId         String      // Menghubungkan dengan `code` dari Village
-  addressDetail     String
-  workEstimation    String
-  priceRange        String
-  specialization    String[]    // Array of string
-  businessDescription String
-  profilePicture    String?
-  certificate       String[]
-  ratingReviews     RatingReview[]
-  averageRating     Float           @default(0.0)
-  createdAt         DateTime    @default(now())
-  token             String?     @db.VarChar(100)
-
-  province          Province    @relation("ProvinceTailors", fields: [provinceId], references: [code])
-  regency           Regency     @relation("RegencyTailors", fields: [regencyId], references: [code])
-  district          District    @relation("DistrictTailors", fields: [districtId], references: [code])
-  village           Village     @relation("VillageTailors", fields: [villageId], references: [code])
-  roomsAsTailor     RoomChat[] @relation("TailorRooms")
-
-  @@map("Tailor")
+enum Role {
+  CUSTOMER
+  TAILOR
 }
 
 
-model RatingReview {
-  id        Int      @id @default(autoincrement())
-  rating    Int      @db.SmallInt   // Nilai dari 1-5
-  review    String?   @db.VarChar(50)
-  tailorId  Int      // Relasi ke Tailor
-  customerId Int     // Relasi ke Customer
-  tailor    Tailor   @relation(fields: [tailorId], references: [id])
-  customer  Customer @relation(fields: [customerId], references: [id])
-  createdAt DateTime @default(now())
-
-  @@map("RatingReview")
-}
-
-model RoomChat {
-  id         Int      @id @default(autoincrement())
-  customerId Int
-  tailorId   Int
-
-  createdAt  DateTime @default(now())
-
-  // Relasi ke Customer & Tailor
-  customer   Customer @relation("CustomerRooms", fields: [customerId], references: [id])
-  tailor     Tailor   @relation("TailorRooms", fields: [tailorId], references: [id])
-
-  // Relasi ke Chat (banyak pesan)
-  chats      Chat[]
-
-  // Mencegah duplikasi room 1–1 (customerId, tailorId) sama
-  @@unique([customerId, tailorId])
-}
-
-model Chat {
-  id         Int      @id @default(autoincrement())
-  roomId     Int
-  room       RoomChat @relation(fields: [roomId], references: [id])
-
-  senderId   Int
-  senderType String   // "customer" or "tailor"
-  message    String
-  type       String   @default("text") // "text" or "image"
-  createdAt  DateTime @default(now())
-}
