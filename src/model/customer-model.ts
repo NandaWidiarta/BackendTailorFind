@@ -17,6 +17,7 @@ export type CreateCustomerRequest = {
     phoneNumber: string;
     password: string;
     role: Role;
+    token?: string | null;
 }
 
 export type CustomersResponse = {
@@ -47,7 +48,8 @@ export function toCustomerResponse(customer: User): CustomerResponse {
         lastName: customer.lastname || undefined,
         email: customer.email,
         phoneNumber: customer.phoneNumber, 
-        role: Role.CUSTOMER
+        role: Role.CUSTOMER,
+        token: customer.token || undefined
     }
 }
 

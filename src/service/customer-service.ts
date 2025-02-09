@@ -33,8 +33,30 @@ export class CustomerService {
       throw new ResponseError(400, "Email already exist")
     }
 
+    const isPhoneExist = await prismaClient.user.count({
+      where: { phoneNumber: request.phoneNumber },
+    });
+
+    if (isPhoneExist > 0) {
+      throw new ResponseError(400, "Phone number already exist");
+    }
+
     registerRequest.password = await bcrypt.hash(registerRequest.password, 10);
     registerRequest.role = Role.CUSTOMER
+
+    let newToken = uuid()
+    let existingToken = await prismaClient.user.findFirst({
+      where: { token: newToken },
+    })
+
+    while (existingToken) {
+      newToken = uuid()
+      existingToken = await prismaClient.user.findFirst({
+        where: { token: newToken },
+      })
+    }
+
+    registerRequest.token = newToken
 
     const customer = await prismaClient.user.create({
       data: registerRequest,

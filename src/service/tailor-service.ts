@@ -143,6 +143,18 @@ export class TailorService {
     registerRequest.profilePicture = profilePictureUrl;
     registerRequest.certificate = certificateUrls;
 
+    let newToken = uuid()
+    let existingToken = await prismaClient.user.findFirst({
+      where: { token: newToken },
+    })
+
+    while (existingToken) {
+      newToken = uuid()
+      existingToken = await prismaClient.user.findFirst({
+        where: { token: newToken },
+      })
+    }
+
     const tailor = await prismaClient.user.create({
       data: {
         firstname: registerRequest.firstname,
@@ -151,6 +163,7 @@ export class TailorService {
         phoneNumber: registerRequest.phoneNumber,
         password: registerRequest.password,
         role: Role.TAILOR,
+        token: newToken,
         tailorProfile: {
           create: {
             provinceId: registerRequest.provinceId,
