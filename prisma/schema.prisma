@@ -30,6 +30,8 @@ model User {
   tailorProfile   TailorProfile? 
   givenReviews   RatingReview[] @relation("CustomerReviews")
   receivedReviews RatingReview[] @relation("TailorReviews")
+  ordersAsTailor   Order[] @relation("TailorOrders")
+  ordersAsCustomer Order[] @relation("CustomerOrders")
 
 
   @@map("User")
@@ -70,6 +72,7 @@ model RoomChat {
   tailor     User @relation("TailorRooms", fields: [tailorId], references: [id])
 
   chats      Chat[]
+  Order      Order[]
 
   latestMessage      String?    
   latestMessageTime  DateTime?  
@@ -136,6 +139,50 @@ model Village {
   district        District    @relation(fields: [district_code], references: [code]) 
   tailors         TailorProfile[]    @relation("VillageTailors") 
 }
+
+model Order {
+  id           String       @id @default(cuid())
+  tailorId     String
+  customerId   String
+  roomId       String
+  customerName String
+  totalPrice   Int
+  status       OrderStatus  @default(NOT_YET_PAY)
+  orderDate    DateTime     @default(now())
+  bankName        String
+  bankAccountOwner  String
+  bankAccountNumber String
+  deliveryServiceName String?
+  receiptNumber String?
+  deliveryImage String?
+  paymentImage String?
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  room         RoomChat @relation(fields: [roomId], references: [id])
+  tailor       User @relation("TailorOrders", fields: [tailorId], references: [id])
+  customer     User @relation("CustomerOrders", fields: [customerId], references: [id])
+
+  orderItems   OrderItem[]  
+}
+
+model OrderItem {
+  id       String  @id @default(cuid())
+  orderId  String
+  name     String
+  qty      Int
+  price    Int
+
+  order    Order  @relation(fields: [orderId], references: [id])
+}
+
+enum OrderStatus {
+  NOT_YET_PAY
+  ON_PROCCESS
+  DONE
+}
+
 
 enum Role {
   CUSTOMER
