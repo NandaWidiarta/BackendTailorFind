@@ -113,7 +113,7 @@ export class TailorService {
             supabase.storage.from("profile").getPublicUrl(data.path).data
               .publicUrl
           }`
-        : null;
+        : null
     }
 
     let certificateUrls: string[] = [];

@@ -100,7 +100,7 @@ export class RoomChatController {
       
       res.status(200).json({
         data: chat,
-    });
+      })
     } catch (e) {
       next(e)
     }
