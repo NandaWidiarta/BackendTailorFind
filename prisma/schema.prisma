@@ -100,6 +100,7 @@ model RatingReview {
   review    String?   @db.VarChar(100)
   tailorId  String
   customerId String
+  image     String?
   createdAt DateTime @default(now())
   tailor    User   @relation("TailorReviews", fields: [tailorId], references: [id], onDelete: Cascade)
   customer  User   @relation("CustomerReviews", fields: [customerId], references: [id], onDelete: Cascade)

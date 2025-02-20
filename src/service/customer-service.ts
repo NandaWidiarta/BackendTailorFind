@@ -13,6 +13,7 @@ import { CustomerValidation } from "../validation/customer-validation";
 import { Validation } from "../validation/validation";
 import bcrypt from "bcrypt";
 import { v4 as uuid } from "uuid";
+import { supabase } from "../supabase-client";
 
 export class CustomerService {
   static async register(
@@ -112,12 +113,39 @@ export class CustomerService {
     return response
   }
 
-  static async addRatingReview(request: RatingReviewRequest): Promise<String> {
-    const customer = await prismaClient.ratingReview.create({
+  static async addRatingReview(request: RatingReviewRequest, ratingImage?: Express.Multer.File,): Promise<String> {
+    const ratingReview = await prismaClient.ratingReview.create({
       data: request,
     })
 
-    // Hitung ulang rata-rata rating untuk tailor terkait
+    
+    if (ratingImage) {
+      let imageUrl: string | null = null;
+      const fileName = `${ratingReview.id}-${Date.now()}`;
+      const { data, error } = await supabase.storage
+        .from("RatingReviewImage")
+        .upload(fileName, ratingImage.buffer, {
+          contentType: ratingImage.mimetype,
+        });
+
+      if (error) {
+        throw new ResponseError(500, "failed-upload-rating-image-to-database");
+      }
+
+      imageUrl = data?.path
+        ? supabase.storage.from("RatingReviewImage").getPublicUrl(data.path).data
+            ?.publicUrl || null
+        : null;
+
+      if (imageUrl) {
+        await prismaClient.ratingReview.update({
+          where: { id: ratingReview.id },
+          data: { image: imageUrl },
+          select: { id: true, image: true },
+        });
+      }
+    }
+
     const avgRating = await prismaClient.ratingReview.aggregate({
       where: { tailorId: request.tailorId },
       _avg: {
@@ -125,9 +153,8 @@ export class CustomerService {
       },
     })
 
-    // Update nilai averageRating di tabel Tailor
     await prismaClient.tailorProfile.update({
-      where: { id: request.tailorId },
+      where: { userId: request.tailorId },
       data: {
         averageRating: avgRating._avg.rating ?? 0,
       },

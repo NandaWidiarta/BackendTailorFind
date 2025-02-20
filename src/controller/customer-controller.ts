@@ -6,6 +6,7 @@ import {
 } from "../model/customer-model";
 import { CustomerService } from "../service/customer-service";
 import { UserRequest } from "../type/user-request";
+import { ResponseError } from "../error/response-error";
 // import { CustomerRequest } from "../type/customer-request";
 
 export class CustomerController {
@@ -49,8 +50,20 @@ export class CustomerController {
     next: NextFunction
   ) {
     try {
-      const request: RatingReviewRequest = req.body as RatingReviewRequest;
-      const response = await CustomerService.addRatingReview(request);
+      const rating = parseInt(req.body.rating)
+      const review = req.body.review
+      const tailorId = req.body.tailorId
+      const customerId = req.body.customerId
+
+      if (isNaN(rating) || rating < 1 || rating > 5) {
+        throw new ResponseError(400, "Invalid rating value");
+      }
+      
+      const response = await CustomerService.addRatingReview(
+        { rating, review, tailorId, customerId }, 
+        req.file
+      )
+    
       res.status(200).json({
         data: response,
       });

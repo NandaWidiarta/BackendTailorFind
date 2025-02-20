@@ -7,7 +7,7 @@ import { OrderController } from "../controller/order-controller";
 
 export const customerApiRouter = express.Router()
 customerApiRouter.use(authMiddleware)
-customerApiRouter.post("/add-rating-review", CustomerController.addRatingReview);
+customerApiRouter.post("/add-rating-review",upload.single('file'), CustomerController.addRatingReview);
 customerApiRouter.post("/rooms", RoomChatController.createOrGetRoom);
 customerApiRouter.get("/rooms/:customerId", RoomChatController.getRoomsByCustomer);
 customerApiRouter.get("/rooms/:roomId/chats", RoomChatController.getChatsInRoomByCustomer);
