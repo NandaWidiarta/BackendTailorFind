@@ -48,3 +48,7 @@ publicRouter.post(
     ]),
     TailorController.register
   );
+
+
+//dashboard
+publicRouter.get("/home", GeneralController.getHomeData)

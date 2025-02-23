@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction, RequestHandler } from "express";
 import {
   CreateCustomerRequest,
   LoginCustomerRequest,
@@ -71,4 +71,35 @@ export class CustomerController {
       next(e);
     }
   }
+  
+
+  static async getHomeData(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userReq = req as UserRequest;
+      const userId = userReq.user?.id;
+      if (!userId) {
+        throw new ResponseError(400, "user id null");
+      }
+
+      const result = await CustomerService.getHomeData(userId);
+      return res.json({ data: result });
+    } catch (e) {
+      next(e);
+    }
+  }
 }
+
+export const getHome: RequestHandler = async (req, res, next) => {
+  try {
+    const user = req as UserRequest;
+    const userId = user.user?.id
+    if (!userId) {
+      return next();
+    }
+    const result = await CustomerService.getHomeData(userId);
+    res.json({ data: result });
+    return
+  } catch (error) {
+    next(error);
+  }
+};

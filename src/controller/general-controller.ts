@@ -1,5 +1,6 @@
 import {Request, Response, NextFunction} from "express";
 import { GeneralService } from "../service/general-service";
+import { CustomerService } from "../service/customer-service";
 
 export class GeneralController {
     static async getProvince(req: Request, res: Response, next: NextFunction) {
@@ -49,4 +50,14 @@ export class GeneralController {
         }
     }
 
+    static async getHomeData(req: Request, res: Response, next: NextFunction) {
+        try {
+            const response = await CustomerService.getHomeData()
+            res.status(200).json({
+                data: response
+            })
+        } catch (e) {
+            next(e)
+        }
+    }
 }

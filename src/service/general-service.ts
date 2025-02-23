@@ -56,5 +56,4 @@ export class GeneralService {
 
         return village
     }
-    
 }

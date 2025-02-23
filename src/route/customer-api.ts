@@ -1,5 +1,5 @@
 import express from "express";
-import { CustomerController } from "../controller/customer-controller";
+import { CustomerController, getHome } from "../controller/customer-controller";
 import { RoomChatController } from "../controller/room-chat-controller";
 import upload from "../middleware/multer";
 import { authMiddleware } from "../middleware/auth-middleware";
@@ -17,3 +17,5 @@ customerApiRouter.post("/rooms/:roomId/chats", upload.single('file'), RoomChatCo
 customerApiRouter.post("/order/upload-payment/:orderId", upload.single('file'), OrderController.uploadPaymentProof)
 customerApiRouter.get("/order/:orderId", OrderController.getDetailOrder)
 customerApiRouter.get("/order/all/:userId", OrderController.getAllOrderByCustomer)
+
+customerApiRouter.get("/home", getHome)

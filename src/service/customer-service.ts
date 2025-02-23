@@ -162,4 +162,49 @@ export class CustomerService {
 
     return "Success Add Review"
   }
+
+  static async getHomeData(customerId?: string) {
+    
+    let unreadMessagesCount : number | null = null
+    if (customerId) {
+      const rooms = await prismaClient.roomChat.findMany({
+        where: { customerId },
+        select: { unreadCountCustomer: true },
+      })
+      unreadMessagesCount = rooms.reduce(
+        (total, room) => total + room.unreadCountCustomer,
+        0
+      )
+    }
+
+    const topTailors = await prismaClient.tailorProfile.findMany({
+      orderBy: { averageRating: "desc" },
+      take: 5,
+      include: {
+        user: {
+          select: {
+            firstname: true,
+            lastname: true,
+          },
+        },
+      },
+    });
+
+    const latestArticles = await prismaClient.article.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    })
+
+    const latestCourses = await prismaClient.course.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    })
+
+    return {
+      unreadMessagesCount,
+      topTailors,
+      latestArticles,
+      latestCourses,
+    };
+  }
 }
