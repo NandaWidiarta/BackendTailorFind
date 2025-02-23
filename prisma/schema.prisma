@@ -33,7 +33,6 @@ model User {
   ordersAsTailor   Order[] @relation("TailorOrders")
   ordersAsCustomer Order[] @relation("CustomerOrders")
 
-
   @@map("User")
 }
 
@@ -58,6 +57,8 @@ model TailorProfile {
   regency           Regency     @relation("RegencyTailors", fields: [regencyId], references: [code])
   district          District    @relation("DistrictTailors", fields: [districtId], references: [code])
   village           Village     @relation("VillageTailors", fields: [villageId], references: [code])
+  article           Article[]   @relation("TailorArticles")
+  courses           Course[]    @relation("TailorCourses")
 
   @@map("TailorProfile")
 }
@@ -178,12 +179,39 @@ model OrderItem {
   order    Order  @relation(fields: [orderId], references: [id])
 }
 
+model Article {
+  id           String       @id @default(cuid())
+  tailorId     String
+  authorName   String
+  imageUrl     String?
+  title        String
+  content      String
+
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  tailor       TailorProfile @relation("TailorArticles", fields: [tailorId], references: [userId])
+}
+
+model Course {
+  id           String       @id @default(cuid())
+  tailorId     String
+  authorName   String
+  imageUrl     String
+  courseName   String
+  shortDescription      String
+  registrationLink      String
+  description  String
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  tailor       TailorProfile @relation("TailorCourses", fields: [tailorId], references: [userId])
+}
+
 enum OrderStatus {
   NOT_YET_PAY
   ON_PROCCESS
   DONE
 }
-
 
 enum Role {
   CUSTOMER

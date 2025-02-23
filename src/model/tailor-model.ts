@@ -17,7 +17,7 @@ export type CreateTailorRequest = {
   businessDescription: string
   profilePicture?: string | null
   certificate?: string[]
-};
+}
 
 export type TailorResponse = {
   id: string
@@ -39,7 +39,7 @@ export type TailorResponse = {
   certificate?: string[]
   createdAt: Date
   token?: string | null
-};
+}
 
 export function toTailorResponse(
   user: User & { tailorProfile?: any }
@@ -67,5 +67,5 @@ export function toTailorResponse(
     role: user.role,
     createdAt: user.createdAt,
     token: user.token ?? null,
-  };
+  }
 }
