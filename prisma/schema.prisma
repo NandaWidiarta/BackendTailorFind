@@ -59,6 +59,7 @@ model TailorProfile {
   village           Village     @relation("VillageTailors", fields: [villageId], references: [code])
   article           Article[]   @relation("TailorArticles")
   courses           Course[]    @relation("TailorCourses")
+  stuff             Stuff[]     @relation("TailorStuffs")
 
   @@map("TailorProfile")
 }
@@ -207,6 +208,19 @@ model Course {
   tailor       TailorProfile @relation("TailorCourses", fields: [tailorId], references: [userId])
 }
 
+model Stuff {
+  id           String       @id @default(cuid())
+  tailorId     String
+  name         String
+  imageUrl        String
+  stuffCaetgory   StuffCategory
+  price           Int
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  tailor          TailorProfile @relation("TailorStuffs", fields: [tailorId], references: [userId])
+}
+
 enum OrderStatus {
   NOT_YET_PAY
   ON_PROCCESS
@@ -216,6 +230,11 @@ enum OrderStatus {
 enum Role {
   CUSTOMER
   TAILOR
+}
+
+enum StuffCategory {
+  FABRIC
+  ACCECORIES
 }
 
 

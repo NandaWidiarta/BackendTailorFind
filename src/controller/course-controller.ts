@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from "express";
-import { ArticleService } from "../service/article-service";
 import { CourseService } from "../service/course-service";
 import { ResponseError } from "../error/response-error";
 import { UserRequest } from "../type/user-request";

@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from "express";
 import { CreateTailorRequest } from "../model/tailor-model";
 import { TailorService } from "../service/tailor-service";
 import { LoginCustomerRequest } from "../model/customer-model";
+import { UserRequest } from "../type/user-request";
+import { ResponseError } from "../error/response-error";
 
 export class TailorController {
   static async login(req: Request, res: Response, next: NextFunction) {
@@ -42,6 +44,23 @@ export class TailorController {
       });
     } catch (e) {
       next(e)
+    }
+  }
+
+  static async getHomeData(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userReq = req as UserRequest;
+      const userId = userReq.user?.id;
+      if (!userId) {
+        throw new ResponseError(400, "user id null");
+      }
+
+      const result = await TailorService.getHomeData(userId);
+      res.status(200).json({
+        data: result,
+      });
+    } catch (e) {
+      next(e);
     }
   }
 }

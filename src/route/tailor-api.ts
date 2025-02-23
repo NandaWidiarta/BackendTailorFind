@@ -5,6 +5,8 @@ import { authMiddleware } from "../middleware/auth-middleware";
 import { OrderController } from "../controller/order-controller";
 import { ArticleController } from "../controller/article-controller";
 import { CourseController } from "../controller/course-controller";
+import { StuffController } from "../controller/stuff-controller";
+import { TailorController } from "../controller/tailor-controller";
 
 export const tailorApiRouter = express.Router()
 tailorApiRouter.use(authMiddleware)
@@ -23,3 +25,7 @@ tailorApiRouter.post("/order/complete", OrderController.completeOrderByTailor)
 //article
 tailorApiRouter.post("/article/add", upload.single('file'), ArticleController.addArticle)
 tailorApiRouter.post("/course/add", upload.single('file'), CourseController.addCourse)
+tailorApiRouter.post("/stuff/add", upload.single('file'), StuffController.addStuff)
+
+//home
+tailorApiRouter.get("/home", TailorController.getHomeData)

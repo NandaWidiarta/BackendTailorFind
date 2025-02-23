@@ -187,4 +187,56 @@ export class TailorService {
 
     return toTailorResponse(tailor);
   }
+
+  static async getHomeData(tailorId: string) {
+
+    if (!tailorId) {
+      throw new ResponseError(400, "tailorId-not-found");
+    }
+
+    const rooms = await prismaClient.roomChat.findMany({
+      where: { tailorId },
+      select: { unreadCountCustomer: true },
+    })
+
+    const unreadMessagesCount = rooms.reduce(
+      (total, room) => total + room.unreadCountCustomer,
+      0
+    )
+
+    const tailorProfile = await prismaClient.tailorProfile.findUnique({
+      where: { userId: tailorId },
+      include: {
+        user: {
+          select: {
+            firstname: true,
+            lastname: true,
+          },
+        },
+      },
+    });
+
+    const latestArticles = await prismaClient.article.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    })
+
+    const latestStuff = await prismaClient.stuff.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    })
+
+    const latestCourses = await prismaClient.course.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    })
+
+    return {
+      tailorProfile,
+      unreadMessagesCount,
+      latestArticles,
+      latestStuff,
+      latestCourses
+    };
+  }
 }
