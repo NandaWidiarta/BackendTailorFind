@@ -87,6 +87,69 @@ export class CustomerController {
       next(e);
     }
   }
+
+  static async getTailors(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { page = "1" } = req.query;
+      const currentPage = parseInt(page as string, 10) || 1;
+      
+      const response = await CustomerService.getTailors(currentPage)
+    
+      res.status(200).json({
+        data: response,
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  static async getFilteredTailors(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const {
+        page = "1",
+        name,
+        provinceId,
+        regencyId,
+        districtId,
+        villageId,
+        specialization,
+        averageRating,
+        workEstimation,
+        priceRange,
+      } = req.query;
+
+      const currentPage = parseInt(page as string, 10) || 1;
+      const pageSize = 8; 
+
+      const result = await CustomerService.getFilteredTailors({
+        page: currentPage,
+        pageSize,
+        search: name as string,
+        provinceId: provinceId as string,
+        regencyId: regencyId as string,
+        districtId: districtId as string,
+        villageId: villageId as string,
+        specialization: specialization as string,
+        averageRating: averageRating as string,
+        workEstimation: workEstimation as string,
+        priceRange: priceRange as string,
+      });
+    
+      res.status(200).json({
+        data: result,
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
 }
 
 export const getHome: RequestHandler = async (req, res, next) => {

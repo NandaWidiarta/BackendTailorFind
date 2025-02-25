@@ -52,3 +52,6 @@ publicRouter.post(
 
 //dashboard
 publicRouter.get("/home", GeneralController.getHomeData)
+
+publicRouter.get("/get-tailors", CustomerController.getTailors)
+publicRouter.get("/get-tailors/filter", CustomerController.getFilteredTailors)

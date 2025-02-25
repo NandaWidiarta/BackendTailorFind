@@ -7,6 +7,7 @@ import {
   CustomersResponse,
   LoginCustomerRequest,
   RatingReviewRequest,
+  TailorFilterParams,
   toCustomerResponse,
 } from "../model/customer-model";
 import { CustomerValidation } from "../validation/customer-validation";
@@ -207,4 +208,181 @@ export class CustomerService {
       latestCourses,
     };
   }
+
+  static async getTailors(page: number = 1, pageSize: number = 8) {
+    const totalTailors = await prismaClient.user.count({
+      where: { role: Role.TAILOR },
+    })
+
+    const skip = (page - 1) * pageSize
+
+    const tailors = await prismaClient.user.findMany({
+      where: { role: Role.TAILOR },
+      skip,
+      take: pageSize,
+      orderBy: { createdAt: "desc" },
+    })
+
+    const totalPages = Math.ceil(totalTailors / pageSize);
+
+    return {
+      tailors,
+      meta: {
+        totalData: totalTailors,
+        totalPages,
+        currentPage: page,
+        pageSize,
+      },
+    };
+  }
+
+  static async getFilteredTailors(params: TailorFilterParams) {
+    const {
+      page = 1,
+      pageSize = 8,
+      search,
+      provinceId,
+      regencyId,
+      districtId,
+      villageId,
+      specialization,
+      averageRating,
+      workEstimation,
+      priceRange,
+    } = params;
+
+    const whereConditions: any = {
+      role: Role.TAILOR,
+    };
+
+    const AND: any[] = [];
+
+    if (search) {
+      AND.push({
+        OR: [
+          {
+            firstname: {
+              contains: search,
+              mode: "insensitive",
+            },
+          },
+          {
+            lastname: {
+              contains: search,
+              mode: "insensitive",
+            },
+          },
+        ],
+      });
+    }
+
+    if (provinceId) {
+      AND.push({
+        tailorProfile: {
+          provinceId,
+        },
+      });
+    }
+    if (regencyId) {
+      AND.push({
+        tailorProfile: {
+          regencyId,
+        },
+      });
+    }
+    if (districtId) {
+      AND.push({
+        tailorProfile: {
+          districtId,
+        },
+      });
+    }
+    if (villageId) {
+      AND.push({
+        tailorProfile: {
+          villageId,
+        },
+      });
+    }
+
+    if (specialization) {
+      AND.push({
+        tailorProfile: {
+          specialization: {
+            has: specialization,
+          },
+        },
+      });
+    }
+
+    if (averageRating) {
+      const avg = parseFloat(averageRating);
+      if (!isNaN(avg)) {
+        AND.push({
+          tailorProfile: {
+            averageRating: {
+              gte: avg,
+            },
+          },
+        });
+      }
+    }
+
+    if (workEstimation) {
+      AND.push({
+        tailorProfile: {
+          workEstimation: {
+            contains: workEstimation,
+            mode: "insensitive",
+          },
+        },
+      });
+    }
+
+    if (priceRange) {
+      AND.push({
+        tailorProfile: {
+          priceRange: {
+            contains: priceRange,
+            mode: "insensitive",
+          },
+        },
+      });
+    }
+
+    if (AND.length > 0) {
+      whereConditions.AND = AND;
+    }
+
+    const totalTailors = await prismaClient.user.count({
+      where: whereConditions,
+    });
+
+    const skip = (page - 1) * pageSize;
+    const take = pageSize;
+
+    const tailors = await prismaClient.user.findMany({
+      where: whereConditions,
+      include: {
+        tailorProfile: true, 
+      },
+      skip,
+      take,
+
+    });
+
+    const totalPages = Math.ceil(totalTailors / pageSize);
+
+    return {
+      tailors,
+      meta: {
+        totalData: totalTailors,
+        totalPages,
+        currentPage: page,
+        pageSize,
+      },
+    };
+  }
+
+
 }

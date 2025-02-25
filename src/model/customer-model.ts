@@ -41,6 +41,20 @@ export type RatingReviewRequest = {
     customerId: string;
 }
 
+export interface TailorFilterParams {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  provinceId?: string;
+  regencyId?: string;
+  districtId?: string;
+  villageId?: string;
+  specialization?: string; 
+  averageRating?: string; 
+  workEstimation?: string; 
+  priceRange?: string;
+}
+
 export function toCustomerResponse(customer: User): CustomerResponse {
     return {
         id : customer.id,
