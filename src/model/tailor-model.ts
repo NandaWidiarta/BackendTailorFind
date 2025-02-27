@@ -41,6 +41,14 @@ export type TailorResponse = {
   token?: string | null
 }
 
+export type StuffFilterParams = {
+  page?: number;
+  pageSize?: number;
+  name?: string;
+  stuffCategory?: string; 
+  maxPrice?: number;
+}
+
 export function toTailorResponse(
   user: User & { tailorProfile?: any }
 ): TailorResponse {

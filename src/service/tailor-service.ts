@@ -13,6 +13,7 @@ import bcrypt from "bcrypt";
 import { v4 as uuid } from "uuid";
 import {
   CreateTailorRequest,
+  StuffFilterParams,
   TailorResponse,
   toTailorResponse,
 } from "../model/tailor-model";
@@ -239,4 +240,100 @@ export class TailorService {
       latestCourses
     };
   }
+
+  static async getStuff(page: number = 1, pageSize: number = 8, tailorId: string) {
+    const skip = (page - 1) * pageSize
+
+    const [stuff, totalStuff] = await prismaClient.$transaction([
+      prismaClient.stuff.findMany({
+        where: { tailorId: tailorId },
+        skip,
+        take: pageSize,
+        orderBy: { createdAt: "desc" },
+      }),
+      prismaClient.stuff.count({
+        where: { tailorId: tailorId }
+      })
+    ]);
+
+    const totalPages = Math.ceil(totalStuff / pageSize);
+
+    return {
+      stuff,
+      meta: {
+        totalData: totalStuff,
+        totalPages,
+        currentPage: page,
+        pageSize,
+      },
+    };
+  }
+
+  static async filterStuff(params: StuffFilterParams, userId: string) {
+    const {
+      page = 1,
+      pageSize = 8,
+      name,
+      stuffCategory,
+      maxPrice,
+    } = params;
+
+    const AND: any[] = [];
+
+    AND.push({ tailorId: userId });
+
+    if (name) {
+      AND.push({
+        name: {
+          contains: name,
+          mode: "insensitive",
+        },
+      });
+    }
+
+    if (stuffCategory) {
+      AND.push({
+        stuffCaetgory: stuffCategory, 
+      });
+    }
+
+    if (maxPrice !== undefined) {
+      AND.push({
+        price: {
+          lte: maxPrice,
+        },
+      });
+    }
+
+    const whereConditions = AND.length > 0 ? { AND } : {};
+
+    const totalStuffs = await prismaClient.stuff.count({
+      where: whereConditions,
+    });
+
+    const skip = (page - 1) * pageSize;
+    const take = pageSize;
+
+    const stuffs = await prismaClient.stuff.findMany({
+      where: whereConditions,
+      skip,
+      take,
+      orderBy: {
+        createdAt: "desc", 
+      },
+    });
+
+    const totalPages = Math.ceil(totalStuffs / pageSize);
+
+    return {
+      data: stuffs,
+      meta: {
+        totalData: totalStuffs,
+        totalPages,
+        currentPage: page,
+        pageSize,
+      },
+    };
+  }
+
 }

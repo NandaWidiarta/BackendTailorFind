@@ -63,4 +63,65 @@ export class TailorController {
       next(e);
     }
   }
+
+  static async getStuff(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { page = "1" } = req.query;
+      const currentPage = parseInt(page as string, 10) || 1;
+      const userReq = req as UserRequest;
+      const userId = userReq.user?.id;
+      if (!userId) {
+        throw new ResponseError(400, "user id null");
+      }
+      
+      const response = await TailorService.getStuff(currentPage, 8, userId)
+    
+      res.status(200).json({
+        data: response,
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  static async getFilteredStuff(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { name, stuffCategory, maxPrice, page = "1" } = req.query;
+
+      const currentPage = parseInt(page as string, 10) || 1;
+      const userReq = req as UserRequest;
+      const userId = userReq.user?.id;
+      const max = maxPrice ? parseInt(maxPrice as string, 10) : undefined;
+
+      if (!userId) {
+        throw new ResponseError(400, "user id null");
+      }
+
+      const result = await TailorService.filterStuff({
+        page: currentPage,
+        pageSize: 8, 
+        name: name as string,
+        stuffCategory: stuffCategory as string,
+        maxPrice: max,
+      }, userId);
+    
+      res.status(200).json({
+        data: result.data,
+        meta: result.meta
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
+
+
+
 }

@@ -29,3 +29,7 @@ tailorApiRouter.post("/stuff/add", upload.single('file'), StuffController.addStu
 
 //home
 tailorApiRouter.get("/home", TailorController.getHomeData)
+
+//list stuff
+tailorApiRouter.get("/stuff", TailorController.getStuff)
+tailorApiRouter.get("/stuff/filter", TailorController.getFilteredStuff)
