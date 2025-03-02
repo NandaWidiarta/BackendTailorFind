@@ -20,7 +20,7 @@ tailorApiRouter.post("/order/create", OrderController.createOrder)
 tailorApiRouter.get("/order/:orderId", OrderController.getDetailOrder)
 tailorApiRouter.get("/order/all/:userId", OrderController.getAllOrderByTailor)
 tailorApiRouter.post("/order/process/:orderId", OrderController.processOrder)
-tailorApiRouter.post("/order/complete", OrderController.completeOrderByTailor)
+tailorApiRouter.post("/order/complete", upload.single('file'), OrderController.completeOrderByTailor)
 
 //article
 tailorApiRouter.post("/article/add", upload.single('file'), ArticleController.addArticle)

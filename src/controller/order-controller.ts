@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { CreateOrderRequest } from "../model/order-model";
 import { OrderService } from "../service/order-service";
+import { UserRequest } from "../type/user-request";
+import { ResponseError } from "../error/response-error";
 
 export class OrderController {
   static async createOrder(req: Request, res: Response, next: NextFunction) {
@@ -83,8 +85,11 @@ export class OrderController {
 
   static async completeOrderByTailor(req: Request, res: Response, next: NextFunction) {
     try {
-      const { orderId, tailorId } = req.body
-      const response = await OrderService.completeOrderByTailor(orderId, tailorId)
+      const { orderId, deliveryServiceName, receiptNumber} = req.body
+      const response = await OrderService.completeOrderByTailor(
+        {orderId, deliveryServiceName, receiptNumber },
+        req.file
+      )
       res.status(200).json({
         data: response,
       });

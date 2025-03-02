@@ -1,6 +1,6 @@
 import { OrderStatus, Role } from "@prisma/client";
 import { prismaClient } from "../application/database";
-import { CreateOrderRequest } from "../model/order-model";
+import { CompleteOrderRequest, CreateOrderRequest } from "../model/order-model";
 import { supabase } from "../supabase-client";
 import { ResponseError } from "../error/response-error";
 
@@ -86,14 +86,26 @@ export class OrderService {
         id: orderId,
       },
       include: {
-        orderItems: true, 
+        orderItems: true,
+        customer: {
+          select: {
+            firstname: true,
+            lastname: true,
+          }
+        },
+        tailor: {
+          select: {
+            firstname: true,
+            lastname: true,
+          }
+        }
       }
     })
-
+  
     if (!order) {
       throw new ResponseError(400, "order-not-found")
     }
-
+  
     return order
   }
 
@@ -103,31 +115,61 @@ export class OrderService {
         customerId: userId,
       },
       include: {
-        orderItems: true, 
+        orderItems: true,
+        tailor: {
+          select: {
+            firstname: true,
+            lastname: true,
+          }
+        }
       }
     })
-
+  
     return orders
   }
-
+  
   static async getAllOrderByTailor(userId: string) {
     const orders = await prismaClient.order.findMany({
       where: {
         tailorId: userId,
       },
       include: {
-        orderItems: true, 
+        orderItems: true,
+        customer: {
+          select: {
+            firstname: true,
+            lastname: true,
+          }
+        }
       }
     })
-
     return orders
   }
 
-  static async completeOrderByTailor(orderId: string, userId: string) {
+  static async completeOrderByTailor(request: CompleteOrderRequest, packetImage ?: Express.Multer.File) {
+
+    let imageUrl: string | null = null;
+    if (packetImage) {
+      const fileName = `${request.orderId}-${Date.now()}`;
+      const { data, error } = await supabase.storage
+        .from("packetImage")
+        .upload(fileName, packetImage.buffer, {
+          contentType: packetImage.mimetype,
+        });
+
+      if (error) {
+        throw new ResponseError(500, "failed-upload-packet-image-to-database");
+      }
+
+      imageUrl = data?.path
+        ? supabase.storage.from("packetImage").getPublicUrl(data.path).data
+            ?.publicUrl || null
+        : null;
+    }
+
     const order = await prismaClient.order.findUnique({
       where: {
-        id: orderId,
-        tailorId: userId
+        id: request.orderId
       },
       include: {
         orderItems: true, 
@@ -139,9 +181,12 @@ export class OrderService {
     }
 
     const updatedOrder = await prismaClient.order.update({
-      where: { id: orderId },
+      where: { id: request.orderId },
       data: {
         status: OrderStatus.DONE,
+        deliveryServiceName: request.deliveryServiceName,
+        receiptNumber: request.receiptNumber,
+        deliveryImage: imageUrl
       },
       include: {
         orderItems: true,

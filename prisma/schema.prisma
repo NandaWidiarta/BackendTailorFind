@@ -149,12 +149,14 @@ model Order {
   customerId   String
   roomId       String
   customerName String
+  orderType    OrderType   @default(PICKUP)
   totalPrice   Int
   status       OrderStatus  @default(NOT_YET_PAY)
   orderDate    DateTime     @default(now())
   bankName        String
   bankAccountOwner  String
   bankAccountNumber String
+  deliveryAddress String?
   deliveryServiceName String?
   receiptNumber String?
   deliveryImage String?
@@ -235,6 +237,11 @@ enum Role {
 enum StuffCategory {
   FABRIC
   ACCECORIES
+}
+
+enum OrderType {
+  DELIVERY
+  PICKUP
 }
 
 
