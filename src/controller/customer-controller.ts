@@ -150,6 +150,24 @@ export class CustomerController {
       next(e);
     }
   }
+
+  static async getTailorDetail(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { id } = req.params;
+      
+      const response = await CustomerService.getTailorById(id)
+    
+      res.status(200).json({
+        data: response,
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
 }
 
 export const getHome: RequestHandler = async (req, res, next) => {

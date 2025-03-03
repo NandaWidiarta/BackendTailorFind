@@ -218,6 +218,16 @@ export class CustomerService {
 
     const tailors = await prismaClient.user.findMany({
       where: { role: Role.TAILOR },
+      include: {
+        tailorProfile: {
+          include: {
+            province: true,
+            regency: true,
+            district: true,
+            village: true
+          }
+        }
+      },
       skip,
       take: pageSize,
       orderBy: { createdAt: "desc" },
@@ -225,8 +235,33 @@ export class CustomerService {
 
     const totalPages = Math.ceil(totalTailors / pageSize);
 
+    const formattedTailors = tailors.map(tailor => {
+      if (!tailor.tailorProfile) {
+        return {
+          firstname: tailor.firstname,
+          lastname: tailor.lastname,
+        };
+      }
+      
+      return {
+        id: tailor.id,
+        firstname: tailor.firstname,
+        lastname: tailor.lastname,
+        provinceName: tailor.tailorProfile.province.name,
+        regencyName: tailor.tailorProfile.regency.name,
+        districtName: tailor.tailorProfile.district.name,
+        villageName: tailor.tailorProfile.village.name,
+        addressDetail: tailor.tailorProfile.addressDetail,
+        workEstimation: tailor.tailorProfile.workEstimation,
+        priceRange: tailor.tailorProfile.priceRange,
+        specialization: tailor.tailorProfile.specialization,
+        profilePicture: tailor.tailorProfile.profilePicture,
+        averageRating: tailor.tailorProfile.averageRating
+      };
+    });
+
     return {
-      tailors,
+      formattedTailors,
       meta: {
         totalData: totalTailors,
         totalPages,
@@ -364,7 +399,14 @@ export class CustomerService {
     const tailors = await prismaClient.user.findMany({
       where: whereConditions,
       include: {
-        tailorProfile: true, 
+        tailorProfile: {
+          include: {
+            province: true,
+            regency: true,
+            district: true,
+            village: true
+          }
+        }
       },
       skip,
       take,
@@ -373,8 +415,33 @@ export class CustomerService {
 
     const totalPages = Math.ceil(totalTailors / pageSize);
 
+    const formattedTailors = tailors.map(tailor => {
+      if (!tailor.tailorProfile) {
+        return {
+          firstname: tailor.firstname,
+          lastname: tailor.lastname,
+        };
+      }
+      
+      return {
+        id: tailor.id,
+        firstname: tailor.firstname,
+        lastname: tailor.lastname,
+        provinceName: tailor.tailorProfile.province.name,
+        regencyName: tailor.tailorProfile.regency.name,
+        districtName: tailor.tailorProfile.district.name,
+        villageName: tailor.tailorProfile.village.name,
+        addressDetail: tailor.tailorProfile.addressDetail,
+        workEstimation: tailor.tailorProfile.workEstimation,
+        priceRange: tailor.tailorProfile.priceRange,
+        specialization: tailor.tailorProfile.specialization,
+        profilePicture: tailor.tailorProfile.profilePicture,
+        averageRating: tailor.tailorProfile.averageRating
+      };
+    });
+
     return {
-      tailors,
+      formattedTailors,
       meta: {
         totalData: totalTailors,
         totalPages,
@@ -384,5 +451,99 @@ export class CustomerService {
     };
   }
 
+
+  static async getTailorById(id: string) {
+    const tailor = await prismaClient.user.findFirst({
+      where: {
+        id: id,
+        role: Role.TAILOR
+      },
+      include: {
+        tailorProfile: {
+          include: {
+            province: true,
+            regency: true,
+            district: true,
+            village: true,
+            stuff: true,
+            article: true
+          }
+        },
+        receivedReviews: {
+          include: {
+            customer: {
+              select: {
+                id: true,
+                firstname: true,
+                lastname: true
+              }
+            }
+          }
+        }
+      }
+    });
+  
+    if (!tailor) {
+      throw new ResponseError(400, "tailor-not-found");
+    }
+  
+    const reviewsCount = tailor.receivedReviews.length;
+  
+    const { password, token, ...tailorWithoutSensitiveInfo } = tailor;
+  
+    const formattedTailor = {
+      id: tailorWithoutSensitiveInfo.id,
+      firstname: tailorWithoutSensitiveInfo.firstname,
+      lastname: tailorWithoutSensitiveInfo.lastname,
+      email: tailorWithoutSensitiveInfo.email,
+      phoneNumber: tailorWithoutSensitiveInfo.phoneNumber,
+      role: tailorWithoutSensitiveInfo.role,
+      createdAt: tailorWithoutSensitiveInfo.createdAt,
+      provinceName: tailorWithoutSensitiveInfo.tailorProfile?.province?.name,
+      regencyName: tailorWithoutSensitiveInfo.tailorProfile?.regency?.name,
+      districtName: tailorWithoutSensitiveInfo.tailorProfile?.district?.name,
+      villageName: tailorWithoutSensitiveInfo.tailorProfile?.village?.name,
+      addressDetail: tailorWithoutSensitiveInfo.tailorProfile?.addressDetail,
+      workEstimation: tailorWithoutSensitiveInfo.tailorProfile?.workEstimation,
+      priceRange: tailorWithoutSensitiveInfo.tailorProfile?.priceRange,
+      specialization: tailorWithoutSensitiveInfo.tailorProfile?.specialization,
+      businessDescription: tailorWithoutSensitiveInfo.tailorProfile?.businessDescription,
+      profilePicture: tailorWithoutSensitiveInfo.tailorProfile?.profilePicture,
+      certificate: tailorWithoutSensitiveInfo.tailorProfile?.certificate,
+      averageRating: tailorWithoutSensitiveInfo.tailorProfile?.averageRating,
+      reviewsCount: reviewsCount,
+      reviews: tailorWithoutSensitiveInfo.receivedReviews.map(review => ({
+        id: review.id,
+        rating: review.rating,
+        review: review.review,
+        image: review.image,
+        createdAt: review.createdAt,
+        customer: {
+          id: review.customer.id,
+          name: `${review.customer.firstname} ${review.customer.lastname || ''}`
+        }
+      })),
+      stuff: tailorWithoutSensitiveInfo.tailorProfile?.stuff.map(item => ({
+        id: item.id,
+        name: item.name,
+        imageUrl: item.imageUrl,
+        category: item.stuffCaetgory,
+        price: item.price,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt
+      })) || [],
+      articles: tailorWithoutSensitiveInfo.tailorProfile?.article.map(article => ({
+        id: article.id,
+        title: article.title,
+        content: article.content,
+        imageUrl: article.imageUrl,
+        authorName: article.authorName,
+        createdAt: article.createdAt,
+        updatedAt: article.updatedAt
+      })) || []
+    };
+  
+    return formattedTailor;
+  }
 
 }
