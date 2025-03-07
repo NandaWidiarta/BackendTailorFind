@@ -2,6 +2,7 @@ import { Extensions } from "@prisma/client/runtime/library";
 import { prismaClient } from "../application/database";
 import { ResponseError } from "../error/response-error";
 import { supabase } from "../supabase-client";
+import { Prisma } from "@prisma/client";
 
 export class CourseService {
   static async addCourse(
@@ -78,25 +79,33 @@ export class CourseService {
   }
 
   static async searchCourse(name: string, page = 1, pageSize = 8) {
-    const totalCourses = await prismaClient.course.count({
-      where: { courseName: name },
-    });
-
-    const skip = (page - 1) * pageSize;
-    const take = pageSize;
-
+    const searchTerms = name.toLowerCase().split(/\s+/);
+    
     const courses = await prismaClient.course.findMany({
       where: {
-        courseName: {
-          contains: name,
-          mode: "insensitive",
-        },
+        AND: searchTerms.map(term => ({
+          courseName: {
+            contains: term,
+            mode: Prisma.QueryMode.insensitive
+          }
+        }))
       },
-      skip,
-      take,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
       orderBy: {
         createdAt: "desc",
       },
+    });
+    
+    const totalCourses = await prismaClient.course.count({
+      where: {
+        AND: searchTerms.map(term => ({
+          courseName: {
+            contains: term,
+            mode: Prisma.QueryMode.insensitive
+          }
+        }))
+      }
     });
 
     const totalPages = Math.ceil(totalCourses / pageSize);
@@ -173,76 +182,82 @@ export class CourseService {
     description?: string,
     image?: Express.Multer.File
   ) {
-
     const existingCourse = await prismaClient.course.findFirst({
       where: {
         id: courseId,
         tailorId: tailorId,
       },
     });
-  
+
     if (!existingCourse) {
       throw new ResponseError(404, "course-not-found");
     }
-  
+
     const updateData: any = {
       tailorId,
       updatedAt: new Date(),
     };
-  
+
     if (courseName !== undefined) updateData.courseName = courseName;
-    if (shortDescription !== undefined) updateData.shortDescription = shortDescription;
-    if (registrationLink !== undefined) updateData.registrationLink = registrationLink;
+    if (shortDescription !== undefined)
+      updateData.shortDescription = shortDescription;
+    if (registrationLink !== undefined)
+      updateData.registrationLink = registrationLink;
     if (description !== undefined) updateData.description = description;
-  
+
     let imageUrl = existingCourse.imageUrl;
-  
+
     if (image) {
       const fileName = `${tailorId}-${Date.now()}`;
-  
+
       if (existingCourse.imageUrl) {
         try {
-          const existingImagePath = this.extractImagePathFromUrl(existingCourse.imageUrl);
-          
+          const existingImagePath = this.extractImagePathFromUrl(
+            existingCourse.imageUrl
+          );
+
           if (existingImagePath) {
             const { error: deleteError } = await supabase.storage
               .from("courseImage")
               .remove([existingImagePath]);
-  
+
             if (deleteError) {
-              console.error("Warning: Failed to delete old image:", deleteError);
+              console.error(
+                "Warning: Failed to delete old image:",
+                deleteError
+              );
             }
           }
         } catch (error) {
           console.error("Error processing old image:", error);
         }
       }
-  
+
       const { data, error } = await supabase.storage
         .from("courseImage")
         .upload(fileName, image.buffer, {
           contentType: image.mimetype,
-          cacheControl: '3600',
-          upsert: false
+          cacheControl: "3600",
+          upsert: false,
         });
-  
+
       if (error) {
         throw new ResponseError(500, "failed-upload-image-to-database");
       }
-  
+
       const publicUrlResult = supabase.storage
         .from("courseImage")
         .getPublicUrl(data.path);
-  
+
       imageUrl = publicUrlResult.data?.publicUrl;
-  
+
       if (!imageUrl) {
         throw new ResponseError(500, "failed-to-generate-image-url");
       }
-  
+
       updateData.imageUrl = imageUrl;
     }
-  
+
     try {
       const updatedCourse = await prismaClient.course.update({
         where: {
@@ -250,21 +265,20 @@ export class CourseService {
         },
         data: updateData,
       });
-  
+
       return updatedCourse;
     } catch (error) {
       throw new ResponseError(500, "failed-to-update-course");
     }
-  
   }
 
   private static extractImagePathFromUrl(url: string): string | null {
     try {
-      const urlParts = url.split('/');
-      const bucketIndex = urlParts.findIndex(part => part === 'courseImage');
-      
+      const urlParts = url.split("/");
+      const bucketIndex = urlParts.findIndex((part) => part === "courseImage");
+
       if (bucketIndex !== -1 && bucketIndex < urlParts.length - 1) {
-        return urlParts.slice(bucketIndex + 1).join('/');
+        return urlParts.slice(bucketIndex + 1).join("/");
       }
       return null;
     } catch (error) {
@@ -277,16 +291,16 @@ export class CourseService {
     const existingCourse = await prismaClient.course.findFirst({
       where: {
         id: courseId,
-        tailorId: tailorId
-      }
+        tailorId: tailorId,
+      },
     });
 
     if (!existingCourse) {
-      throw new ResponseError(404, 'course-not-found');
+      throw new ResponseError(404, "course-not-found");
     }
 
     await prismaClient.course.delete({
-      where: { id: courseId }
+      where: { id: courseId },
     });
 
     return { success: true };
