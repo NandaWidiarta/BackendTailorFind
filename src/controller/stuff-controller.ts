@@ -40,4 +40,63 @@ export class StuffController {
       next(e);
     }
   }
+
+  static async updateStuff(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userReq = req as UserRequest
+      const tailorId = userReq.user?.id
+      const stuffId = req.params.id
+
+      if (!tailorId) {
+        throw new ResponseError(400, "Invalid-user-information");
+      }
+      
+      const {
+        name,
+        price,
+        stuffCategory
+      } = req.body
+
+      const priceParsed = parseInt(price)
+
+      const response = await StuffService.updateStuff(
+        stuffId,
+        tailorId,
+        name,
+        priceParsed,
+        stuffCategory,
+        req.file
+      )
+
+      res.status(200).json({
+        data: response,
+      })
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  static async deleteStuff(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const userReq = req as UserRequest
+      const tailorId = userReq.user?.id
+      const stuffId = req.params.id
+
+      if (!tailorId) {
+        throw new ResponseError(400, "Invalid-user-information");
+      }
+      
+      const response = await StuffService.deleteStuff(stuffId, tailorId)
+    
+      res.status(200).json({
+        data: response,
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
 }

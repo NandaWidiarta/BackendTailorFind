@@ -33,3 +33,11 @@ tailorApiRouter.get("/home", TailorController.getHomeData)
 //list stuff
 tailorApiRouter.get("/stuff", TailorController.getStuff)
 tailorApiRouter.get("/stuff/filter", TailorController.getFilteredStuff)
+tailorApiRouter.patch("/stuff/:id", upload.single('file'), StuffController.updateStuff)
+tailorApiRouter.delete("/stuff/:id", StuffController.deleteStuff)
+
+//list course
+tailorApiRouter.get("/course", CourseController.getCourseByTailor)
+tailorApiRouter.patch("/course/:id", upload.single('file'), CourseController.updateCourse)
+tailorApiRouter.delete("/course/:id", CourseController.deleteCourse)
+

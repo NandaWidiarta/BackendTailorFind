@@ -7,6 +7,7 @@ import { TailorController } from "../controller/tailor-controller";
 // import { TailorService } from "../service/tailor-service";
 import upload from "../middleware/multer";
 import { RoomChatController } from "../controller/room-chat-controller";
+import { CourseController } from "../controller/course-controller";
 
 export const publicRouter = express.Router();
 
@@ -56,3 +57,8 @@ publicRouter.get("/home", GeneralController.getHomeData)
 publicRouter.get("/get-tailors", CustomerController.getTailors)
 publicRouter.get("/get-tailors/filter", CustomerController.getFilteredTailors)
 publicRouter.get("/tailor/:id", CustomerController.getTailorDetail)
+
+//kursus
+publicRouter.get("/course", CourseController.getAllCourses)
+publicRouter.get("/course/search", CourseController.searchCourse)
+publicRouter.get("/course/:id", CourseController.getCourseDetail)

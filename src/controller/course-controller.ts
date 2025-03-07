@@ -46,4 +46,149 @@ export class CourseController {
       next(e);
     }
   }
+
+  static async getAllCourses(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { page = "1" } = req.query;
+      const currentPage = parseInt(page as string, 10) || 1;
+      
+      const response = await CourseService.getAllCourse(currentPage)
+    
+      res.status(200).json({
+        data: response,
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  static async searchCourse(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { page = "1", name, pageSize } = req.query;
+      const currentPage = parseInt(page as string, 10) || 1;
+      const pageSizeInt = parseInt(pageSize as string, 8) || 8
+      
+      const response = await CourseService.searchCourse(name as string, currentPage, pageSizeInt)
+    
+      res.status(200).json({
+        data: response,
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  static async getCourseDetail(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const courseId  = req.params.id
+      
+      const response = await CourseService.getCourseDetail(courseId)
+    
+      res.status(200).json({
+        data: response,
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  static async getCourseByTailor(req: Request, res: Response, next: NextFunction) {
+    try {
+
+      const userReq = req as UserRequest
+      const tailorId = userReq.user?.id
+
+      if (!tailorId) {
+        throw new ResponseError(400, "invalid-user-id");
+      }
+
+      const {type = 'own', page = "1", pageSize } = req.query;
+      const currentPage = parseInt(page as string, 10) || 1;
+      const pageSizeInt = parseInt(pageSize as string, 8) || 8
+
+      const response = await CourseService.getAllCourseTailor(
+        tailorId,
+        type === 'own' ? 'own' : 'others',
+        currentPage,
+        pageSizeInt
+      )
+
+      res.status(200).json({
+        data: response,
+      })
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  static async updateCourse(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userReq = req as UserRequest
+      const tailorId = userReq.user?.id
+      const courseId = req.params.id
+
+      if (!tailorId) {
+        throw new ResponseError(400, "Invalid-user-information");
+      }
+      
+      const {
+        courseName,
+        shortDescription,
+        registrationLink,
+        description,
+      } = req.body
+
+      const response = await CourseService.updateCourse(
+        courseId,
+        tailorId,
+        courseName,
+        shortDescription,
+        registrationLink,
+        description,
+        req.file
+      )
+
+      res.status(200).json({
+        data: response,
+      })
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  static async deleteCourse(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const userReq = req as UserRequest
+      const tailorId = userReq.user?.id
+      const courseId = req.params.id
+
+      if (!tailorId) {
+        throw new ResponseError(400, "Invalid-user-information");
+      }
+      
+      const response = await CourseService.deleteCourse(courseId, tailorId)
+    
+      res.status(200).json({
+        data: response,
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
 }
