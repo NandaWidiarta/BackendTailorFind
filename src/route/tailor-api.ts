@@ -41,3 +41,7 @@ tailorApiRouter.get("/course", CourseController.getCourseByTailor)
 tailorApiRouter.patch("/course/:id", upload.single('file'), CourseController.updateCourse)
 tailorApiRouter.delete("/course/:id", CourseController.deleteCourse)
 
+//list article
+tailorApiRouter.get("/article", ArticleController.getAllArticleByTailor)
+tailorApiRouter.patch("/article/:id", upload.single('file'), ArticleController.updateArticle)
+tailorApiRouter.delete("/article/:id", ArticleController.deleteArticle)

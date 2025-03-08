@@ -8,6 +8,7 @@ import { TailorController } from "../controller/tailor-controller";
 import upload from "../middleware/multer";
 import { RoomChatController } from "../controller/room-chat-controller";
 import { CourseController } from "../controller/course-controller";
+import { ArticleController } from "../controller/article-controller";
 
 export const publicRouter = express.Router();
 
@@ -62,3 +63,8 @@ publicRouter.get("/tailor/:id", CustomerController.getTailorDetail)
 publicRouter.get("/course", CourseController.getAllCourses)
 publicRouter.get("/course/search", CourseController.searchCourse)
 publicRouter.get("/course/:id", CourseController.getCourseDetail)
+
+//article
+publicRouter.get("/article", ArticleController.getAllArticles)
+publicRouter.get("/article/:id", ArticleController.getArticleDetail)
+publicRouter.get("/articles/search", ArticleController.searchArticle)
