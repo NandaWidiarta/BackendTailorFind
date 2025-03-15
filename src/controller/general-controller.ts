@@ -1,6 +1,8 @@
 import {Request, Response, NextFunction} from "express";
 import { GeneralService } from "../service/general-service";
 import { CustomerService } from "../service/customer-service";
+import { UserRequest } from "../type/user-request";
+import { ResponseError } from "../error/response-error";
 
 export class GeneralController {
     static async getProvince(req: Request, res: Response, next: NextFunction) {
@@ -60,4 +62,26 @@ export class GeneralController {
             next(e)
         }
     }
+
+    static async logout(
+        req: Request,
+        res: Response,
+        next: NextFunction
+      ) {
+        try {
+          const userReq = req as UserRequest;
+          const userId = userReq.user?.id;
+          if (!userId) {
+            throw new ResponseError(400, "user-id-null");
+          }
+          
+          const response = await GeneralService.logout(userId)
+        
+          res.status(200).json({
+            data: response,
+          });
+        } catch (e) {
+          next(e);
+        }
+      }
 }

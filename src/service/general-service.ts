@@ -10,50 +10,61 @@ import { ChatResponse, DistrictResponse, ProvinceResponse, RegencyResponse, Vill
 
 
 export class GeneralService {
-    static async getProvince() : Promise<ProvinceResponse[]> {
-        const provinces = await prismaClient.province.findMany({})
-        return provinces
+  static async getProvince(): Promise<ProvinceResponse[]> {
+    const provinces = await prismaClient.province.findMany({});
+    return provinces;
+  }
+
+  static async getRegency(provinceCode: string): Promise<RegencyResponse[]> {
+    const regency = await prismaClient.regency.findMany({
+      where: {
+        province_code: provinceCode,
+      },
+    });
+
+    if (!regency) {
+      throw new ResponseError(404, "Regency Not Found");
     }
 
-    static async getRegency(provinceCode: string): Promise<RegencyResponse[]>{
-        const regency = await prismaClient.regency.findMany({
-            where: {
-                province_code: provinceCode
-            }
-        })
+    return regency;
+  }
 
-        if(!regency){
-            throw new ResponseError(404, "Regency Not Found")
-        }
+  static async getDistrict(regencyCode: string): Promise<DistrictResponse[]> {
+    const district = await prismaClient.district.findMany({
+      where: {
+        regency_code: regencyCode,
+      },
+    });
 
-        return regency
+    if (!district) {
+      throw new ResponseError(404, "District Not Found");
     }
 
-    static async getDistrict(regencyCode: string): Promise<DistrictResponse[]>{
-        const district = await prismaClient.district.findMany({
-            where: {
-                regency_code: regencyCode
-            }
-        })
+    return district;
+  }
 
-        if(!district){
-            throw new ResponseError(404, "District Not Found")
-        }
+  static async getVillage(districtCode: string): Promise<VillageResponse[]> {
+    const village = await prismaClient.village.findMany({
+      where: {
+        district_code: districtCode,
+      },
+    });
 
-        return district
+    if (!village) {
+      throw new ResponseError(404, "District Not Found");
     }
 
-    static async getVillage(districtCode: string): Promise<VillageResponse[]>{
-        const village = await prismaClient.village.findMany({
-            where: {
-                district_code: districtCode
-            }
-        })
+    return village;
+  }
 
-        if(!village){
-            throw new ResponseError(404, "District Not Found")
-        }
+  static async logout(userId: string) {
+    const user = await prismaClient.user.update({
+      where: { id: userId },
+      data: { token: null },
+    });
 
-        return village
-    }
+    const { password, createdAt, ...filteredUser } = user;
+    
+    return filteredUser;
+  }
 }

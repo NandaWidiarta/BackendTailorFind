@@ -7,6 +7,7 @@ import { ArticleController } from "../controller/article-controller";
 import { CourseController } from "../controller/course-controller";
 import { StuffController } from "../controller/stuff-controller";
 import { TailorController } from "../controller/tailor-controller";
+import { GeneralController } from "../controller/general-controller";
 
 export const tailorApiRouter = express.Router()
 tailorApiRouter.use(authMiddleware)
@@ -45,3 +46,8 @@ tailorApiRouter.delete("/course/:id", CourseController.deleteCourse)
 tailorApiRouter.get("/article", ArticleController.getAllArticleByTailor)
 tailorApiRouter.patch("/article/:id", upload.single('file'), ArticleController.updateArticle)
 tailorApiRouter.delete("/article/:id", ArticleController.deleteArticle)
+
+//logout
+tailorApiRouter.post("/logout", GeneralController.logout)
+
+tailorApiRouter.patch("/update-profile", upload.single('file'), TailorController.updateProfile)

@@ -12,25 +12,25 @@ import { ResponseError } from "../error/response-error";
 export class CustomerController {
   static async register(req: Request, res: Response, next: NextFunction) {
     try {
-      const request: CreateCustomerRequest = req.body as CreateCustomerRequest
-      const response = await CustomerService.register(request)
+      const request: CreateCustomerRequest = req.body as CreateCustomerRequest;
+      const response = await CustomerService.register(request);
       res.status(200).json({
         data: response,
       });
     } catch (e) {
-      next(e)
+      next(e);
     }
   }
 
   static async login(req: Request, res: Response, next: NextFunction) {
     try {
-      const request: LoginCustomerRequest = req.body as LoginCustomerRequest
-      const response = await CustomerService.login(request)
+      const request: LoginCustomerRequest = req.body as LoginCustomerRequest;
+      const response = await CustomerService.login(request);
       res.status(200).json({
         data: response,
       });
     } catch (e) {
-      next(e)
+      next(e);
     }
   }
 
@@ -50,20 +50,20 @@ export class CustomerController {
     next: NextFunction
   ) {
     try {
-      const rating = parseInt(req.body.rating)
-      const review = req.body.review
-      const tailorId = req.body.tailorId
-      const customerId = req.body.customerId
+      const rating = parseInt(req.body.rating);
+      const review = req.body.review;
+      const tailorId = req.body.tailorId;
+      const customerId = req.body.customerId;
 
       if (isNaN(rating) || rating < 1 || rating > 5) {
         throw new ResponseError(400, "Invalid rating value");
       }
-      
+
       const response = await CustomerService.addRatingReview(
-        { rating, review, tailorId, customerId }, 
+        { rating, review, tailorId, customerId },
         req.file
-      )
-    
+      );
+
       res.status(200).json({
         data: response,
       });
@@ -71,7 +71,6 @@ export class CustomerController {
       next(e);
     }
   }
-  
 
   static async getHomeData(req: Request, res: Response, next: NextFunction) {
     try {
@@ -88,17 +87,13 @@ export class CustomerController {
     }
   }
 
-  static async getTailors(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) {
+  static async getTailors(req: Request, res: Response, next: NextFunction) {
     try {
       const { page = "1" } = req.query;
       const currentPage = parseInt(page as string, 10) || 1;
-      
-      const response = await CustomerService.getTailors(currentPage)
-    
+
+      const response = await CustomerService.getTailors(currentPage);
+
       res.status(200).json({
         data: response,
       });
@@ -127,7 +122,7 @@ export class CustomerController {
       } = req.query;
 
       const currentPage = parseInt(page as string, 10) || 1;
-      const pageSize = 8; 
+      const pageSize = 8;
 
       const result = await CustomerService.getFilteredTailors({
         page: currentPage,
@@ -142,7 +137,7 @@ export class CustomerController {
         workEstimation: workEstimation as string,
         priceRange: priceRange as string,
       });
-    
+
       res.status(200).json({
         data: result,
       });
@@ -158,11 +153,40 @@ export class CustomerController {
   ) {
     try {
       const { id } = req.params;
-      
-      const response = await CustomerService.getTailorById(id)
-    
+
+      const response = await CustomerService.getTailorById(id);
+
       res.status(200).json({
         data: response,
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  static async updateCustomerProfile(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const userReq = req as UserRequest;
+      const userId = userReq.user?.id;
+      if (!userId) {
+        throw new ResponseError(400, "user id null");
+      }
+      const { firstname, lastname, email, phoneNumber } = req.body;
+
+      const updatedUser = await CustomerService.updateCustomerProfile(userId, {
+        firstname,
+        lastname,
+        email,
+        phoneNumber,
+      });
+
+      res.status(200).json({
+        message: "Customer profile updated successfully",
+        data: updatedUser,
       });
     } catch (e) {
       next(e);

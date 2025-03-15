@@ -546,4 +546,21 @@ export class CustomerService {
     return formattedTailor;
   }
 
+
+  static async updateCustomerProfile(userId: string, userData: {
+    firstname?: string;
+    lastname?: string;
+    email?: string;
+    phoneNumber?: string;
+  }) {
+    const updatedUser = await prismaClient.user.update({
+      where: { id: userId },
+      data: userData
+    });
+
+    const { password, createdAt, ...filteredUser } = updatedUser;
+    
+    return filteredUser
+  }
+
 }

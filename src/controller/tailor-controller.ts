@@ -122,6 +122,69 @@ export class TailorController {
     }
   }
 
+  static async updateProfile(req: Request, res: Response, next: NextFunction) {
+    try {
+
+      const userReq = req as UserRequest
+      const userId = userReq.user?.id
+
+      if (!userId) {
+        throw new ResponseError(400, "Invalid-user-information");
+      }
+
+      const {
+        firstname,
+        lastname,
+        email,
+        phoneNumber,
+        provinceId,
+        regencyId,
+        districtId,
+        villageId,
+        addressDetail,
+        workEstimation,
+        priceRange,
+        specialization,
+        businessDescription
+      } = req.body;
+
+      const updateData: any = {};
+      
+      // Data user
+      if (firstname !== undefined) updateData.firstname = firstname;
+      if (lastname !== undefined) updateData.lastname = lastname;
+      if (email !== undefined) updateData.email = email;
+      if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber;
+      
+      // Data tailor profile
+      if (provinceId !== undefined) updateData.provinceId = provinceId;
+      if (regencyId !== undefined) updateData.regencyId = regencyId;
+      if (districtId !== undefined) updateData.districtId = districtId;
+      if (villageId !== undefined) updateData.villageId = villageId;
+      if (addressDetail !== undefined) updateData.addressDetail = addressDetail;
+      if (workEstimation !== undefined) updateData.workEstimation = workEstimation;
+      if (priceRange !== undefined) updateData.priceRange = priceRange;
+      if (specialization !== undefined) {
+        updateData.specialization = typeof specialization === 'string' 
+          ? JSON.parse(specialization) 
+          : specialization;
+      }
+      if (businessDescription !== undefined) updateData.businessDescription = businessDescription;
+      
+      const result = await TailorService.updateTailorProfile(
+        userId,
+        updateData,
+        req.file
+      );
+
+      res.status(200).json({
+        data: result,
+      });
+    } catch (e) {
+      next(e)
+    }
+  }
+
 
 
 }

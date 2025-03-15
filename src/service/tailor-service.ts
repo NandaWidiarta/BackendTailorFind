@@ -336,4 +336,175 @@ export class TailorService {
     };
   }
 
+  static async updateTailorProfile(
+    userId: string,
+    data: {
+      firstname?: string;
+      lastname?: string;
+      email?: string;
+      phoneNumber?: string;
+      provinceId?: string;
+      regencyId?: string;
+      districtId?: string;
+      villageId?: string;
+      addressDetail?: string;
+      workEstimation?: string;
+      priceRange?: string;
+      specialization?: string[];
+      businessDescription?: string;
+    },
+    profilePicture?: Express.Multer.File,
+  ): Promise<TailorResponse> {
+    const existingUser = await prismaClient.user.findUnique({
+      where: { id: userId },
+      include: {
+        tailorProfile: true
+      }
+    });
+
+    if (!existingUser) {
+      throw new ResponseError(404, "user-not-found");
+    }
+
+    if (!existingUser.tailorProfile) {
+      throw new ResponseError(404, "tailor-profile-not-found");
+    }
+
+    if (data.email && data.email !== existingUser.email) {
+      const isEmailExist = await prismaClient.user.count({
+        where: { 
+          email: data.email,
+          id: { not: userId }
+        },
+      });
+
+      if (isEmailExist > 0) {
+        throw new ResponseError(400, "email-already-exist");
+      }
+    }
+
+    if (data.phoneNumber && data.phoneNumber !== existingUser.phoneNumber) {
+      const isPhoneExist = await prismaClient.user.count({
+        where: { 
+          phoneNumber: data.phoneNumber,
+          id: { not: userId }
+        },
+      });
+
+      if (isPhoneExist > 0) {
+        throw new ResponseError(400, "phone-number-already-exist");
+      }
+    }
+
+    const userUpdateData: any = {};
+    if (data.firstname !== undefined) userUpdateData.firstname = data.firstname;
+    if (data.lastname !== undefined) userUpdateData.lastname = data.lastname;
+    if (data.email !== undefined) userUpdateData.email = data.email;
+    if (data.phoneNumber !== undefined) userUpdateData.phoneNumber = data.phoneNumber;
+
+    const tailorProfileUpdateData: any = {};
+    if (data.provinceId !== undefined) tailorProfileUpdateData.provinceId = data.provinceId;
+    if (data.regencyId !== undefined) tailorProfileUpdateData.regencyId = data.regencyId;
+    if (data.districtId !== undefined) tailorProfileUpdateData.districtId = data.districtId;
+    if (data.villageId !== undefined) tailorProfileUpdateData.villageId = data.villageId;
+    if (data.addressDetail !== undefined) tailorProfileUpdateData.addressDetail = data.addressDetail;
+    if (data.workEstimation !== undefined) tailorProfileUpdateData.workEstimation = data.workEstimation;
+    if (data.priceRange !== undefined) tailorProfileUpdateData.priceRange = data.priceRange;
+    if (data.specialization !== undefined) tailorProfileUpdateData.specialization = data.specialization;
+    if (data.businessDescription !== undefined) tailorProfileUpdateData.businessDescription = data.businessDescription;
+
+    if (profilePicture) {
+      const fileName = `${existingUser.email}-${Date.now()}`;
+      if (existingUser.tailorProfile.profilePicture) {
+        try {
+          const existingImagePath = this.extractImagePathFromUrl(
+            existingUser.tailorProfile.profilePicture,
+            "profile"
+          );
+
+          if (existingImagePath) {
+            const { error: deleteError } = await supabase.storage
+              .from("profile")
+              .remove([existingImagePath]);
+
+            if (deleteError) {
+              console.error(
+                "Warning: Failed to delete old profile image:",
+                deleteError
+              );
+            }
+          }
+        } catch (error) {
+          console.error("Error processing old profile image:", error);
+        }
+      }
+
+      const { data: uploadData, error } = await supabase.storage
+        .from("profile")
+        .upload(fileName, profilePicture.buffer, {
+          contentType: profilePicture.mimetype,
+        });
+
+      if (error) {
+        throw new ResponseError(500, "failed-to-upload-profile-picture");
+      }
+
+      const profilePictureUrl = uploadData?.path
+        ? `${supabase.storage.from("profile").getPublicUrl(uploadData.path).data.publicUrl}`
+        : null;
+
+      if (profilePictureUrl) {
+        tailorProfileUpdateData.profilePicture = profilePictureUrl;
+      }
+    }
+
+
+    try {
+      const updatedTailor = await prismaClient.$transaction(async (tx) => {
+        const updatedUser = await tx.user.update({
+          where: { id: userId },
+          data: userUpdateData
+        });
+
+        const updatedTailorProfile = await tx.tailorProfile.update({
+          where: { userId: userId },
+          data: tailorProfileUpdateData
+        });
+
+        return tx.user.findUnique({
+          where: { id: userId },
+          include: {
+            tailorProfile: true
+          }
+        });
+      });
+
+      if (!updatedTailor) {
+        throw new ResponseError(500, "failed-to-update-tailor-profile");
+      }
+
+      return toTailorResponse(updatedTailor);
+    } catch (error) {
+      console.error("Error updating tailor profile:", error);
+      if (error instanceof ResponseError) {
+        throw error;
+      }
+      throw new ResponseError(500, "failed-to-update-tailor-profile");
+    }
+  }
+
+  private static extractImagePathFromUrl(url: string, bucketName: string): string | null {
+    try {
+      const urlParts = url.split("/");
+      const bucketIndex = urlParts.findIndex((part) => part === bucketName);
+
+      if (bucketIndex !== -1 && bucketIndex < urlParts.length - 1) {
+        return urlParts.slice(bucketIndex + 1).join("/");
+      }
+      return null;
+    } catch (error) {
+      console.error("Error extracting image path:", error);
+      return null;
+    }
+  }
 }

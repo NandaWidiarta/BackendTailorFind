@@ -4,6 +4,7 @@ import { RoomChatController } from "../controller/room-chat-controller";
 import upload from "../middleware/multer";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { OrderController } from "../controller/order-controller";
+import { GeneralController } from "../controller/general-controller";
 
 export const customerApiRouter = express.Router()
 customerApiRouter.use(authMiddleware)
@@ -19,3 +20,5 @@ customerApiRouter.get("/order/:orderId", OrderController.getDetailOrder)
 customerApiRouter.get("/order/all/:userId", OrderController.getAllOrderByCustomer)
 
 customerApiRouter.get("/home", getHome)
+customerApiRouter.post("/logout", GeneralController.logout)
+customerApiRouter.patch("/update-profile", CustomerController.updateCustomerProfile)
