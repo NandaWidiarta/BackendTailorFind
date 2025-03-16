@@ -507,4 +507,140 @@ export class TailorService {
       return null;
     }
   }
+
+  static async getCertificates(
+    tailorId: string
+  ) {
+
+    const existingUser = await prismaClient.user.findUnique({
+      where: { id: tailorId },
+      include: {
+        tailorProfile: true
+      }
+    })
+
+    if (!existingUser) {
+      throw new ResponseError(404, "user-not-found");
+    }
+
+    return existingUser.tailorProfile?.certificate
+  }
+
+  static async addCertificates(
+    tailorId: string,
+    certificateFiles: Express.Multer.File[] 
+  ) {
+
+    const existingUser = await prismaClient.user.findUnique({
+      where: { id: tailorId },
+      include: {
+        tailorProfile: true
+      }
+    })
+
+    if (!existingUser) {
+      throw new ResponseError(404, "user-not-found");
+    }
+
+    const existingCertificates = existingUser.tailorProfile?.certificate || [];
+    let certificateUrls: string[] = [];
+    for (const file of certificateFiles) {
+      const fileName = `${existingUser.email}-${Date.now()}`;
+      const { data, error } = await supabase.storage
+        .from("certificates")
+        .upload(fileName, file.buffer, {
+          contentType: file.mimetype,
+        });
+
+      if (error) {
+        throw new ResponseError(500, "failed-to-upload-certificate");
+      }
+
+      if (data?.path) {
+        const publicUrl = `${
+          supabase.storage.from("certificates").getPublicUrl(data.path).data
+            .publicUrl
+        }`;
+        certificateUrls.push(publicUrl);
+      }
+    }
+
+    const updatedProfile = await prismaClient.tailorProfile.update({
+      where: {
+        userId: tailorId,
+      },
+      data: {
+        certificate: [...existingCertificates, ...certificateUrls],
+      },
+    });
+
+    return updatedProfile.certificate
+  }
+
+  static async deleteCertificate(
+    tailorId: string,
+    certificateUrl: string
+  ) {
+
+    const existingUser = await prismaClient.tailorProfile.findUnique({
+      where: { userId: tailorId }
+    })
+
+    if (!existingUser) {
+      throw new ResponseError(404, "user-not-found");
+    }
+
+    const certificates = existingUser.certificate || [];
+    const certificateToDelete = certificates.find(url => 
+      url.includes(certificateUrl)
+    )
+
+    if (!certificateToDelete) {
+      throw new ResponseError(404, "Certificate-not-found");
+    }
+
+    try {
+      const existingImagePath = this.extractImagePathFromUrlCertificate(certificateToDelete);
+      
+      if (existingImagePath) {
+        const { error: deleteError } = await supabase.storage
+          .from("certificates")
+          .remove([existingImagePath]);
+
+        if (deleteError) {
+          console.error("Warning: Failed to delete old image:", deleteError);
+        }
+      }
+    } catch (error) {
+      console.error("Error processing old image:", error);
+    }
+
+    const updatedCertificates = certificates.filter(url => url !== certificateToDelete)
+
+    const updatedProfile = await prismaClient.tailorProfile.update({
+      where: {
+        userId: tailorId,
+      },
+      data: {
+        certificate: updatedCertificates,
+      },
+    });
+
+    return updatedProfile.certificate
+  }
+
+  private static extractImagePathFromUrlCertificate(url: string): string | null {
+    try {
+      const urlParts = url.split('/');
+      const bucketIndex = urlParts.findIndex(part => part === 'certificates');
+      
+      if (bucketIndex !== -1 && bucketIndex < urlParts.length - 1) {
+        return urlParts.slice(bucketIndex + 1).join('/');
+      }
+      return null;
+    } catch (error) {
+      console.error("Error extracting image path:", error);
+      return null;
+    }
+  }
 }

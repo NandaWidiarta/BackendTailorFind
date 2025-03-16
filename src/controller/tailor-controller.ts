@@ -185,6 +185,79 @@ export class TailorController {
     }
   }
 
+  static async addCertificate(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userReq = req as UserRequest
+      const userId = userReq.user?.id
+
+      if (!userId) {
+        throw new ResponseError(400, "Invalid-user-information");
+      }
+
+      const certificateFiles = Array.isArray(req.files)
+        ? []
+        : req.files?.certificate || []
+
+      const response = await TailorService.addCertificates(
+        userId,
+        certificateFiles as Express.Multer.File[] 
+      )
+
+      res.status(200).json({
+        data: response,
+      });
+    } catch (e) {
+      next(e)
+    }
+  }
+
+  static async getCertificate(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userReq = req as UserRequest
+      const userId = userReq.user?.id
+
+      if (!userId) {
+        throw new ResponseError(400, "Invalid-user-information");
+      }
+
+      const response = await TailorService.getCertificates(
+        userId
+      )
+
+      res.status(200).json({
+        data: response,
+      });
+    } catch (e) {
+      next(e)
+    }
+  }
+
+  static async deleteCertificate(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userReq = req as UserRequest
+      const userId = userReq.user?.id
+
+      if (!userId) {
+        throw new ResponseError(400, "Invalid-user-information");
+      }
+
+      const {
+        certificateUrl
+      } = req.body;
+
+      const response = await TailorService.deleteCertificate(
+        userId,
+        certificateUrl
+      )
+
+      res.status(200).json({
+        data: response,
+      });
+    } catch (e) {
+      next(e)
+    }
+  }
+
 
 
 }

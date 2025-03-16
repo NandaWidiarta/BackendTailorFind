@@ -51,3 +51,11 @@ tailorApiRouter.delete("/article/:id", ArticleController.deleteArticle)
 tailorApiRouter.post("/logout", GeneralController.logout)
 
 tailorApiRouter.patch("/update-profile", upload.single('file'), TailorController.updateProfile)
+tailorApiRouter.post(
+  "/certificates",
+  upload.fields([{ name: "certificate", maxCount: 5 }]),
+  TailorController.addCertificate
+);
+
+tailorApiRouter.get("/certificates", TailorController.getCertificate)
+tailorApiRouter.delete("/certificates", TailorController.deleteCertificate)
