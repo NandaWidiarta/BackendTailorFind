@@ -67,4 +67,4 @@ publicRouter.get("/course/:id", CourseController.getCourseDetail)
 //article
 publicRouter.get("/article", ArticleController.getAllArticles)
 publicRouter.get("/article/:id", ArticleController.getArticleDetail)
-publicRouter.get("/articles/search", ArticleController.searchArticle)
+publicRouter.get("/article/search", ArticleController.searchArticle)
