@@ -82,7 +82,7 @@ export class ArticleController {
       const currentPage = parseInt(page as string, 10) || 1;
       const pageSizeInt = parseInt(pageSize as string, 8) || 8
       
-      console.log('masuk search article controller')
+      console.log('masuk search article controllerr')
       const response = await ArticleService.searchArticle(name as string, currentPage, pageSizeInt)
 
       res.status(200).json({
