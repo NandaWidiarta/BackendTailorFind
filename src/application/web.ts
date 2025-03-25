@@ -12,7 +12,7 @@ export const web = express()
 web.use(
   cors({
     origin: "*", 
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization", "x-api-token", "X-API-TOKEN"],
     credentials: true,
   })
