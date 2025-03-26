@@ -51,6 +51,7 @@ model TailorProfile {
   profilePicture    String?
   certificate       String[]
   averageRating     Float      @default(0.0)
+  gender            Gender     @default(FEMALE)
 
   user              User        @relation(fields: [userId], references: [id])
   province          Province    @relation("ProvinceTailors", fields: [provinceId], references: [code])
@@ -244,4 +245,8 @@ enum OrderType {
   PICKUP
 }
 
+enum Gender {
+  MALE
+  FEMALE
+}
 

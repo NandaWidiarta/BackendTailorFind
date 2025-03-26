@@ -156,6 +156,8 @@ export class TailorService {
       })
     }
 
+    console.log("service gender: ", registerRequest.gender)
+
     const tailor = await prismaClient.user.create({
       data: {
         firstname: registerRequest.firstname,
@@ -178,6 +180,7 @@ export class TailorService {
             businessDescription: registerRequest.businessDescription,
             profilePicture: registerRequest.profilePicture,
             certificate: registerRequest.certificate,
+            gender: registerRequest.gender,
           },
         },
       },

@@ -8,6 +8,7 @@ import { CustomerService } from "../service/customer-service";
 import { UserRequest } from "../type/user-request";
 import { ResponseError } from "../error/response-error";
 // import { CustomerRequest } from "../type/customer-request";
+import { Gender } from "@prisma/client";
 
 export class CustomerController {
   static async register(req: Request, res: Response, next: NextFunction) {
@@ -119,6 +120,7 @@ export class CustomerController {
         averageRating,
         workEstimation,
         priceRange,
+        gender
       } = req.query;
 
       const currentPage = parseInt(page as string, 10) || 1;
@@ -136,6 +138,7 @@ export class CustomerController {
         averageRating: averageRating as string,
         workEstimation: workEstimation as string,
         priceRange: priceRange as string,
+        gender: gender as Gender
       });
 
       res.status(200).json({

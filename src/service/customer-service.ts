@@ -1,4 +1,4 @@
-import { Role } from "@prisma/client";
+import { PrismaClient, Role } from "@prisma/client";
 import { prismaClient } from "../application/database";
 import { ResponseError } from "../error/response-error";
 import {
@@ -15,6 +15,7 @@ import { Validation } from "../validation/validation";
 import bcrypt from "bcrypt";
 import { v4 as uuid } from "uuid";
 import { supabase } from "../supabase-client";
+import { Gender } from "@prisma/client";
 
 export class CustomerService {
   static async register(
@@ -284,11 +285,14 @@ export class CustomerService {
       averageRating,
       workEstimation,
       priceRange,
+      gender
     } = params;
 
     const whereConditions: any = {
       role: Role.TAILOR,
     };
+
+    console.log(gender)
 
     const AND: any[] = [];
 
@@ -341,10 +345,14 @@ export class CustomerService {
     }
 
     if (specialization) {
+      const specs = Array.isArray(specialization) 
+        ? specialization 
+        : specialization.split(',');
+      
       AND.push({
         tailorProfile: {
           specialization: {
-            has: specialization,
+            hasEvery: specs,
           },
         },
       });
@@ -381,6 +389,14 @@ export class CustomerService {
             contains: priceRange,
             mode: "insensitive",
           },
+        },
+      });
+    }
+
+    if (gender) {
+      AND.push({
+        tailorProfile: {
+          gender: gender as Gender, 
         },
       });
     }
@@ -436,7 +452,8 @@ export class CustomerService {
         priceRange: tailor.tailorProfile.priceRange,
         specialization: tailor.tailorProfile.specialization,
         profilePicture: tailor.tailorProfile.profilePicture,
-        averageRating: tailor.tailorProfile.averageRating
+        averageRating: tailor.tailorProfile.averageRating,
+        gender: tailor.tailorProfile.gender
       };
     });
 
