@@ -14,7 +14,8 @@ export class CustomerController {
   static async register(req: Request, res: Response, next: NextFunction) {
     try {
       const request: CreateCustomerRequest = req.body as CreateCustomerRequest;
-      const response = await CustomerService.register(request);
+      const profilePicture = req.file
+      const response = await CustomerService.register(request, profilePicture);
       res.status(200).json({
         data: response,
       });

@@ -12,7 +12,7 @@ import { ArticleController } from "../controller/article-controller";
 
 export const publicRouter = express.Router();
 
-publicRouter.post("/customers/register", CustomerController.register);
+publicRouter.post("/customers/register", upload.single('profilePicture'), CustomerController.register);
 publicRouter.post("/customers/login", CustomerController.login);
 publicRouter.get("/testis", CustomerController.tes);
 
