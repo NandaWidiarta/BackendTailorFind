@@ -563,4 +563,53 @@ export class CustomerService {
     return filteredUser
   }
 
+  static async registerCustomerV2(request: CreateCustomerRequest): Promise<CustomerResponse> {
+    const registerRequest = Validation.validate(CustomerValidation.REGISTER, request)
+    
+    const emailExists = await prismaClient.user.count({
+      where: { email: registerRequest.email }
+    }) > 0
+    
+    if (emailExists) {
+      throw new ResponseError(400, "Email already exists")
+    }
+    
+    const phoneExists = await prismaClient.user.count({
+      where: { phoneNumber: request.phoneNumber }
+    }) > 0
+    
+    if (phoneExists) {
+      throw new ResponseError(400, "Phone number already exists")
+    }
+    
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: registerRequest.email,
+      password: registerRequest.password
+    })
+    
+    if (authError) {
+      throw new ResponseError(400, authError.message)
+    }
+    
+    if (!authData.user) {
+      throw new ResponseError(500, "Failed to create user")
+    }
+    
+    const customer = await prismaClient.user.create({
+      data: {
+        id: authData.user.id, 
+        firstname: registerRequest.firstname,
+        lastname: registerRequest.lastname,
+        email: registerRequest.email,
+        phoneNumber: registerRequest.phoneNumber,
+        password: '', 
+        role: Role.CUSTOMER
+      }
+    })
+    
+    const response = toCustomerResponse(customer)
+    response.token = authData.session?.access_token || ''
+    return response
+  }
+
 }

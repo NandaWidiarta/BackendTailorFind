@@ -13,8 +13,12 @@ import { ArticleController } from "../controller/article-controller";
 export const publicRouter = express.Router();
 
 publicRouter.post("/customers/register", CustomerController.register);
+publicRouter.post("/customers/registerV2", CustomerController.registerV2);
 publicRouter.post("/customers/login", CustomerController.login);
 publicRouter.get("/testis", CustomerController.tes);
+publicRouter.post("/login", GeneralController.loginV2);
+publicRouter.post("/forgot-password", GeneralController.forgotPassword);
+publicRouter.post("/logout", GeneralController.logoutV2);
 
 //general
 publicRouter.get("/province", GeneralController.getProvince);
@@ -43,13 +47,22 @@ publicRouter.post("/rooms/:roomId/chats", RoomChatController.sendMessage);
 //tailor
 publicRouter.post("/tailors/login", TailorController.login);
 publicRouter.post(
-    "/tailors/register",
-    upload.fields([
-      { name: "profilePicture", maxCount: 1 }, // Untuk 1 file profile picture
-      { name: "certificate", maxCount: 5 }, // Maksimal 5 file certificate
-    ]),
-    TailorController.register
-  );
+  "/tailors/register",
+  upload.fields([
+    { name: "profilePicture", maxCount: 1 }, // Untuk 1 file profile picture
+    { name: "certificate", maxCount: 5 }, // Maksimal 5 file certificate
+  ]),
+  TailorController.register
+);
+
+publicRouter.post(
+  "/tailors/registerV2",
+  upload.fields([
+    { name: "profilePicture", maxCount: 1 }, // Untuk 1 file profile picture
+    { name: "certificate", maxCount: 5 }, // Maksimal 5 file certificate
+  ]),
+  TailorController.registerV2
+);
 
 
 //dashboard

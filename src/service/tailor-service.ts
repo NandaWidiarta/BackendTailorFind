@@ -643,4 +643,125 @@ export class TailorService {
       return null;
     }
   }
+
+  static async registerV2(
+    request: CreateTailorRequest,
+    profilePictureFile?: Express.Multer.File,
+    certificateFiles?: Express.Multer.File[]
+  ): Promise<TailorResponse> {
+    const registerRequest = request;
+
+    const isEmailExist = await prismaClient.user.count({
+      where: { email: request.email },
+    });
+
+    if (isEmailExist > 0) {
+      throw new ResponseError(400, "Email already exist");
+    }
+
+    const isPhoneExist = await prismaClient.user.count({
+      where: { phoneNumber: request.phoneNumber },
+    });
+
+    if (isPhoneExist > 0) {
+      throw new ResponseError(400, "Phone number already exist");
+    }
+
+    registerRequest.password = await bcrypt.hash(registerRequest.password, 10);
+
+    let profilePictureUrl: string | null = null;
+    if (profilePictureFile) {
+      const fileName = `${registerRequest.email}-${Date.now()}`;
+      const { data, error } = await supabase.storage
+        .from("profile")
+        .upload(fileName, profilePictureFile.buffer, {
+          contentType: profilePictureFile.mimetype,
+        });
+
+      if (error) {
+        throw new ResponseError(500, "Failed to upload profile picture");
+      }
+
+      profilePictureUrl = data?.path
+        ? `${
+            supabase.storage.from("profile").getPublicUrl(data.path).data
+              .publicUrl
+          }`
+        : null
+    }
+
+    let certificateUrls: string[] = [];
+    if (certificateFiles && certificateFiles.length > 0) {
+      for (const file of certificateFiles) {
+        const fileName = `${registerRequest.email}-${Date.now()}`;
+        const { data, error } = await supabase.storage
+          .from("certificates")
+          .upload(fileName, file.buffer, {
+            contentType: file.mimetype,
+          });
+
+        if (error) {
+          throw new ResponseError(500, "Failed to upload certificate");
+        }
+
+        if (data?.path) {
+          const publicUrl = `${
+            supabase.storage.from("certificates").getPublicUrl(data.path).data
+              .publicUrl
+          }`;
+          certificateUrls.push(publicUrl);
+        }
+      }
+    }
+
+    registerRequest.profilePicture = profilePictureUrl;
+    registerRequest.certificate = certificateUrls;
+
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: registerRequest.email,
+      password: registerRequest.password
+    })
+
+    if (authError) {
+      throw new ResponseError(400, authError.message)
+    }
+    
+    if (!authData.user) {
+      throw new ResponseError(500, "Failed to create user")
+    }
+
+    const tailor = await prismaClient.user.create({
+      data: {
+        id: authData.user.id,
+        firstname: registerRequest.firstname,
+        lastname: registerRequest.lastname,
+        email: registerRequest.email,
+        phoneNumber: registerRequest.phoneNumber,
+        password: registerRequest.password,
+        role: Role.TAILOR,
+        tailorProfile: {
+          create: {
+            provinceId: registerRequest.provinceId,
+            regencyId: registerRequest.regencyId,
+            districtId: registerRequest.districtId,
+            villageId: registerRequest.villageId,
+            addressDetail: registerRequest.addressDetail,
+            workEstimation: registerRequest.workEstimation,
+            priceRange: registerRequest.priceRange,
+            specialization: registerRequest.specialization,
+            businessDescription: registerRequest.businessDescription,
+            profilePicture: registerRequest.profilePicture,
+            certificate: registerRequest.certificate,
+          },
+        },
+      },
+      include: {
+        tailorProfile: true,
+      },
+    });
+
+    const response =  toTailorResponse(tailor);
+    response.token = authData.session?.access_token || ''
+    return response
+  }
 }
