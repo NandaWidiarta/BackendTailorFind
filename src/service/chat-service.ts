@@ -8,10 +8,21 @@ export class ChatService {
     });
 
     if (!room) {
+      const [customer, tailor] = await Promise.all([
+        prismaClient.user.findUnique({ where: { id: customerId } }),
+        prismaClient.user.findUnique({ where: { id: tailorId } }),
+      ]);
+  
+      if (!customer || !tailor) {
+        throw new Error("Customer or Tailor not found");
+      }
+  
       room = await prismaClient.roomChat.create({
         data: {
           customerId,
-          tailorId
+          tailorId,
+          customerName: customer.firstname + (customer.lastname ? ` ${customer.lastname}` : ""),
+          tailorName: tailor.firstname + (tailor.lastname ? ` ${tailor.lastname}` : ""),
         },
       });
     }

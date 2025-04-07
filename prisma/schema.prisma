@@ -71,6 +71,8 @@ model RoomChat {
   customerId String
   tailorId   String
   createdAt  DateTime @default(now())
+  customerName       String?
+  tailorName         String?
 
   customer   User @relation("CustomerRooms", fields: [customerId], references: [id])
   tailor     User @relation("TailorRooms", fields: [tailorId], references: [id])
@@ -89,7 +91,7 @@ model RoomChat {
 model Chat {
   id         String   @id @default(cuid())  
   roomId     String
-  room       RoomChat @relation(fields: [roomId], references: [id])
+  room       RoomChat @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
   senderId   String
   senderType Role 
@@ -225,6 +227,25 @@ model Stuff {
   updatedAt       DateTime    @updatedAt
   tailor          TailorProfile @relation("TailorStuffs", fields: [tailorId], references: [userId])
 }
+
+// model Notification {
+//   id         String   @id @default(cuid())
+//   userId     String
+//   message    String
+//   isRead     Boolean  @default(false)
+//   type       NotificationType
+//   relatedId  String?  
+//   createdAt  DateTime @default(now())
+
+//   user       User     @relation(fields: [userId], references: [id])
+
+//   @@map("Notification")
+// }
+
+// enum NotificationType {
+//   CHAT
+//   ORDER
+// }
 
 enum OrderStatus {
   NOT_YET_PAY
