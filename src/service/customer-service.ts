@@ -15,6 +15,7 @@ import { Validation } from "../validation/validation";
 import bcrypt from "bcrypt";
 import { v4 as uuid } from "uuid";
 import { supabase } from "../supabase-client";
+import nodemailer from 'nodemailer';
 
 export class CustomerService {
   static async register(
@@ -562,5 +563,51 @@ export class CustomerService {
     
     return filteredUser
   }
+
+  static async sendResetEmail(email: string, resetLink: string, name: string) {
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: {
+        user: "iputuwidiartanandanagitha@gmail.com",
+        pass: "yyit eqwp pusa anjc"
+      }
+    });
+    
+    // Email content
+    const mailOptions = {
+      from: `"${process.env.EMAIL_FROM_NAME || 'Tailor Find'}" <${process.env.EMAIL_FROM_ADDRESS || process.env.SMTP_USER}>`,
+      to: email,
+      subject: 'Reset Your Password',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2>Reset Your Password</h2>
+          <p>Hello ${name},</p>
+          <p>We received a request to reset your password. Click the button below to create a new password:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${resetLink}" style="background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Reset Password</a>
+          </div>
+          <p>This link will expire in 1 hour.</p>
+          <p>If you didn't request this, please ignore this email or contact support if you have concerns.</p>
+          <p>Regards,<br>The Tailor Find Team</p>
+        </div>
+      `,
+      headers: {
+        'Precedence': 'Bulk', // Untuk email massal
+        'X-Auto-Response-Suppress': 'OOF, AutoReply' // Mencegah email auto-reply
+      }
+    };
+    
+    try {
+      await transporter.sendMail(mailOptions);
+      return "Success"
+    } catch (error) {
+      console.error('Error sending email:', error);
+      throw new ResponseError(500, "Failed to send password reset email");
+    }
+  }
+
+
 
 }

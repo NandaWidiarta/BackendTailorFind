@@ -21,7 +21,7 @@ publicRouter.get("/province", GeneralController.getProvince);
 publicRouter.get("/regency/:provinceCode", GeneralController.getRegency);
 publicRouter.get("/district/:regencyCode", GeneralController.getDistrict);
 publicRouter.get("/village/:districtCode", GeneralController.getVillage);
-
+publicRouter.post("/kirim-email", GeneralController.kirimEmailTes);
 
 //ini handling ganti ke autheticated api 
 

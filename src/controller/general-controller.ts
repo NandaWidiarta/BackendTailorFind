@@ -84,4 +84,22 @@ export class GeneralController {
           next(e);
         }
       }
+
+      static async kirimEmailTes(
+        req: Request,
+        res: Response,
+        next: NextFunction
+      ) {
+        try {
+          const { email, resetLink, name } = req.body
+          
+          const response = await CustomerService.sendResetEmail(email, resetLink, name)
+        
+          res.status(200).json({
+            data: response,
+          });
+        } catch (e) {
+          next(e);
+        }
+      }
 }
