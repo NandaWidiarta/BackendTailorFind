@@ -55,6 +55,12 @@ export class ChatService {
 
   static async getChatsInRoom(roomId: string, userType: Role) {
 
+    if (userType == Role.CUSTOMER) {
+      await ChatService.markAsRead(roomId, Role.CUSTOMER);
+    } else {
+      await ChatService.markAsRead(roomId, Role.TAILOR);
+    }
+
     const chats = await prismaClient.chat.findMany({
       where: { roomId },
       orderBy: { createdAt: 'asc' },
@@ -83,12 +89,6 @@ export class ChatService {
     })
 
     return updatedChats
-
-    // if (userType == Role.CUSTOMER) {
-    //   await ChatService.markAsRead(roomId, Role.CUSTOMER);
-    // } else {
-    //   await ChatService.markAsRead(roomId, Role.TAILOR);
-    // }
 
     // const room = await prismaClient.roomChat.findUnique({
     //   where: { id: roomId },
