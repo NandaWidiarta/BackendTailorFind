@@ -9,6 +9,7 @@ import upload from "../middleware/multer";
 import { RoomChatController } from "../controller/room-chat-controller";
 import { CourseController } from "../controller/course-controller";
 import { ArticleController } from "../controller/article-controller";
+import { syncRegionData } from "../service/syncData";
 
 export const publicRouter = express.Router();
 
@@ -22,6 +23,20 @@ publicRouter.get("/regency/:provinceCode", GeneralController.getRegency);
 publicRouter.get("/district/:regencyCode", GeneralController.getDistrict);
 publicRouter.get("/village/:districtCode", GeneralController.getVillage);
 
+publicRouter.get("/province/v2", GeneralController.getProvinceV2);
+publicRouter.get("/regency/v2/:provinceCode", GeneralController.getRegency);
+publicRouter.get("/district/v2/:regencyCode", GeneralController.getDistrict);
+publicRouter.get("/village/v2/:districtCode", GeneralController.getVillage);
+
+publicRouter.get('/sync', async (req: Request, res: Response) => {
+  try {
+    await syncRegionData();
+    res.status(200).send("Synchronization completed successfully!");
+  } catch (error) {
+    console.error("Synchronization failed:", error);
+    res.status(500).send("Synchronization failed. Check the server logs for details.");
+  }
+});
 
 //ini handling ganti ke autheticated api 
 

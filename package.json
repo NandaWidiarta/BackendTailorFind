@@ -16,6 +16,7 @@
     "@prisma/client": "^6.1.0",
     "@supabase/supabase-js": "^2.47.12",
     "@types/http-errors": "^2.0.4",
+    "axios": "^1.8.3",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
