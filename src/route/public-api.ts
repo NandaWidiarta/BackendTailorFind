@@ -12,9 +12,13 @@ import { ArticleController } from "../controller/article-controller";
 
 export const publicRouter = express.Router();
 
-publicRouter.post("/customers/register", upload.single('profilePicture'), CustomerController.register);
-publicRouter.post("/customers/login", CustomerController.login);
+publicRouter.post("/customers/register", upload.single('profilePicture'), CustomerController.registerV2);
+// publicRouter.post("/customers/register", upload.single('profilePicture'), CustomerController.register);
+// publicRouter.post("/customers/login", CustomerController.login);
+publicRouter.post("/customers/login", GeneralController.loginV2);
+
 publicRouter.get("/testis", CustomerController.tes);
+// publicRouter.post("/logout", GeneralController.logoutV2);
 
 //general
 publicRouter.get("/province", GeneralController.getProvince);
@@ -41,15 +45,24 @@ publicRouter.get("/rooms/tailor/:tailorId", RoomChatController.getRoomsByTailor)
 publicRouter.post("/rooms/:roomId/chats", RoomChatController.sendMessage);
 
 //tailor
-publicRouter.post("/tailors/login", TailorController.login);
+// publicRouter.post("/tailors/login", TailorController.login);
+// publicRouter.post(
+//   "/tailors/register",
+//   upload.fields([
+//     { name: "profilePicture", maxCount: 1 }, // Untuk 1 file profile picture
+//     { name: "certificate", maxCount: 5 }, // Maksimal 5 file certificate
+//   ]),
+//   TailorController.register
+// );
+publicRouter.post("/tailors/login", GeneralController.loginV2);
 publicRouter.post(
-    "/tailors/register",
-    upload.fields([
-      { name: "profilePicture", maxCount: 1 }, // Untuk 1 file profile picture
-      { name: "certificate", maxCount: 5 }, // Maksimal 5 file certificate
-    ]),
-    TailorController.register
-  );
+  "/tailors/register",
+  upload.fields([
+    { name: "profilePicture", maxCount: 1 }, // Untuk 1 file profile picture
+    { name: "certificate", maxCount: 5 }, // Maksimal 5 file certificate
+  ]),
+  TailorController.registerV2
+);
 
 
 //dashboard

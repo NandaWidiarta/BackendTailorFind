@@ -22,3 +22,5 @@ customerApiRouter.get("/order/all/:userId", OrderController.getAllOrderByCustome
 customerApiRouter.get("/home", getHome)
 customerApiRouter.post("/logout", GeneralController.logout)
 customerApiRouter.patch("/update-profile", CustomerController.updateCustomerProfile)
+customerApiRouter.post("/reset-password", GeneralController.resetPassword)
+customerApiRouter.post("/forgot-password", GeneralController.forgotPassword);
