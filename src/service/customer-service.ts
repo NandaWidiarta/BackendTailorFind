@@ -607,8 +607,7 @@ export class CustomerService {
     return filteredUser
   }
 
-  static async registerCustomerV2(request: CreateCustomerRequest): Promise<CustomerResponse> {
-    const registerRequest = Validation.validate(CustomerValidation.REGISTER, request)
+  static async registerCustomerV2(registerRequest: CreateCustomerRequest, profilePictureFile?: Express.Multer.File): Promise<CustomerResponse> {
     
     const emailExists = await prismaClient.user.count({
       where: { email: registerRequest.email }
@@ -619,11 +618,34 @@ export class CustomerService {
     }
     
     const phoneExists = await prismaClient.user.count({
-      where: { phoneNumber: request.phoneNumber }
+      where: { phoneNumber: registerRequest.phoneNumber }
     }) > 0
     
     if (phoneExists) {
       throw new ResponseError(400, "Phone number already exists")
+    }
+
+    let profilePictureUrl: string | null = null;
+    if (profilePictureFile) {
+      const fileName = `${registerRequest.email}-${Date.now()}`;
+      const { data, error } = await supabase.storage
+        .from("profile")
+        .upload(fileName, profilePictureFile.buffer, {
+          contentType: profilePictureFile.mimetype,
+        });
+
+      if (error) {
+        throw new ResponseError(500, "Failed to upload profile picture");
+      }
+
+      profilePictureUrl = data?.path
+        ? `${
+            supabase.storage.from("profile").getPublicUrl(data.path).data
+              .publicUrl
+          }`
+        : null
+    } else {
+      profilePictureUrl = "https://xtyrxekcsaesyyopouhh.supabase.co/storage/v1/object/public/profile/tes/user.png"
     }
     
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -647,7 +669,8 @@ export class CustomerService {
         email: registerRequest.email,
         phoneNumber: registerRequest.phoneNumber,
         password: '', 
-        role: Role.CUSTOMER
+        role: Role.CUSTOMER,
+        profilePicture: profilePictureUrl
       }
     })
     

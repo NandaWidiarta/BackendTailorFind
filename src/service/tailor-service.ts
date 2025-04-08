@@ -670,8 +670,6 @@ export class TailorService {
       throw new ResponseError(400, "Phone number already exist");
     }
 
-    registerRequest.password = await bcrypt.hash(registerRequest.password, 10);
-
     let profilePictureUrl: string | null = null;
     if (profilePictureFile) {
       const fileName = `${registerRequest.email}-${Date.now()}`;
@@ -740,7 +738,7 @@ export class TailorService {
         lastname: registerRequest.lastname,
         email: registerRequest.email,
         phoneNumber: registerRequest.phoneNumber,
-        password: registerRequest.password,
+        password: "",
         role: Role.TAILOR,
         tailorProfile: {
           create: {

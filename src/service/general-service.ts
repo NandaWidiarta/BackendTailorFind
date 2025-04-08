@@ -83,7 +83,7 @@ export class GeneralService {
     }
     
     if (!authData.user) {
-      throw new ResponseError(401, "Email or password is wrong")
+      throw new ResponseError(401, "User not found")
     }
     
     const user = await prismaClient.user.findUnique({

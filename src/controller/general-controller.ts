@@ -96,7 +96,11 @@ export class GeneralController {
 
   static async forgotPassword(req: Request, res: Response, next: NextFunction) {
     try {
-      const { email } = req.body;
+      const userReq = req as UserRequest;
+      const email = userReq.user?.email;
+      if (!email) {
+        throw new ResponseError(400, "email-null");
+      }
       const response = await GeneralService.forgotPassword(email);
       res.status(200).json({
         message: response,
