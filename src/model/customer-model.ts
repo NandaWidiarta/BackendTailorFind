@@ -1,4 +1,4 @@
-import { Role, User } from "@prisma/client";
+import { Role, User, Gender } from "@prisma/client";
 
 export type CustomerResponse = {
     id : string;
@@ -8,6 +8,7 @@ export type CustomerResponse = {
     phoneNumber: string;
     role: Role;
     token?: string;
+    profilePicture: string | null
 }
 
 export type CreateCustomerRequest = {
@@ -18,6 +19,7 @@ export type CreateCustomerRequest = {
     password: string;
     role: Role;
     token?: string | null;
+    profilePicture: string | null
 }
 
 export type CustomersResponse = {
@@ -53,6 +55,7 @@ export interface TailorFilterParams {
   averageRating?: string; 
   workEstimation?: string; 
   priceRange?: string;
+  gender?: Gender
 }
 
 export function toCustomerResponse(customer: User): CustomerResponse {
@@ -62,6 +65,7 @@ export function toCustomerResponse(customer: User): CustomerResponse {
         lastName: customer.lastname || undefined,
         email: customer.email,
         phoneNumber: customer.phoneNumber, 
+        profilePicture: customer.profilePicture,
         role: Role.CUSTOMER,
         token: customer.token || undefined
     }

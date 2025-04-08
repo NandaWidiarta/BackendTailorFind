@@ -12,8 +12,8 @@ import { ArticleController } from "../controller/article-controller";
 
 export const publicRouter = express.Router();
 
-publicRouter.post("/customers/register", CustomerController.register);
 publicRouter.post("/customers/registerV2", CustomerController.registerV2);
+publicRouter.post("/customers/register", upload.single('profilePicture'), CustomerController.register);
 publicRouter.post("/customers/login", CustomerController.login);
 publicRouter.get("/testis", CustomerController.tes);
 publicRouter.post("/login", GeneralController.loginV2);
@@ -80,4 +80,4 @@ publicRouter.get("/course/:id", CourseController.getCourseDetail)
 //article
 publicRouter.get("/article", ArticleController.getAllArticles)
 publicRouter.get("/article/:id", ArticleController.getArticleDetail)
-publicRouter.get("/articles/search", ArticleController.searchArticle)
+publicRouter.get("/article/search", ArticleController.searchArticle)

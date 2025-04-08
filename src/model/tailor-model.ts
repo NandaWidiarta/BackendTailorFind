@@ -1,8 +1,9 @@
-import { Role, User } from "@prisma/client";
+import { Role, User, Gender } from "@prisma/client";
 
 export type CreateTailorRequest = {
   firstname: string
   lastname?: string | null
+  gender: Gender
   email: string
   phoneNumber: string
   password: string
@@ -23,6 +24,7 @@ export type TailorResponse = {
   id: string
   firstname: string
   lastname?: string | null
+  gender: Gender
   email: string
   phoneNumber: string
   provinceId: string | null
@@ -71,7 +73,7 @@ export function toTailorResponse(
     businessDescription: user.tailorProfile?.businessDescription ?? null,
     profilePicture: user.tailorProfile?.profilePicture ?? null,
     certificate: user.tailorProfile?.certificate ?? [],
-
+    gender: user.tailorProfile.gender,
     role: user.role,
     createdAt: user.createdAt,
     token: user.token ?? null,

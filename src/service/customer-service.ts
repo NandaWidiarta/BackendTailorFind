@@ -1,4 +1,4 @@
-import { Role } from "@prisma/client";
+import { PrismaClient, Role } from "@prisma/client";
 import { prismaClient } from "../application/database";
 import { ResponseError } from "../error/response-error";
 import {
@@ -15,15 +15,19 @@ import { Validation } from "../validation/validation";
 import bcrypt from "bcrypt";
 import { v4 as uuid } from "uuid";
 import { supabase } from "../supabase-client";
+import { Gender } from "@prisma/client";
 
 export class CustomerService {
   static async register(
-    request: CreateCustomerRequest
+    registerRequest: CreateCustomerRequest,
+    profilePictureFile?: Express.Multer.File,
   ): Promise<CustomerResponse> {
-    const registerRequest = Validation.validate(
-      CustomerValidation.REGISTER,
-      request
-    )
+    // const registerRequest = Validation.validate(
+    //   CustomerValidation.REGISTER,
+    //   request
+    // )
+    console.log('email' , registerRequest.email)
+    console.log('tess' , registerRequest)
 
     const totalUserWithSameEmail = await prismaClient.user.count({
       where: {
@@ -35,8 +39,31 @@ export class CustomerService {
       throw new ResponseError(400, "Email already exist")
     }
 
+    let profilePictureUrl: string | null = null;
+    if (profilePictureFile) {
+      const fileName = `${registerRequest.email}-${Date.now()}`;
+      const { data, error } = await supabase.storage
+        .from("profile")
+        .upload(fileName, profilePictureFile.buffer, {
+          contentType: profilePictureFile.mimetype,
+        });
+
+      if (error) {
+        throw new ResponseError(500, "Failed to upload profile picture");
+      }
+
+      profilePictureUrl = data?.path
+        ? `${
+            supabase.storage.from("profile").getPublicUrl(data.path).data
+              .publicUrl
+          }`
+        : null
+    } else {
+      profilePictureUrl = "https://xtyrxekcsaesyyopouhh.supabase.co/storage/v1/object/public/profile/tes/user.png"
+    }
+
     const isPhoneExist = await prismaClient.user.count({
-      where: { phoneNumber: request.phoneNumber },
+      where: { phoneNumber: registerRequest.phoneNumber },
     });
 
     if (isPhoneExist > 0) {
@@ -59,6 +86,7 @@ export class CustomerService {
     }
 
     registerRequest.token = newToken
+    registerRequest.profilePicture = profilePictureUrl
 
     const customer = await prismaClient.user.create({
       data: registerRequest,
@@ -284,11 +312,14 @@ export class CustomerService {
       averageRating,
       workEstimation,
       priceRange,
+      gender
     } = params;
 
     const whereConditions: any = {
       role: Role.TAILOR,
     };
+
+    console.log(gender)
 
     const AND: any[] = [];
 
@@ -341,10 +372,14 @@ export class CustomerService {
     }
 
     if (specialization) {
+      const specs = Array.isArray(specialization) 
+        ? specialization 
+        : specialization.split(',');
+      
       AND.push({
         tailorProfile: {
           specialization: {
-            has: specialization,
+            hasEvery: specs,
           },
         },
       });
@@ -381,6 +416,14 @@ export class CustomerService {
             contains: priceRange,
             mode: "insensitive",
           },
+        },
+      });
+    }
+
+    if (gender) {
+      AND.push({
+        tailorProfile: {
+          gender: gender as Gender, 
         },
       });
     }
@@ -436,7 +479,8 @@ export class CustomerService {
         priceRange: tailor.tailorProfile.priceRange,
         specialization: tailor.tailorProfile.specialization,
         profilePicture: tailor.tailorProfile.profilePicture,
-        averageRating: tailor.tailorProfile.averageRating
+        averageRating: tailor.tailorProfile.averageRating,
+        gender: tailor.tailorProfile.gender
       };
     });
 

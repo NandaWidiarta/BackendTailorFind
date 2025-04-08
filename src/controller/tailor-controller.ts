@@ -33,6 +33,8 @@ export class TailorController {
         ? []
         : req.files?.certificate || []
 
+      console.log(request.gender)
+
       const response = await TailorService.register(
         request,
         profilePictureFile,

@@ -23,6 +23,7 @@ model User {
   password    String    @db.VarChar(100)
   token       String?   @db.VarChar(100)    
   role        Role  
+  profilePicture    String?
   createdAt   DateTime  @default(now())
 
   roomsAsCustomer RoomChat[] @relation("CustomerRooms")
@@ -51,6 +52,7 @@ model TailorProfile {
   profilePicture    String?
   certificate       String[]
   averageRating     Float      @default(0.0)
+  gender            Gender     @default(FEMALE)
 
   user              User        @relation(fields: [userId], references: [id])
   province          Province    @relation("ProvinceTailors", fields: [provinceId], references: [code])
@@ -69,6 +71,8 @@ model RoomChat {
   customerId String
   tailorId   String
   createdAt  DateTime @default(now())
+  customerName       String?
+  tailorName         String?
 
   customer   User @relation("CustomerRooms", fields: [customerId], references: [id])
   tailor     User @relation("TailorRooms", fields: [tailorId], references: [id])
@@ -79,7 +83,7 @@ model RoomChat {
   latestMessage      String?    
   latestMessageTime  DateTime?  
   unreadCountCustomer Int @default(0)  
-  unreadCountTailor   Int @default(0)  
+  unreadCountTailor   Int @default(0) 
 
   @@unique([customerId, tailorId])
 }
@@ -87,12 +91,13 @@ model RoomChat {
 model Chat {
   id         String   @id @default(cuid())  
   roomId     String
-  room       RoomChat @relation(fields: [roomId], references: [id])
+  room       RoomChat @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
   senderId   String
   senderType Role 
   message    String
   type       String   @default("text") 
+  readAt     DateTime?
   createdAt  DateTime @default(now())
 }
 
@@ -223,6 +228,25 @@ model Stuff {
   tailor          TailorProfile @relation("TailorStuffs", fields: [tailorId], references: [userId])
 }
 
+// model Notification {
+//   id         String   @id @default(cuid())
+//   userId     String
+//   message    String
+//   isRead     Boolean  @default(false)
+//   type       NotificationType
+//   relatedId  String?  
+//   createdAt  DateTime @default(now())
+
+//   user       User     @relation(fields: [userId], references: [id])
+
+//   @@map("Notification")
+// }
+
+// enum NotificationType {
+//   CHAT
+//   ORDER
+// }
+
 enum OrderStatus {
   NOT_YET_PAY
   ON_PROCCESS
@@ -244,4 +268,8 @@ enum OrderType {
   PICKUP
 }
 
+enum Gender {
+  MALE
+  FEMALE
+}
 
