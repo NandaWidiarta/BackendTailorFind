@@ -216,6 +216,18 @@ export class CustomerService {
             lastname: true,
           },
         },
+        province: {
+          select: { name: true },
+        },
+        regency: {
+          select: { name: true },
+        },
+        district: {
+          select: { name: true },
+        },
+        village: {
+          select: { name: true },
+        },
       },
     });
 
@@ -229,9 +241,29 @@ export class CustomerService {
       take: 5,
     })
 
+    const simplifiedTailors = topTailors.map(tailor => ({
+      id: tailor.id,
+      userId: tailor.userId,
+      firstname: tailor.user.firstname,
+      lastname: tailor.user.lastname,
+      addressDetail: tailor.addressDetail,
+      workEstimation: tailor.workEstimation,
+      priceRange: tailor.priceRange,
+      specialization: tailor.specialization,
+      businessDescription: tailor.businessDescription,
+      profilePicture: tailor.profilePicture,
+      certificate: tailor.certificate,
+      averageRating: tailor.averageRating,
+      gender: tailor.gender,
+      provinceName: tailor.province.name,
+      regencyName: tailor.regency.name,
+      districtName: tailor.district.name,
+      villageName: tailor.village.name
+    }));
+    
     return {
       unreadMessagesCount,
-      topTailors,
+      topTailors: simplifiedTailors,
       latestArticles,
       latestCourses,
     };
