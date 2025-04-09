@@ -196,6 +196,20 @@ export class CustomerController {
       next(e);
     }
   }
+
+  static async registerV2(req: Request, res: Response, next: NextFunction) {
+    try {
+      const request: CreateCustomerRequest = req.body as CreateCustomerRequest;
+      const profilePicture = req.file
+      console.log("registerv2", request)
+      const response = await CustomerService.registerCustomerV2(request, profilePicture);
+      res.status(200).json({
+        data: response,
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
 }
 
 export const getHome: RequestHandler = async (req, res, next) => {

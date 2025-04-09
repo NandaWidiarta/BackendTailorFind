@@ -260,6 +260,33 @@ export class TailorController {
     }
   }
 
+  static async registerV2(req: Request, res: Response, next: NextFunction) {
+    try {
+      const request: CreateTailorRequest = {
+        ...req.body,
+        specialization: JSON.parse(req.body.specialization || "[]"), // Pastikan specialization di-parse jadi array
+      }
 
+      const profilePictureFile = Array.isArray(req.files)
+        ? undefined
+        : req.files?.profilePicture?.[0]
+
+      const certificateFiles = Array.isArray(req.files)
+        ? []
+        : req.files?.certificate || []
+
+      const response = await TailorService.registerV2(
+        request,
+        profilePictureFile,
+        certificateFiles as Express.Multer.File[] // Cast ke array file
+      )
+
+      res.status(200).json({
+        data: response,
+      });
+    } catch (e) {
+      next(e)
+    }
+  }
 
 }
