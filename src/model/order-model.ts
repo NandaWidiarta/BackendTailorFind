@@ -1,4 +1,4 @@
-import { OrderType } from "@prisma/client"
+import { OrderType, Role } from "@prisma/client"
 
 export type CreateOrderItemRequest = {
   name: string
@@ -31,4 +31,11 @@ export type CompleteOrderRequest = {
   orderId: string;
   deliveryServiceName?: string;
   receiptNumber?: string;
+}
+
+export type CancelOrderRequest {
+  orderId: string;
+  userId: string;  
+  userRole: Role;  
+  cancellationReason: string;
 }

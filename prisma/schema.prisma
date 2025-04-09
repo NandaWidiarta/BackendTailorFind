@@ -166,6 +166,9 @@ model Order {
   receiptNumber String?
   deliveryImage String?
   paymentImage String?
+  cancellationReason String?  
+  cancelledBy   Role?        
+  cancelledAt   DateTime?  
 
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
@@ -251,6 +254,7 @@ enum OrderStatus {
   NOT_YET_PAY
   ON_PROCCESS
   DONE
+  CANCELED
 }
 
 enum Role {
