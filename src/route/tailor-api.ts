@@ -59,3 +59,6 @@ tailorApiRouter.post(
 
 tailorApiRouter.get("/certificates", TailorController.getCertificate)
 tailorApiRouter.delete("/certificates", TailorController.deleteCertificate)
+
+tailorApiRouter.post("/reset-password", GeneralController.resetPassword)
+tailorApiRouter.post("/forgot-password", GeneralController.forgotPassword);
