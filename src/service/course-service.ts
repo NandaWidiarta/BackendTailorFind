@@ -12,6 +12,8 @@ export class CourseService {
     shortDescription: string,
     registrationLink: string,
     description: string,
+    place: string,
+    courseDate: string,
     image: Express.Multer.File
   ) {
     if (!image) {
@@ -43,11 +45,13 @@ export class CourseService {
       data: {
         tailorId,
         authorName,
+        imageUrl,
         courseName,
         shortDescription,
         registrationLink,
         description,
-        imageUrl,
+        place,
+        courseDate
       },
     });
 
@@ -180,6 +184,8 @@ export class CourseService {
     shortDescription?: string,
     registrationLink?: string,
     description?: string,
+    place?: string,
+    courseDate?: string,
     image?: Express.Multer.File
   ) {
     const existingCourse = await prismaClient.course.findFirst({
@@ -204,6 +210,8 @@ export class CourseService {
     if (registrationLink !== undefined)
       updateData.registrationLink = registrationLink;
     if (description !== undefined) updateData.description = description;
+    if (place !== undefined) updateData.place = place;
+    if (courseDate !== undefined) updateData.courseDate = courseDate;
 
     let imageUrl = existingCourse.imageUrl;
 

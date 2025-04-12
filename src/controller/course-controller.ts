@@ -27,6 +27,8 @@ export class CourseController {
         shortDescription,
         registrationLink,
         description,
+        place,
+        courseDate,
       } = req.body
 
       const response = await CourseService.addCourse(
@@ -36,6 +38,8 @@ export class CourseController {
         shortDescription,
         registrationLink,
         description,
+        place,
+        courseDate,
         req.file
       )
 
@@ -148,6 +152,8 @@ export class CourseController {
         shortDescription,
         registrationLink,
         description,
+        place,
+        courseDate,
       } = req.body
 
       const response = await CourseService.updateCourse(
@@ -157,6 +163,8 @@ export class CourseController {
         shortDescription,
         registrationLink,
         description,
+        place,
+        courseDate,
         req.file
       )
 
