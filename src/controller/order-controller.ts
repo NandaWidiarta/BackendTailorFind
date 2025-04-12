@@ -3,6 +3,7 @@ import { CreateOrderRequest } from "../model/order-model";
 import { OrderService } from "../service/order-service";
 import { UserRequest } from "../type/user-request";
 import { ResponseError } from "../error/response-error";
+import { Role } from "@prisma/client";
 
 export class OrderController {
   static async createOrder(req: Request, res: Response, next: NextFunction) {
@@ -97,4 +98,37 @@ export class OrderController {
       next(e);
     }
   }
+
+  static async cancelOrder(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userReq = req as UserRequest;
+      const userId = userReq.user?.id;
+      const userRole = userReq.user?.role;
+  
+      if (!userId || !userRole) {
+        throw new ResponseError(400, "user invalid");
+      }
+  
+      const { orderId } = req.params;
+      if (!orderId) {
+        throw new ResponseError(400, "orderId is required");
+      }
+
+      const { cancellationReason } = req.body
+  
+      const response = await OrderService.cancelOrder({
+        orderId,
+        userId, // bisa untuk validasi kepemilikan order
+        userRole: userRole, // kalau role dibutuhkan
+        cancellationReason: cancellationReason
+      });
+  
+      res.status(200).json({
+        data: response,
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
+  
 }

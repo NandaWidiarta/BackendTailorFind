@@ -1,6 +1,6 @@
 import { OrderStatus, Role } from "@prisma/client";
 import { prismaClient } from "../application/database";
-import { CompleteOrderRequest, CreateOrderRequest } from "../model/order-model";
+import { CancelOrderRequest, CompleteOrderRequest, CreateOrderRequest } from "../model/order-model";
 import { supabase } from "../supabase-client";
 import { ResponseError } from "../error/response-error";
 
@@ -221,6 +221,71 @@ export class OrderService {
     })
 
     return updatedOrder
+  }
+
+  static async cancelOrder(request: CancelOrderRequest) {
+    const order = await prismaClient.order.findUnique({
+      where: { id: request.orderId },
+    });
+    
+    if (!order) {
+      throw new ResponseError(400, "order-not-found")
+    }
+    
+    if (
+      (request.userRole === Role.CUSTOMER && order.customerId !== request.userId) || 
+      (request.userRole === Role.TAILOR && order.tailorId !== request.userId)
+    ) {
+      throw new ResponseError(400, "user-not-same")
+    }
+    
+    if (order.status !== OrderStatus.NOT_YET_PAY) {
+      throw new ResponseError(400, "order-cannot-cancel")
+    }
+    
+    const updatedOrder = await prismaClient.order.update({
+      where: { id: request.orderId },
+      data: {
+        status: OrderStatus.CANCELED,
+        cancellationReason: request.cancellationReason,
+        cancelledBy: request.userRole,
+        cancelledAt: new Date(),
+      },
+      include: {
+        orderItems: true,
+      },
+    });
+    
+    const cancellationMessage = `Order #${request.orderId} telah dibatalkan oleh ${request.userRole === Role.CUSTOMER ? 'customer' : 'tailor'} dengan alasan: ${request.cancellationReason}`;
+    
+    const chat = await prismaClient.chat.create({
+      data: {
+        roomId: order.roomId,
+        senderId: request.userId,
+        senderType: request.userRole,
+        message: cancellationMessage,
+        type: "cancelOrder",
+      },
+    });
+    
+    await prismaClient.roomChat.update({
+      where: { id: order.roomId },
+      data: {
+        latestMessage: cancellationMessage,
+        latestMessageTime: new Date(),
+        unreadCountCustomer: request.userRole === Role.TAILOR
+          ? { increment: 1 } 
+          : undefined,
+        unreadCountTailor: request.userRole === Role.CUSTOMER
+          ? { increment: 1 }  
+          : undefined,
+      }
+    });
+    
+    return {
+      order: updatedOrder,
+      chat: chat,
+    };
   }
 
 }

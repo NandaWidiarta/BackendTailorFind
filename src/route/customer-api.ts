@@ -18,6 +18,7 @@ customerApiRouter.post("/rooms/:roomId/chats", upload.single('file'), RoomChatCo
 customerApiRouter.post("/order/upload-payment/:orderId", upload.single('file'), OrderController.uploadPaymentProof)
 customerApiRouter.get("/order/:orderId", OrderController.getDetailOrder)
 customerApiRouter.get("/order/all/:userId", OrderController.getAllOrderByCustomer)
+customerApiRouter.post("/order/cancel/:orderId", OrderController.cancelOrder)
 
 customerApiRouter.get("/home", getHome)
 customerApiRouter.post("/logout", GeneralController.logout)
