@@ -40,7 +40,8 @@ export class ChatService {
             firstname: true,
             lastname: true,
             email: true,
-            phoneNumber: true
+            phoneNumber: true,
+            profilePicture: true
           }
         },
       }
@@ -57,7 +58,8 @@ export class ChatService {
             firstname: true,
             lastname: true,
             email: true,
-            phoneNumber: true
+            phoneNumber: true,
+            profilePicture: true
           }
         }
       }
