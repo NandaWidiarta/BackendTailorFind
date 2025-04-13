@@ -82,18 +82,37 @@ export class CourseService {
     };
   }
 
-  static async searchCourse(name: string, page = 1, pageSize = 8) {
+  static async searchCourse(name: string, page = 1, pageSize = 8, userId?: string, searchMode?: 'own' | 'others' | 'all') {
     const searchTerms = name.toLowerCase().split(/\s+/);
+
+    let whereCondition: any = {
+      AND: searchTerms.map(term => ({
+        courseName: {
+          contains: term,
+          mode: Prisma.QueryMode.insensitive
+        }
+      }))
+    };
+    
+    if (userId && searchMode) {
+      if (searchMode === 'own') {
+        whereCondition = {
+          ...whereCondition,
+          tailorId: userId
+        };
+      } else if (searchMode === 'others') {
+        whereCondition = {
+          ...whereCondition,
+          NOT: {
+            tailorId: userId
+          }
+        };
+      }
+    }
+
     
     const courses = await prismaClient.course.findMany({
-      where: {
-        AND: searchTerms.map(term => ({
-          courseName: {
-            contains: term,
-            mode: Prisma.QueryMode.insensitive
-          }
-        }))
-      },
+      where: whereCondition,
       skip: (page - 1) * pageSize,
       take: pageSize,
       orderBy: {
@@ -102,14 +121,7 @@ export class CourseService {
     });
     
     const totalCourses = await prismaClient.course.count({
-      where: {
-        AND: searchTerms.map(term => ({
-          courseName: {
-            contains: term,
-            mode: Prisma.QueryMode.insensitive
-          }
-        }))
-      }
+      where: whereCondition
     });
 
     const totalPages = Math.ceil(totalCourses / pageSize);
