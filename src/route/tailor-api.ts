@@ -28,6 +28,7 @@ tailorApiRouter.post("/order/cancel/:orderId", OrderController.cancelOrder)
 tailorApiRouter.post("/article/add", upload.single('file'), ArticleController.addArticle)
 tailorApiRouter.post("/course/add", upload.single('file'), CourseController.addCourse)
 tailorApiRouter.post("/stuff/add", upload.single('file'), StuffController.addStuff)
+tailorApiRouter.get("/articles/search", ArticleController.searchArticle)
 
 //home
 tailorApiRouter.get("/home", TailorController.getHomeData)

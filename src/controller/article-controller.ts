@@ -78,12 +78,29 @@ export class ArticleController {
     next: NextFunction
   ) {
     try {
-      const { page = "1", name, pageSize } = req.query;
+      const { page = "1", name, pageSize, searchMode = 'all' } = req.query;
       const currentPage = parseInt(page as string, 10) || 1;
-      const pageSizeInt = parseInt(pageSize as string, 8) || 8
+      const pageSizeInt = parseInt(pageSize as string, 8) || 8;
       
-      const response = await ArticleService.searchArticle(name as string, currentPage, pageSizeInt)
+      const validSearchMode = ['own', 'others', 'all'].includes(searchMode as string) 
+        ? searchMode as 'own' | 'others' | 'all'
+        : 'all';
 
+      const userReq = req as UserRequest
+      
+      const userId = userReq.user?.id;
+      const userRole = userReq.user?.role; 
+      
+      const finalSearchMode = userRole === 'TAILOR' ? validSearchMode : 'all';
+      
+      const response = await ArticleService.searchArticle(
+        name as string, 
+        currentPage, 
+        pageSizeInt, 
+        userId, 
+        finalSearchMode
+      );
+  
       res.status(200).json({
         data: response,
       });

@@ -82,19 +82,37 @@ export class ArticleService {
     };
   }
 
-  static async searchArticle(name: string, page = 1, pageSize = 8) {
+  static async searchArticle(name: string, page = 1, pageSize = 8, userId?: string, searchMode?: 'own' | 'others' | 'all') {
     const searchTerms = name.toLowerCase().split(/\s+/);
     console.log("search terms", searchTerms)
 
-    const articles = await prismaClient.article.findMany({
-      where: {
-        AND: searchTerms.map(term => ({
-          title: {
-            contains: term,
-            mode: Prisma.QueryMode.insensitive
+    let whereCondition: any = {
+      AND: searchTerms.map(term => ({
+        title: {
+          contains: term,
+          mode: Prisma.QueryMode.insensitive
+        }
+      }))
+    };
+    
+    if (userId && searchMode) {
+      if (searchMode === 'own') {
+        whereCondition = {
+          ...whereCondition,
+          tailorId: userId
+        };
+      } else if (searchMode === 'others') {
+        whereCondition = {
+          ...whereCondition,
+          NOT: {
+            tailorId: userId
           }
-        }))
-      },
+        };
+      }
+    }
+
+    const articles = await prismaClient.article.findMany({
+      where: whereCondition,
       skip: (page - 1) * pageSize,
       take: pageSize,
       orderBy: {
@@ -102,17 +120,9 @@ export class ArticleService {
       },
     });
 
-    console.log("ini article", articles)
     
     const totalArticles = await prismaClient.article.count({
-      where: {
-        AND: searchTerms.map(term => ({
-          title: {
-            contains: term,
-            mode: Prisma.QueryMode.insensitive
-          }
-        }))
-      }
+      where: whereCondition
     });
 
     const totalPages = Math.ceil(totalArticles / pageSize);
