@@ -1,4 +1,4 @@
-import { PrismaClient, Role } from "@prisma/client";
+import { Prisma, PrismaClient, Role } from "@prisma/client";
 import { prismaClient } from "../application/database";
 import { ResponseError } from "../error/response-error";
 import {
@@ -551,7 +551,8 @@ export class CustomerService {
               select: {
                 id: true,
                 firstname: true,
-                lastname: true
+                lastname: true,
+                profilePicture: true 
               }
             }
           }
@@ -596,7 +597,8 @@ export class CustomerService {
         createdAt: review.createdAt,
         customer: {
           id: review.customer.id,
-          name: `${review.customer.firstname} ${review.customer.lastname || ''}`
+          name: `${review.customer.firstname} ${review.customer.lastname || ''}`,
+          imageUrl: review.customer.profilePicture
         }
       })),
       stuff: tailorWithoutSensitiveInfo.tailorProfile?.stuff.map(item => ({
@@ -628,6 +630,7 @@ export class CustomerService {
     lastname?: string;
     email?: string;
     phoneNumber?: string;
+    profilePicture?: string | null
   }) {
     const updatedUser = await prismaClient.user.update({
       where: { id: userId },

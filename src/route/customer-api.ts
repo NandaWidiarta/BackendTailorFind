@@ -22,6 +22,6 @@ customerApiRouter.post("/order/cancel/:orderId", OrderController.cancelOrder)
 
 customerApiRouter.get("/home", getHome)
 customerApiRouter.post("/logout", GeneralController.logout)
-customerApiRouter.patch("/update-profile", CustomerController.updateCustomerProfile)
+customerApiRouter.patch("/update-profile",upload.single('file'), CustomerController.updateCustomerProfile)
 customerApiRouter.post("/reset-password", GeneralController.resetPassword)
 customerApiRouter.post("/forgot-password", GeneralController.forgotPassword);
