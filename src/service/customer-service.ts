@@ -625,22 +625,34 @@ export class CustomerService {
   }
 
 
-  static async updateCustomerProfile(userId: string, userData: {
-    firstname?: string;
-    lastname?: string;
-    email?: string;
-    phoneNumber?: string;
-    profilePicture?: string | null
-  }) {
+  static async updateCustomerProfile(
+    userId: string,
+    userData: {
+      firstname?: string;
+      lastname?: string;
+      email?: string;
+      phoneNumber?: string;
+      profilePicture?: string | null;
+    }
+  ) {
+    const { profilePicture, ...others } = userData;
+
+    const data = {
+      ...others,
+      ...(typeof profilePicture === 'string' && profilePicture.trim() !== ''
+        ? { profilePicture }
+        : {})
+    };
+  
     const updatedUser = await prismaClient.user.update({
       where: { id: userId },
-      data: userData
+      data
     });
 
     const { password, createdAt, ...filteredUser } = updatedUser;
-    
-    return filteredUser
+    return filteredUser;
   }
+  
 
   static async registerCustomerV2(registerRequest: CreateCustomerRequest, profilePictureFile?: Express.Multer.File): Promise<CustomerResponse> {
     
