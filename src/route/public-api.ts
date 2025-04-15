@@ -81,3 +81,5 @@ publicRouter.get("/course/:id", CourseController.getCourseDetail)
 publicRouter.get("/article", ArticleController.getAllArticles)
 publicRouter.get("/article/:id", ArticleController.getArticleDetail)
 publicRouter.get("/articles/search", ArticleController.searchArticle)
+
+publicRouter.post("/forgot-password", GeneralController.forgotPassword);
