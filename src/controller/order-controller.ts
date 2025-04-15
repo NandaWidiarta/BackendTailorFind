@@ -4,6 +4,7 @@ import { OrderService } from "../service/order-service";
 import { UserRequest } from "../type/user-request";
 import { ResponseError } from "../error/response-error";
 import { Role } from "@prisma/client";
+import { supabase } from "../supabase-client";
 
 export class OrderController {
   static async createOrder(req: Request, res: Response, next: NextFunction) {
@@ -22,11 +23,13 @@ export class OrderController {
     try {
       const orderId = req.params.orderId
 
+      const { customerPaymentBankName, customerAccountName, customerAccount } = req.body
+
       if (!req.file) {
         return next()
       }
 
-      const response = await OrderService.uploadProofOfPayment(req.file, orderId)
+      const response = await OrderService.uploadProofOfPayment(req.file, orderId, customerPaymentBankName, customerAccountName, customerAccount )
       
       res.status(200).json({
         data: response,
@@ -99,11 +102,26 @@ export class OrderController {
     }
   }
 
+  static async completeOrderByCustomer(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { orderId } = req.params
+      const response = await OrderService.customerCompleteOrder(
+        orderId
+      )
+      res.status(200).json({
+        data: response,
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
+
   static async cancelOrder(req: Request, res: Response, next: NextFunction) {
     try {
       const userReq = req as UserRequest;
       const userId = userReq.user?.id;
       const userRole = userReq.user?.role;
+      const file = req.file
   
       if (!userId || !userRole) {
         throw new ResponseError(400, "user invalid");
@@ -115,12 +133,27 @@ export class OrderController {
       }
 
       const { cancellationReason } = req.body
+      let imageUrl: string | null | undefined = undefined;
+
+
+      if (file) {
+        try {
+          const result = await uploadFileToSupabase(file, orderId);
+          imageUrl = result ?? undefined;
+          if (!imageUrl) {
+            throw new Error("Failed to upload image");
+          }
+        } catch (uploadErr) {
+          throw new ResponseError(500, "Failed to upload file to Supabase");
+        }
+      }
   
       const response = await OrderService.cancelOrder({
         orderId,
-        userId, // bisa untuk validasi kepemilikan order
-        userRole: userRole, // kalau role dibutuhkan
-        cancellationReason: cancellationReason
+        userId, 
+        userRole: userRole,
+        cancellationReason: cancellationReason,
+        cancellationImage: imageUrl
       });
   
       res.status(200).json({
@@ -131,4 +164,39 @@ export class OrderController {
     }
   }
   
+}
+
+async function uploadFileToSupabase(
+  file: Express.Multer.File,
+  orderId: string
+): Promise<string | null> {
+  try {
+    const extension = file.originalname.split('.').pop();
+    const fileName = `${orderId}-${Date.now()}.${extension || ''}`;
+
+    const { data, error } = await supabase.storage
+      .from('paymentProof')
+      .upload(fileName, file.buffer, {
+        contentType: file.mimetype,
+        upsert: false, 
+      });
+
+    if (error) {
+      console.error('Supabase upload error:', error);
+      return null;
+    }
+
+    let publicURL: string | null = null;
+    if (data && data.path) {
+      const { data: publicData } = supabase.storage
+        .from('paymentProof')
+        .getPublicUrl(data.path);
+      publicURL = publicData?.publicUrl ?? null;
+    }
+
+    return publicURL;
+  } catch (err) {
+    console.error('Exception uploading to Supabase:', err);
+    return null;
+  }
 }

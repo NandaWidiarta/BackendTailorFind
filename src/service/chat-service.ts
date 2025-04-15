@@ -150,10 +150,10 @@ export class ChatService {
       data: {
         latestMessage: message,
         latestMessageTime: new Date(),
-        unreadCountCustomer: senderType === Role.TAILOR
+        unreadCountCustomer: senderType === Role.TAILOR || Role.ADMIN
           ? { increment: 1 } 
           : undefined,
-        unreadCountTailor: senderType === Role.CUSTOMER
+        unreadCountTailor: senderType === Role.CUSTOMER || Role.ADMIN
           ? { increment: 1 }  
           : undefined,
       }

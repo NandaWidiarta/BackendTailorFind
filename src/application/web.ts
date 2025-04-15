@@ -6,6 +6,7 @@ import { Server as SocketIOServer } from "socket.io";
 import { customerApiRouter } from "../route/customer-api";
 import { tailorApiRouter } from "../route/tailor-api";
 import cors from "cors";
+import { adminApiRouter } from "../route/admin-api";
 
 export const web = express()
 
@@ -24,6 +25,7 @@ web.use(express.urlencoded({ extended: true }))
 web.use(publicRouter)
 web.use("/customers", customerApiRouter)
 web.use("/tailors", tailorApiRouter)
+web.use("/admin", adminApiRouter)
 web.use(errorMiddleware)
 
 

@@ -168,7 +168,19 @@ model Order {
   paymentImage String?
   cancellationReason String?  
   cancelledBy   Role?        
-  cancelledAt   DateTime?  
+  cancelledAt   DateTime?
+
+  customerPaymentBankName       String?
+  customerAccountName           String?
+  customerAccount               String?
+
+  cancellationRequestImage   String?
+  cancellationRequestReason  String?
+  cancellationRejectedReason String?
+  refundImage                String?
+  isCancellationApproved     Boolean?
+  previousStatus             OrderStatus? 
+  paymentToTailorImage       String?
 
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
@@ -254,14 +266,21 @@ model Stuff {
 
 enum OrderStatus {
   NOT_YET_PAY
+  WAITING_ADMIN_PAYMENT_VERIFICATION
+  ADMIN_REVIEWING_CANCELLATION
   ON_PROCCESS
+  TAILOR_SENT_PRODUCT
+  WAITING_CUSTOMER_RECEIVE_CONFIRMATION
+  WAITING_ADMIN_TO_PAY_TAILOR
   DONE
   CANCELED
+  PAYMENT_REJECTED
 }
 
 enum Role {
   CUSTOMER
   TAILOR
+  ADMIN
 }
 
 enum StuffCategory {

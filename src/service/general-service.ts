@@ -99,7 +99,7 @@ export class GeneralService {
       throw new ResponseError(401, "User not found")
     }
     
-    if (user.role === Role.CUSTOMER) {
+    if (user.role === Role.CUSTOMER || user.role === Role.ADMIN) {
       const response = toCustomerResponse(user)
       response.token = authData.session?.access_token || ''
       return response

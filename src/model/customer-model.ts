@@ -66,7 +66,7 @@ export function toCustomerResponse(customer: User): CustomerResponse {
         email: customer.email,
         phoneNumber: customer.phoneNumber, 
         profilePicture: customer.profilePicture,
-        role: Role.CUSTOMER,
+        role: customer.role,
         token: customer.token || undefined
     }
 }
