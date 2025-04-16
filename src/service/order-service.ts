@@ -421,8 +421,7 @@ export class OrderService {
       data: { 
         paymentToTailorImage: imageUrl, 
         status: OrderStatus.DONE
-       },
-      select: { id: true, paymentImage: true }, 
+       }
     })
 
     if (!updatedOrder) {
@@ -483,9 +482,9 @@ export class OrderService {
       where: { id: orderId },
       data: { 
         refundImage: imageUrl, 
-        status: OrderStatus.CANCELED
-       },
-      select: { id: true, paymentImage: true }, 
+        status: OrderStatus.CANCELED,
+        isCancellationApproved: true
+       }
     })
 
     if (!updatedOrder) {
