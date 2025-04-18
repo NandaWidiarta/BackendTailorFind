@@ -20,6 +20,7 @@ customerApiRouter.get("/order/:orderId", OrderController.getDetailOrder)
 customerApiRouter.get("/order/all/:userId", OrderController.getAllOrderByCustomer)
 customerApiRouter.post("/order/cancel/:orderId", upload.single('file'), OrderController.cancelOrder)
 customerApiRouter.post("/order/complete/:orderId", OrderController.completeOrderByCustomer)
+customerApiRouter.post("/order/midtrans-token/:orderId", OrderController.getMidtransToken);
 
 customerApiRouter.get("/home", getHome)
 customerApiRouter.post("/logout", GeneralController.logout)

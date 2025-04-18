@@ -163,6 +163,18 @@ export class OrderController {
       next(e);
     }
   }
+
+  static async getMidtransToken(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { orderId } = req.params
+      const response = await OrderService.createMidtransSnapToken(orderId);
+      res.status(200).json({
+        token: response,
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
   
 }
 

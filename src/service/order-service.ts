@@ -5,6 +5,7 @@ import { supabase } from "../supabase-client";
 import { ResponseError } from "../error/response-error";
 import { ChatService } from "./chat-service";
 import { ChatType } from "../constants/chat-type";
+import { snap } from "../instance/midtrans-client";
 
 export class OrderService {
   static async createOrder(request: CreateOrderRequest) {
@@ -575,6 +576,56 @@ export class OrderService {
     );
   
     return updatedOrder;
+  }
+
+  static async createMidtransSnapToken(orderId: string) {
+    // Ambil order dari database
+    const order = await prismaClient.order.findUnique({
+      where: { id: orderId },
+      include: {
+        orderItems: true,
+        customer: true
+      }
+    })
+  
+    if (!order) throw new Error('Order not found')
+  
+    const adminFee = 2000
+  
+    const items = order.orderItems.map((item) => ({
+      id: item.id,
+      name: item.name,
+      quantity: item.qty,
+      price: item.price
+    }))
+  
+    // Tambahkan item untuk admin fee
+    items.push({
+      id: 'ADMIN_FEE',
+      name: 'Biaya Admin',
+      quantity: 1,
+      price: adminFee
+    })
+  
+    const grossAmount = items.reduce((total, item) => {
+      return total + item.price * item.quantity
+    }, 0)
+  
+    const parameter = {
+      transaction_details: {
+        order_id: order.id,
+        gross_amount: grossAmount
+      },
+      item_details: items,
+      customer_details: {
+        first_name: order.customer.firstname,
+        email: order.customer.email,
+        phone: order.customer.phoneNumber
+      }
+    }
+  
+    const transaction = await snap.createTransaction(parameter)
+    return transaction.token
   }
   
 

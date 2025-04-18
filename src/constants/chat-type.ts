@@ -1,5 +1,6 @@
 export enum ChatType {
     TEXT = "text", 
+    IMAGE = "image",
     ORDER = "order", 
     REQUEST_CANCEL_ORDER = "requestCancelOrder",
     PAYMENT_CUSTOMER_CONFIRMED = "paymentCustomerConfirmed",
