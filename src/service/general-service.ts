@@ -79,11 +79,11 @@ export class GeneralService {
     })
     
     if (authError) {
-      throw new ResponseError(401, "Email or password is wrong")
+      throw new ResponseError(401, "Email atau password salah")
     }
     
     if (!authData.user) {
-      throw new ResponseError(401, "User not found")
+      throw new ResponseError(401, "User tidak ditemukan")
     }
     
     const user = await prismaClient.user.findUnique({
@@ -96,7 +96,7 @@ export class GeneralService {
     })
     
     if (!user) {
-      throw new ResponseError(401, "User not found")
+      throw new ResponseError(401, "User tidak ditemukan")
     }
     
     if (user.role === Role.CUSTOMER) {
