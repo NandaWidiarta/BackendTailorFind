@@ -20,6 +20,7 @@ model User {
   lastname    String?   @db.VarChar(100)
   email       String    @unique @db.VarChar(100)
   phoneNumber String    @unique @db.VarChar(20)
+  walletBalance Int     @default(0) 
   password    String    @db.VarChar(100)
   token       String?   @db.VarChar(100)    
   role        Role  
@@ -168,7 +169,19 @@ model Order {
   paymentImage String?
   cancellationReason String?  
   cancelledBy   Role?        
-  cancelledAt   DateTime?  
+  cancelledAt   DateTime?
+
+  customerPaymentBankName       String?
+  customerAccountName           String?
+  customerAccount               String?
+
+  cancellationRequestImage   String?
+  cancellationRequestReason  String?
+  cancellationRejectedReason String?
+  refundImage                String?
+  isCancellationApproved     Boolean?
+  previousStatus             OrderStatus? 
+  paymentToTailorImage       String?
 
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
@@ -254,14 +267,21 @@ model Stuff {
 
 enum OrderStatus {
   NOT_YET_PAY
+  WAITING_ADMIN_PAYMENT_VERIFICATION //delete later
+  ADMIN_REVIEWING_CANCELLATION
   ON_PROCCESS
+  TAILOR_SENT_PRODUCT
+  WAITING_CUSTOMER_RECEIVE_CONFIRMATION
+  WAITING_ADMIN_TO_PAY_TAILOR //delete later
   DONE
   CANCELED
+  PAYMENT_REJECTED //delete later
 }
 
 enum Role {
   CUSTOMER
   TAILOR
+  ADMIN
 }
 
 enum StuffCategory {

@@ -38,4 +38,5 @@ export type CancelOrderRequest {
   userId: string;  
   userRole: Role;  
   cancellationReason: string;
+  cancellationImage?: string;
 }

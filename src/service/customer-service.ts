@@ -16,6 +16,7 @@ import bcrypt from "bcrypt";
 import { v4 as uuid } from "uuid";
 import { supabase } from "../supabase-client";
 import { Gender } from "@prisma/client";
+import { snap } from "../instance/midtrans-client";
 
 export class CustomerService {
   static async register(
