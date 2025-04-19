@@ -44,12 +44,14 @@ export class AdminController {
     static async approveCancelation(req: Request, res: Response, next: NextFunction) {
         try {
             const orderId = req.params.orderId
-    
-            if (!req.file) {
-                return next()
+            const userReq = req as UserRequest;
+            const adminId = userReq.user?.id;
+
+            if (!adminId) {
+                throw new ResponseError(400, "Admin Invalid");
             }
     
-            const response = await OrderService.approveCancelation(req.file, orderId)
+            const response = await OrderService.approveCancelation(orderId, adminId)
             
             res.status(200).json({
             data: response,

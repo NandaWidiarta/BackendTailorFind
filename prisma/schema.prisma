@@ -20,6 +20,7 @@ model User {
   lastname    String?   @db.VarChar(100)
   email       String    @unique @db.VarChar(100)
   phoneNumber String    @unique @db.VarChar(20)
+  walletBalance Int     @default(0) 
   password    String    @db.VarChar(100)
   token       String?   @db.VarChar(100)    
   role        Role  
@@ -266,15 +267,15 @@ model Stuff {
 
 enum OrderStatus {
   NOT_YET_PAY
-  WAITING_ADMIN_PAYMENT_VERIFICATION
+  WAITING_ADMIN_PAYMENT_VERIFICATION //delete later
   ADMIN_REVIEWING_CANCELLATION
   ON_PROCCESS
   TAILOR_SENT_PRODUCT
   WAITING_CUSTOMER_RECEIVE_CONFIRMATION
-  WAITING_ADMIN_TO_PAY_TAILOR
+  WAITING_ADMIN_TO_PAY_TAILOR //delete later
   DONE
   CANCELED
-  PAYMENT_REJECTED
+  PAYMENT_REJECTED //delete later
 }
 
 enum Role {

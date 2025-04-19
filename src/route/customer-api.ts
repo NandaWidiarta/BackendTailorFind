@@ -21,6 +21,7 @@ customerApiRouter.get("/order/all/:userId", OrderController.getAllOrderByCustome
 customerApiRouter.post("/order/cancel/:orderId", upload.single('file'), OrderController.cancelOrder)
 customerApiRouter.post("/order/complete/:orderId", OrderController.completeOrderByCustomer)
 customerApiRouter.post("/order/midtrans-token/:orderId", OrderController.getMidtransToken);
+customerApiRouter.post("/order/payment-complete/:orderId", OrderController.processOrder);
 
 customerApiRouter.get("/home", getHome)
 customerApiRouter.post("/logout", GeneralController.logout)

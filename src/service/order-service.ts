@@ -6,6 +6,7 @@ import { ResponseError } from "../error/response-error";
 import { ChatService } from "./chat-service";
 import { ChatType } from "../constants/chat-type";
 import { snap } from "../instance/midtrans-client";
+import { ADMIN_FEE, ADMIN_FEE_NAME } from "../constants/constant";
 
 export class OrderService {
   static async createOrder(request: CreateOrderRequest) {
@@ -245,6 +246,30 @@ export class OrderService {
       },
     })
 
+    const admin = await prismaClient.user.findFirst({
+      where: { role: Role.ADMIN },
+      select: { id: true } 
+    })
+
+    if (!admin) {
+      throw new ResponseError(500, "Terjadi Kesalahan")
+    }
+
+    await prismaClient.user.update({
+      where: { id: admin.id },
+      data: {
+        walletBalance: { increment: order.totalPrice }
+      }
+    })
+
+    await ChatService.sendMessage(
+      order.roomId,
+      "admin-system",
+      Role.ADMIN,
+      order.id,
+      ChatType.PAYMENT_CUSTOMER_CONFIRMED 
+    );
+
     return updatedOrder
   }
 
@@ -334,11 +359,34 @@ export class OrderService {
     const updatedOrder = await prismaClient.order.update({
       where: { id: orderId },
       data: {
-        status: OrderStatus.WAITING_ADMIN_TO_PAY_TAILOR,
+        status: OrderStatus.DONE,
       },
       include: {
         orderItems: true,
       },
+    })
+
+    const admin = await prismaClient.user.findFirst({
+      where: { role: Role.ADMIN },
+      select: { id: true } 
+    })
+
+    if (!admin) {
+      throw new ResponseError(500, "Terjadi Kesalahan")
+    }
+
+    await prismaClient.user.update({
+      where: { id: admin.id },
+      data: {
+        walletBalance: { decrement: order.totalPrice - ADMIN_FEE }
+      }
+    })
+
+    await prismaClient.user.update({
+      where: { id: order.tailorId },
+      data: {
+        walletBalance: { increment: order.totalPrice - ADMIN_FEE }
+      }
     })
 
     await ChatService.sendMessage(
@@ -441,8 +489,8 @@ export class OrderService {
   }
 
   static async approveCancelation(
-    image: Express.Multer.File,
     orderId: string,
+    adminId: string
   ) {
 
     const order = await prismaClient.order.findUnique({
@@ -450,67 +498,42 @@ export class OrderService {
     });
 
     if (!order) {
-      throw new ResponseError(400, "order-not-found")
-    }
-
-    if (!image) {
-      throw new ResponseError(400, "no-image-uploaded")
-    }
-
-    let imageUrl: string | null = null
-    const fileName = `${orderId}-${Date.now()}`
-
-    const { data, error } = await supabase.storage
-      .from("paymentProof") 
-      .upload(fileName, image.buffer, {
-        contentType: image.mimetype,
-      })
-
-    if (error) {
-      throw new ResponseError(500, "failed-upload-payment-proof-to-database");
-    }
-
-    imageUrl = data?.path
-      ? supabase.storage.from("paymentProof").getPublicUrl(data.path).data
-          ?.publicUrl || null
-      : null
-
-    if (!imageUrl) {
-      throw new ResponseError(500, "failed-to-generate-image-url")
+      throw new ResponseError(400, "Order Tidak Ditemukan")
     }
 
     const updatedOrder = await prismaClient.order.update({
       where: { id: orderId },
       data: { 
-        refundImage: imageUrl, 
         status: OrderStatus.CANCELED,
         isCancellationApproved: true
        }
     })
 
     if (!updatedOrder) {
-      throw new ResponseError(400, "order-not-found")
+      throw new ResponseError(400, "Order Tidak Ditemukan")
     }
 
-    await prismaClient.chat.create({
+    await prismaClient.user.update({
+      where: { id: order.customerId },
       data: {
-        roomId: order.roomId,
-        senderId: "admin",
-        senderType: Role.ADMIN,
-        message: order.id,
-        type: ChatType.ORDER_CANCELED,
-      },
-    });
-    
-    await prismaClient.roomChat.update({
-      where: { id: order.roomId },
-      data: {
-        latestMessage: ChatType.ORDER_CANCELED,
-        latestMessageTime: new Date(),
-        unreadCountCustomer: { increment: 1 },
-        unreadCountTailor: { increment: 1 }
+        walletBalance: { increment: order.totalPrice }
       }
-    });
+    })
+
+    await prismaClient.user.update({
+      where: { id: adminId },
+      data: {
+        walletBalance: { decrement: order.totalPrice - ADMIN_FEE }
+      }
+    })
+
+    await ChatService.sendMessage(
+      order.roomId,
+      "admin",
+      Role.ADMIN,
+      order.id,
+      ChatType.ORDER_CANCELED
+    );
 
     return updatedOrder
   }
@@ -579,7 +602,6 @@ export class OrderService {
   }
 
   static async createMidtransSnapToken(orderId: string) {
-    // Ambil order dari database
     const order = await prismaClient.order.findUnique({
       where: { id: orderId },
       include: {
@@ -590,7 +612,7 @@ export class OrderService {
   
     if (!order) throw new Error('Order not found')
   
-    const adminFee = 2000
+    const adminFee = ADMIN_FEE
   
     const items = order.orderItems.map((item) => ({
       id: item.id,
@@ -602,7 +624,7 @@ export class OrderService {
     // Tambahkan item untuk admin fee
     items.push({
       id: 'ADMIN_FEE',
-      name: 'Biaya Admin',
+      name: ADMIN_FEE_NAME,
       quantity: 1,
       price: adminFee
     })

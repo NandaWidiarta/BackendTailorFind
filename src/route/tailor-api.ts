@@ -20,7 +20,7 @@ tailorApiRouter.post("/rooms/:roomId/chats", upload.single('file'), RoomChatCont
 tailorApiRouter.post("/order/create", OrderController.createOrder)
 tailorApiRouter.get("/order/:orderId", OrderController.getDetailOrder)
 tailorApiRouter.get("/order/all/:userId", OrderController.getAllOrderByTailor)
-tailorApiRouter.post("/order/process/:orderId", OrderController.processOrder)
+// tailorApiRouter.post("/order/process/:orderId", OrderController.processOrder)
 tailorApiRouter.post("/order/complete", upload.single('file'), OrderController.completeOrderByTailor)
 tailorApiRouter.post("/order/cancel/:orderId", OrderController.cancelOrder)
 
