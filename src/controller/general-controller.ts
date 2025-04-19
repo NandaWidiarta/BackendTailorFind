@@ -4,6 +4,7 @@ import { CustomerService } from "../service/customer-service";
 import { UserRequest } from "../type/user-request";
 import { ResponseError } from "../error/response-error";
 import { LoginCustomerRequest } from "../model/customer-model";
+import { Role } from "@prisma/client";
 
 export class GeneralController {
   static async getProvince(req: Request, res: Response, next: NextFunction) {
@@ -136,6 +137,25 @@ export class GeneralController {
       // }
 
       const response = await GeneralService.logoutV2();
+
+      res.status(200).json({
+        data: response,
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  static async getUserDetail(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userReq = req as UserRequest;
+      const userId = userReq.user?.id;
+      const userRole = userReq.user?.role;
+      if (!userId && !userRole) {
+        throw new ResponseError(400, "User Tidak Ditemukan");
+      }
+
+      const response = await GeneralService.getUserDetail(userId as string, userRole as Role);
 
       res.status(200).json({
         data: response,

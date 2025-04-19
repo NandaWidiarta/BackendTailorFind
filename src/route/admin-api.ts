@@ -4,6 +4,7 @@ import { RoomChatController } from "../controller/room-chat-controller";
 import upload from "../middleware/multer";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { AdminController } from "../controller/admin-controller";
+import { GeneralController } from "../controller/general-controller";
 
 
 export const adminApiRouter = express.Router()
@@ -14,3 +15,4 @@ adminApiRouter.post("/approve-cancelation/:orderId", AdminController.approveCanc
 adminApiRouter.post("/reject-cancelation/:orderId", AdminController.rejectCancelation);
 adminApiRouter.post("/reject-payment-customer/:orderId", AdminController.rejectPaymentCustomer);
 adminApiRouter.get("/all-order", AdminController.getAllOrder);
+adminApiRouter.get("/user-detail", GeneralController.getUserDetail);

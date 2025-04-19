@@ -156,4 +156,21 @@ export class GeneralService {
     
     return "Successfully logged out";
   }
+  static async getUserDetail(userId: string, userRole: Role) {
+    const user = await prismaClient.user.findUnique({
+      where: {
+        id: userId
+      },
+      include: {
+        tailorProfile: userRole == Role.TAILOR
+      }
+    })
+
+    if (user) {
+      const { password, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    }
+    
+    return null;
+  }
 }
