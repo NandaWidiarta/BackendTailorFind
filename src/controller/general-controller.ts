@@ -92,16 +92,18 @@ export class GeneralController {
       });
     } catch (e) {
       next(e);
-    }
+    } 
   }
 
   static async forgotPassword(req: Request, res: Response, next: NextFunction) {
     try {
-      const userReq = req as UserRequest;
-      const email = userReq.user?.email;
-      if (!email) {
-        throw new ResponseError(400, "email-null");
-      }
+      // const userReq = req as UserRequest;
+      // const email = userReq.user?.email;
+      // if (!email) {
+      //   throw new ResponseError(400, "email-null");
+      // }
+
+      const { email } = req.body
       const response = await GeneralService.forgotPassword(email);
       res.status(200).json({
         message: response,

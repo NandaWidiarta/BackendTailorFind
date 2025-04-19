@@ -83,7 +83,7 @@ export class TailorService {
     });
 
     if (isEmailExist > 0) {
-      throw new ResponseError(400, "Email already exist");
+      throw new ResponseError(400, "Email sudah digunakan");
     }
 
     const isPhoneExist = await prismaClient.user.count({
@@ -217,8 +217,29 @@ export class TailorService {
             lastname: true,
           },
         },
+        province: {
+          select: {
+            name: true,
+          },
+        },
+        regency: {
+          select: {
+            name: true,
+          },
+        },
+        district: {
+          select: {
+            name: true,
+          },
+        },
+        village: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
+    
 
     const latestArticles = await prismaClient.article.findMany({
       orderBy: { createdAt: "desc" },
@@ -235,8 +256,13 @@ export class TailorService {
       take: 5,
     })
 
+
     return {
-      tailorProfile,
+      ...tailorProfile,
+      provinceName: tailorProfile?.province?.name,
+      regencyName: tailorProfile?.regency?.name,
+      districtName: tailorProfile?.district?.name,
+      villageName: tailorProfile?.village?.name,
       unreadMessagesCount,
       latestArticles,
       latestStuff,
@@ -659,7 +685,7 @@ export class TailorService {
     });
 
     if (isEmailExist > 0) {
-      throw new ResponseError(400, "Email already exist");
+      throw new ResponseError(400, "Email sudah digunakan");
     }
 
     const isPhoneExist = await prismaClient.user.count({

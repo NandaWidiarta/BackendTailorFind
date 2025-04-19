@@ -9,6 +9,7 @@ import { UserRequest } from "../type/user-request";
 import { ResponseError } from "../error/response-error";
 // import { CustomerRequest } from "../type/customer-request";
 import { Gender } from "@prisma/client";
+import { supabase } from "../supabase-client";
 
 export class CustomerController {
   static async register(req: Request, res: Response, next: NextFunction) {
@@ -180,12 +181,19 @@ export class CustomerController {
         throw new ResponseError(400, "user id null");
       }
       const { firstname, lastname, email, phoneNumber } = req.body;
+      const imageFile = req.file
+
+      let profilePicture: string | null = null;
+      if (imageFile) {
+        profilePicture = await uploadFileToSupabase(imageFile, userReq.user?.email ?? "email");
+      }
 
       const updatedUser = await CustomerService.updateCustomerProfile(userId, {
         firstname,
         lastname,
         email,
         phoneNumber,
+        profilePicture
       });
 
       res.status(200).json({
@@ -226,3 +234,38 @@ export const getHome: RequestHandler = async (req, res, next) => {
     next(error);
   }
 };
+
+
+async function uploadFileToSupabase(
+  file: Express.Multer.File,
+  userEmail: string
+): Promise<string | null> {
+  try {
+    const extension = file.originalname.split('.').pop();
+    const fileName = `${userEmail}-${Date.now()}.${extension || ''}`;
+
+    const { data, error } = await supabase.storage
+      .from('profile')
+      .upload(fileName, file.buffer, {
+        contentType: file.mimetype
+      });
+
+    if (error) {
+      console.error('Supabase upload error:', error);
+      return null;
+    }
+
+    let publicURL: string | null = null;
+    if (data && data.path) {
+      const { data: publicData } = supabase.storage
+        .from('profile')
+        .getPublicUrl(data.path);
+      publicURL = publicData?.publicUrl ?? null;
+    }
+
+    return publicURL;
+  } catch (err) {
+    console.error('Exception uploading to Supabase:', err);
+    return null;
+  }
+}

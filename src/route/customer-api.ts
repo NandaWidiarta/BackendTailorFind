@@ -5,6 +5,8 @@ import upload from "../middleware/multer";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { OrderController } from "../controller/order-controller";
 import { GeneralController } from "../controller/general-controller";
+import { CourseController } from "../controller/course-controller";
+import { ArticleController } from "../controller/article-controller";
 
 export const customerApiRouter = express.Router()
 customerApiRouter.use(authMiddleware)
@@ -25,8 +27,22 @@ customerApiRouter.post("/order/payment-complete/:orderId", OrderController.proce
 
 customerApiRouter.get("/home", getHome)
 customerApiRouter.post("/logout", GeneralController.logout)
-customerApiRouter.patch("/update-profile", CustomerController.updateCustomerProfile)
+customerApiRouter.patch("/update-profile",upload.single('file'), CustomerController.updateCustomerProfile)
 customerApiRouter.post("/reset-password", GeneralController.resetPassword)
 customerApiRouter.post("/forgot-password", GeneralController.forgotPassword);
 
 customerApiRouter.get("/user-detail", GeneralController.getUserDetail);
+customerApiRouter.get("/home", GeneralController.getHomeData)
+customerApiRouter.get("/get-tailors", CustomerController.getTailors)
+customerApiRouter.get("/get-tailors/filter", CustomerController.getFilteredTailors)
+customerApiRouter.get("/tailor/:id", CustomerController.getTailorDetail)
+
+//kursus
+customerApiRouter.get("/course", CourseController.getAllCourses)
+customerApiRouter.get("/course/search", CourseController.searchCourse)
+customerApiRouter.get("/course/:id", CourseController.getCourseDetail)
+
+//article
+customerApiRouter.get("/article", ArticleController.getAllArticles)
+customerApiRouter.get("/article/:id", ArticleController.getArticleDetail)
+customerApiRouter.get("/articles/search", ArticleController.searchArticle)

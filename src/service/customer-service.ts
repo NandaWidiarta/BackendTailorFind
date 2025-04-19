@@ -1,4 +1,4 @@
-import { PrismaClient, Role } from "@prisma/client";
+import { Prisma, PrismaClient, Role } from "@prisma/client";
 import { prismaClient } from "../application/database";
 import { ResponseError } from "../error/response-error";
 import {
@@ -37,7 +37,7 @@ export class CustomerService {
     })
 
     if (totalUserWithSameEmail != 0) {
-      throw new ResponseError(400, "Email already exist")
+      throw new ResponseError(400, "Email "udah digunakan)
     }
 
     let profilePictureUrl: string | null = null;
@@ -552,7 +552,8 @@ export class CustomerService {
               select: {
                 id: true,
                 firstname: true,
-                lastname: true
+                lastname: true,
+                profilePicture: true 
               }
             }
           }
@@ -597,7 +598,8 @@ export class CustomerService {
         createdAt: review.createdAt,
         customer: {
           id: review.customer.id,
-          name: `${review.customer.firstname} ${review.customer.lastname || ''}`
+          name: `${review.customer.firstname} ${review.customer.lastname || ''}`,
+          imageUrl: review.customer.profilePicture
         }
       })),
       stuff: tailorWithoutSensitiveInfo.tailorProfile?.stuff.map(item => ({
@@ -624,21 +626,34 @@ export class CustomerService {
   }
 
 
-  static async updateCustomerProfile(userId: string, userData: {
-    firstname?: string;
-    lastname?: string;
-    email?: string;
-    phoneNumber?: string;
-  }) {
+  static async updateCustomerProfile(
+    userId: string,
+    userData: {
+      firstname?: string;
+      lastname?: string;
+      email?: string;
+      phoneNumber?: string;
+      profilePicture?: string | null;
+    }
+  ) {
+    const { profilePicture, ...others } = userData;
+
+    const data = {
+      ...others,
+      ...(typeof profilePicture === 'string' && profilePicture.trim() !== ''
+        ? { profilePicture }
+        : {})
+    };
+  
     const updatedUser = await prismaClient.user.update({
       where: { id: userId },
-      data: userData
+      data
     });
 
     const { password, createdAt, ...filteredUser } = updatedUser;
-    
-    return filteredUser
+    return filteredUser;
   }
+  
 
   static async registerCustomerV2(registerRequest: CreateCustomerRequest, profilePictureFile?: Express.Multer.File): Promise<CustomerResponse> {
     
@@ -647,7 +662,7 @@ export class CustomerService {
     }) > 0
     
     if (emailExists) {
-      throw new ResponseError(400, "Email already exists")
+      throw new ResponseError(400, "Email sudah digunakan")
     }
     
     const phoneExists = await prismaClient.user.count({
