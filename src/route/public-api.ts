@@ -83,3 +83,4 @@ publicRouter.get("/article/:id", ArticleController.getArticleDetail)
 publicRouter.get("/articles/search", ArticleController.searchArticle)
 
 publicRouter.post("/forgot-password", GeneralController.forgotPassword);
+publicRouter.post("/login", GeneralController.loginV2);
