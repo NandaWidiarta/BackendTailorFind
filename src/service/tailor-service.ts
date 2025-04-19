@@ -83,7 +83,7 @@ export class TailorService {
     });
 
     if (isEmailExist > 0) {
-      throw new ResponseError(400, "Email already exist");
+      throw new ResponseError(400, "Email sudah digunakan");
     }
 
     const isPhoneExist = await prismaClient.user.count({
@@ -685,7 +685,7 @@ export class TailorService {
     });
 
     if (isEmailExist > 0) {
-      throw new ResponseError(400, "Email already exist");
+      throw new ResponseError(400, "Email sudah digunakan");
     }
 
     const isPhoneExist = await prismaClient.user.count({

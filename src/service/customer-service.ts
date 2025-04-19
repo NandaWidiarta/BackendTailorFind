@@ -36,7 +36,7 @@ export class CustomerService {
     })
 
     if (totalUserWithSameEmail != 0) {
-      throw new ResponseError(400, "Email already exist")
+      throw new ResponseError(400, "Email "udah digunakan)
     }
 
     let profilePictureUrl: string | null = null;
@@ -661,7 +661,7 @@ export class CustomerService {
     }) > 0
     
     if (emailExists) {
-      throw new ResponseError(400, "Email already exists")
+      throw new ResponseError(400, "Email sudah digunakan")
     }
     
     const phoneExists = await prismaClient.user.count({
