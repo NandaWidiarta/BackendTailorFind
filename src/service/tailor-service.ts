@@ -242,16 +242,19 @@ export class TailorService {
     
 
     const latestArticles = await prismaClient.article.findMany({
+      where: { tailorId: tailorId },
       orderBy: { createdAt: "desc" },
       take: 5,
     })
 
     const latestStuff = await prismaClient.stuff.findMany({
+      where: { tailorId: tailorId },
       orderBy: { createdAt: "desc" },
       take: 5,
     })
 
     const latestCourses = await prismaClient.course.findMany({
+      where: { tailorId: tailorId },
       orderBy: { createdAt: "desc" },
       take: 5,
     })
