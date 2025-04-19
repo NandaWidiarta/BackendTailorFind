@@ -37,7 +37,7 @@ export class CustomerService {
     })
 
     if (totalUserWithSameEmail != 0) {
-      throw new ResponseError(400, "Email "udah digunakan)
+      throw new ResponseError(400, "Email udah digunakan")
     }
 
     let profilePictureUrl: string | null = null;
@@ -543,7 +543,8 @@ export class CustomerService {
             district: true,
             village: true,
             stuff: true,
-            article: true
+            article: true,
+            courses: true
           }
         },
         receivedReviews: {
@@ -568,6 +569,8 @@ export class CustomerService {
     const reviewsCount = tailor.receivedReviews.length;
   
     const { password, token, ...tailorWithoutSensitiveInfo } = tailor;
+
+    console.log('tailor detail', tailorWithoutSensitiveInfo)
   
     const formattedTailor = {
       id: tailorWithoutSensitiveInfo.id,
@@ -619,7 +622,8 @@ export class CustomerService {
         authorName: article.authorName,
         createdAt: article.createdAt,
         updatedAt: article.updatedAt
-      })) || []
+      })) || [],
+      courses: tailorWithoutSensitiveInfo.tailorProfile?.courses
     };
   
     return formattedTailor;
