@@ -299,7 +299,7 @@ export class OrderService {
     const updatedOrder = await prismaClient.order.update({
       where: { id: request.orderId },
       data: {
-        status: OrderStatus.ADMIN_REVIEWING_CANCELLATION,
+        status: order.status == OrderStatus.NOT_YET_PAY ? OrderStatus.CANCELED : OrderStatus.ADMIN_REVIEWING_CANCELLATION,
         cancellationReason: request.cancellationReason,
         cancelledBy: request.userRole,
         cancelledAt: new Date(),
