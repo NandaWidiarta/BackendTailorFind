@@ -105,12 +105,14 @@ export class OrderService {
           select: {
             firstname: true,
             lastname: true,
+            profilePicture: true
           }
         },
         tailor: {
           select: {
             firstname: true,
             lastname: true,
+            profilePicture: true
           }
         }
       }

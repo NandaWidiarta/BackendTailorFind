@@ -1,5 +1,6 @@
 import { Role } from "@prisma/client";
 import { prismaClient } from "../application/database";
+import { ChatType } from "../constants/chat-type";
 
 export class ChatService {
   static async createOrGetRoom(customerId: string, tailorId: string) {
@@ -148,7 +149,7 @@ export class ChatService {
     await prismaClient.roomChat.update({
       where: { id: roomId },
       data: {
-        latestMessage: message,
+        latestMessage: type == ChatType.TEXT ? message : type,
         latestMessageTime: new Date(),
         unreadCountCustomer: senderType === Role.TAILOR || Role.ADMIN
           ? { increment: 1 } 
@@ -169,6 +170,12 @@ export class ChatService {
         unreadCountCustomer: userType === Role.CUSTOMER ? 0 : undefined,
         unreadCountTailor: userType === Role.TAILOR ? 0 : undefined,
       }
+    })
+  }
+
+  static async deleteRoomChat(roomId: string) {
+    await prismaClient.roomChat.delete({
+      where: { id: roomId }
     })
   }
   
