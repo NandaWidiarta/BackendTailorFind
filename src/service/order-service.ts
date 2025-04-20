@@ -217,7 +217,7 @@ export class OrderService {
     await ChatService.sendMessage(
       order.roomId,
       order.customerId,
-      Role.CUSTOMER,
+      Role.TAILOR,
       order.id,
       order.orderType == OrderType.DELIVERY ? ChatType.ORDER_DELIVERED  : ChatType.ORDER_COMPLETED_BY_TAILOR
     );
@@ -533,7 +533,7 @@ export class OrderService {
     await ChatService.sendMessage(
       order.roomId,
       "admin",
-      Role.ADMIN,
+      Role.CUSTOMER,
       order.id,
       ChatType.ORDER_CANCELED
     );
