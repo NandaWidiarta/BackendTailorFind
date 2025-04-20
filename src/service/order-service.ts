@@ -634,7 +634,7 @@ export class OrderService {
       return total + item.price * item.quantity
     }, 0)
 
-    const uniqueOrderId = `${order.id}-${uuid().slice(0, 8)}`;
+    const uniqueOrderId = `${order.id}${uuid().slice(0, 3)}`;
   
     const parameter = {
       transaction_details: {
