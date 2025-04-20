@@ -7,6 +7,7 @@ import { ChatService } from "./chat-service";
 import { ChatType } from "../constants/chat-type";
 import { snap } from "../instance/midtrans-client";
 import { ADMIN_FEE, ADMIN_FEE_NAME } from "../constants/constant";
+import { v4 as uuid } from "uuid";
 
 export class OrderService {
   static async createOrder(request: CreateOrderRequest) {
@@ -632,10 +633,12 @@ export class OrderService {
     const grossAmount = items.reduce((total, item) => {
       return total + item.price * item.quantity
     }, 0)
+
+    const uniqueOrderId = `${order.id}-${uuid().slice(0, 8)}`;
   
     const parameter = {
       transaction_details: {
-        order_id: order.id,
+        order_id: uniqueOrderId,
         gross_amount: grossAmount
       },
       item_details: items,

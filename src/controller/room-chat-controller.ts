@@ -106,6 +106,20 @@ export class RoomChatController {
     }
   }
 
+  static async deleteRoomChat(req: Request, res: Response, next: NextFunction) {
+    try {
+      
+      const { roomId } = req.params
+      await ChatService.deleteRoomChat(roomId);
+
+      res.status(200).json({
+        data: "Berhasil menghapus Room Chat",
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
+
 }
 
 function getErrorMessage(e: unknown): string {

@@ -15,6 +15,7 @@ tailorApiRouter.post("/rooms", RoomChatController.createOrGetRoom)
 tailorApiRouter.get("/rooms/:tailorId", RoomChatController.getRoomsByTailor)
 tailorApiRouter.get("/rooms/:roomId/chats", RoomChatController.getChatsInRoomByTailor)
 tailorApiRouter.post("/rooms/:roomId/chats", upload.single('file'), RoomChatController.sendMessageV2)
+tailorApiRouter.delete("/rooms/:roomId", RoomChatController.deleteRoomChat);
 
 //order
 tailorApiRouter.post("/order/create", OrderController.createOrder)

@@ -15,6 +15,7 @@ customerApiRouter.post("/rooms", RoomChatController.createOrGetRoom);
 customerApiRouter.get("/rooms/:customerId", RoomChatController.getRoomsByCustomer);
 customerApiRouter.get("/rooms/:roomId/chats", RoomChatController.getChatsInRoomByCustomer);
 customerApiRouter.post("/rooms/:roomId/chats", upload.single('file'), RoomChatController.sendMessageV2)
+customerApiRouter.delete("/rooms/:roomId", RoomChatController.deleteRoomChat);
 
 //order
 customerApiRouter.post("/order/upload-payment/:orderId", upload.single('file'), OrderController.uploadPaymentProof)
