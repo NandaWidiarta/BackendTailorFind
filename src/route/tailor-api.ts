@@ -68,3 +68,4 @@ tailorApiRouter.post("/reset-password", GeneralController.resetPassword)
 tailorApiRouter.post("/forgot-password", GeneralController.forgotPassword);
 
 tailorApiRouter.get("/user-detail", GeneralController.getUserDetail);
+tailorApiRouter.post("/withdraw", GeneralController.withdraw);

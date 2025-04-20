@@ -16,3 +16,4 @@ adminApiRouter.post("/reject-cancelation/:orderId", AdminController.rejectCancel
 adminApiRouter.post("/reject-payment-customer/:orderId", AdminController.rejectPaymentCustomer);
 adminApiRouter.get("/all-order", AdminController.getAllOrder);
 adminApiRouter.get("/user-detail", GeneralController.getUserDetail);
+adminApiRouter.post("/withdraw", GeneralController.withdraw);

@@ -47,3 +47,5 @@ customerApiRouter.get("/course/:id", CourseController.getCourseDetail)
 customerApiRouter.get("/article", ArticleController.getAllArticles)
 customerApiRouter.get("/article/:id", ArticleController.getArticleDetail)
 customerApiRouter.get("/articles/search", ArticleController.searchArticle)
+
+customerApiRouter.post("/withdraw", GeneralController.withdraw);

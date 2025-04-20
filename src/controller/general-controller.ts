@@ -1,10 +1,11 @@
-import {Request, Response, NextFunction} from "express";
+import e, {Request, Response, NextFunction} from "express";
 import { GeneralService } from "../service/general-service";
 import { CustomerService } from "../service/customer-service";
 import { UserRequest } from "../type/user-request";
 import { ResponseError } from "../error/response-error";
 import { LoginCustomerRequest } from "../model/customer-model";
 import { Role } from "@prisma/client";
+import { ChatService } from "../service/chat-service";
 
 export class GeneralController {
   static async getProvince(req: Request, res: Response, next: NextFunction) {
@@ -164,6 +165,25 @@ export class GeneralController {
       });
     } catch (e) {
       next(e);
+    }
+  }
+  static async withdraw(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userReq = req as UserRequest;
+      const userId = userReq.user?.id;
+      if (!userId) {
+        throw new ResponseError(400, "User Tidak Ditemukan");
+      }
+
+      const { balance } = req.body
+
+      const response = await GeneralService.withdraw(userId as string, balance as number);
+
+      res.status(200).json({
+        data: response,
+      });
+    } catch (error) {
+      next(e)
     }
   }
 }
