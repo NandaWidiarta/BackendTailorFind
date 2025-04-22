@@ -25,15 +25,13 @@ export class OrderService {
 
     const orderId = newOrder.id;
 
-    const chat = await prismaClient.chat.create({
-      data: {
-        roomId: request.roomId,
-        senderId: request.tailorId,
-        senderType: Role.TAILOR,
-        message: orderId,
-        type: "order",
-      },
-    });
+    const chat = await ChatService.sendMessage(
+      request.roomId,
+      request.tailorId,
+      Role.TAILOR,
+      orderId,
+      ChatType.ORDER
+    );
 
     return {
       order: newOrder,
@@ -163,7 +161,16 @@ export class OrderService {
   }
 
   static async getAllOrderByAdmin() {
-    const orders = await prismaClient.order.findMany()
+    const orders = await prismaClient.order.findMany({
+      include: {
+        tailor: {
+          select: {
+            firstname: true,
+            lastname: true,
+          }
+        }
+      }
+    })
     return orders
   }
 
