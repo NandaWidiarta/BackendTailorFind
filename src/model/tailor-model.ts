@@ -71,7 +71,7 @@ export function toTailorResponse(
     priceRange: user.tailorProfile?.priceRange ?? null,
     specialization: user.tailorProfile?.specialization ?? [],
     businessDescription: user.tailorProfile?.businessDescription ?? null,
-    profilePicture: user.tailorProfile?.profilePicture ?? null,
+    profilePicture: user.profilePicture ?? null,
     certificate: user.tailorProfile?.certificate ?? [],
     gender: user.tailorProfile.gender,
     role: user.role,

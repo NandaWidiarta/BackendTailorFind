@@ -167,6 +167,7 @@ export class TailorService {
         password: registerRequest.password,
         role: Role.TAILOR,
         token: newToken,
+        profilePicture: registerRequest.profilePicture,
         tailorProfile: {
           create: {
             provinceId: registerRequest.provinceId,
@@ -178,7 +179,6 @@ export class TailorService {
             priceRange: registerRequest.priceRange,
             specialization: registerRequest.specialization,
             businessDescription: registerRequest.businessDescription,
-            profilePicture: registerRequest.profilePicture,
             certificate: registerRequest.certificate,
             gender: registerRequest.gender,
           },
@@ -447,10 +447,10 @@ export class TailorService {
 
     if (profilePicture) {
       const fileName = `${existingUser.email}-${Date.now()}`;
-      if (existingUser.tailorProfile.profilePicture) {
+      if (existingUser.profilePicture) {
         try {
           const existingImagePath = this.extractImagePathFromUrl(
-            existingUser.tailorProfile.profilePicture,
+            existingUser.profilePicture,
             "profile"
           );
 
@@ -486,7 +486,7 @@ export class TailorService {
         : null;
 
       if (profilePictureUrl) {
-        tailorProfileUpdateData.profilePicture = profilePictureUrl;
+        userUpdateData.profilePicture = profilePictureUrl;
       }
     }
 
@@ -769,6 +769,7 @@ export class TailorService {
         phoneNumber: registerRequest.phoneNumber,
         password: "",
         role: Role.TAILOR,
+        profilePicture: registerRequest.profilePicture,
         tailorProfile: {
           create: {
             provinceId: registerRequest.provinceId,
@@ -780,7 +781,6 @@ export class TailorService {
             priceRange: registerRequest.priceRange,
             specialization: registerRequest.specialization,
             businessDescription: registerRequest.businessDescription,
-            profilePicture: registerRequest.profilePicture,
             certificate: registerRequest.certificate,
           },
         },

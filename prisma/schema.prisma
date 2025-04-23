@@ -50,7 +50,6 @@ model TailorProfile {
   priceRange        String
   specialization    String[]
   businessDescription String
-  profilePicture    String?
   certificate       String[]
   averageRating     Float      @default(0.0)
   gender            Gender     @default(FEMALE)
@@ -69,11 +68,11 @@ model TailorProfile {
 
 model RoomChat {
   id         String   @id @default(cuid())  
-  customerId String
-  tailorId   String
+  customerId String   @db.VarChar(100)
+  tailorId   String   @db.VarChar(100)
   createdAt  DateTime @default(now())
-  customerName       String?
-  tailorName         String?
+  customerName       String?  @db.VarChar(100)
+  tailorName         String?  @db.VarChar(100)
 
   customer   User @relation("CustomerRooms", fields: [customerId], references: [id])
   tailor     User @relation("TailorRooms", fields: [tailorId], references: [id])
@@ -82,7 +81,7 @@ model RoomChat {
   Order      Order[]
 
   latestMessage      String?    
-  latestMessageTime  DateTime?  
+  latestMessageTime  DateTime?
   unreadCountCustomer Int @default(0)  
   unreadCountTailor   Int @default(0) 
 
@@ -154,34 +153,23 @@ model Order {
   tailorId     String
   customerId   String
   roomId       String
-  customerName String
   orderType    OrderType   @default(PICKUP)
   totalPrice   Int
   status       OrderStatus  @default(NOT_YET_PAY)
   orderDate    DateTime     @default(now())
-  bankName        String
-  bankAccountOwner  String
-  bankAccountNumber String
-  deliveryAddress String?
+  deliveryAddress String? 
   deliveryServiceName String?
   receiptNumber String?
   deliveryImage String?
-  paymentImage String?
   cancellationReason String?  
-  cancelledBy   Role?        
-  cancelledAt   DateTime?
+  cancelledAt   DateTime? 
 
-  customerPaymentBankName       String?
-  customerAccountName           String?
-  customerAccount               String?
 
   cancellationRequestImage   String?
   cancellationRequestReason  String?
   cancellationRejectedReason String?
-  refundImage                String?
   isCancellationApproved     Boolean?
   previousStatus             OrderStatus? 
-  paymentToTailorImage       String?
 
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
@@ -206,7 +194,7 @@ model OrderItem {
 model Article {
   id           String       @id @default(cuid())
   tailorId     String
-  authorName   String
+  authorName   String? //ini sebenarnya bisa dihapus
   imageUrl     String?
   title        String
   content      String
@@ -219,7 +207,7 @@ model Article {
 model Course {
   id           String       @id @default(cuid())
   tailorId     String
-  authorName   String
+  authorName   String?  //ini sebenarnya bisa dihapus
   imageUrl     String
   courseName   String
   shortDescription      String
@@ -267,15 +255,12 @@ model Stuff {
 
 enum OrderStatus {
   NOT_YET_PAY
-  WAITING_ADMIN_PAYMENT_VERIFICATION //delete later
   ADMIN_REVIEWING_CANCELLATION
   ON_PROCCESS
   TAILOR_SENT_PRODUCT
   WAITING_CUSTOMER_RECEIVE_CONFIRMATION
-  WAITING_ADMIN_TO_PAY_TAILOR //delete later
   DONE
   CANCELED
-  PAYMENT_REJECTED //delete later
 }
 
 enum Role {
