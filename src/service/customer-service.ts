@@ -215,6 +215,7 @@ export class CustomerService {
           select: {
             firstname: true,
             lastname: true,
+            profilePicture: true
           },
         },
         province: {
@@ -252,7 +253,7 @@ export class CustomerService {
       priceRange: tailor.priceRange,
       specialization: tailor.specialization,
       businessDescription: tailor.businessDescription,
-      profilePicture: tailor.profilePicture,
+      profilePicture: tailor.user.profilePicture,
       certificate: tailor.certificate,
       averageRating: tailor.averageRating,
       gender: tailor.gender,
@@ -316,7 +317,7 @@ export class CustomerService {
         workEstimation: tailor.tailorProfile.workEstimation,
         priceRange: tailor.tailorProfile.priceRange,
         specialization: tailor.tailorProfile.specialization,
-        profilePicture: tailor.tailorProfile.profilePicture,
+        profilePicture: tailor.profilePicture,
         averageRating: tailor.tailorProfile.averageRating
       };
     });
@@ -511,7 +512,7 @@ export class CustomerService {
         workEstimation: tailor.tailorProfile.workEstimation,
         priceRange: tailor.tailorProfile.priceRange,
         specialization: tailor.tailorProfile.specialization,
-        profilePicture: tailor.tailorProfile.profilePicture,
+        profilePicture: tailor.profilePicture,
         averageRating: tailor.tailorProfile.averageRating,
         gender: tailor.tailorProfile.gender
       };
@@ -589,7 +590,7 @@ export class CustomerService {
       priceRange: tailorWithoutSensitiveInfo.tailorProfile?.priceRange,
       specialization: tailorWithoutSensitiveInfo.tailorProfile?.specialization,
       businessDescription: tailorWithoutSensitiveInfo.tailorProfile?.businessDescription,
-      profilePicture: tailorWithoutSensitiveInfo.tailorProfile?.profilePicture,
+      profilePicture: tailorWithoutSensitiveInfo.profilePicture,
       certificate: tailorWithoutSensitiveInfo.tailorProfile?.certificate,
       averageRating: tailorWithoutSensitiveInfo.tailorProfile?.averageRating,
       reviewsCount: reviewsCount,

@@ -39,57 +39,57 @@ export class OrderService {
     };
   }
 
-  static async uploadProofOfPayment(
-    image: Express.Multer.File,
-    orderId: string,
-    customerPaymentBankName: string,
-    customerAccountName: string,
-    customerAccount: string
-  ) {
-    if (!image) {
-      throw new ResponseError(400, "no-image-uploadef")
-    }
+  // static async uploadProofOfPayment(
+  //   image: Express.Multer.File,
+  //   orderId: string,
+  //   customerPaymentBankName: string,
+  //   customerAccountName: string,
+  //   customerAccount: string
+  // ) {
+  //   if (!image) {
+  //     throw new ResponseError(400, "no-image-uploadef")
+  //   }
 
-    let imageUrl: string | null = null
-    const fileName = `${orderId}-${Date.now()}`
+  //   let imageUrl: string | null = null
+  //   const fileName = `${orderId}-${Date.now()}`
 
-    const { data, error } = await supabase.storage
-      .from("paymentProof") 
-      .upload(fileName, image.buffer, {
-        contentType: image.mimetype,
-      })
+  //   const { data, error } = await supabase.storage
+  //     .from("paymentProof") 
+  //     .upload(fileName, image.buffer, {
+  //       contentType: image.mimetype,
+  //     })
 
-    if (error) {
-      throw new ResponseError(500, "failed-upload-payment-proof-to-database");
-    }
+  //   if (error) {
+  //     throw new ResponseError(500, "failed-upload-payment-proof-to-database");
+  //   }
 
-    imageUrl = data?.path
-      ? supabase.storage.from("paymentProof").getPublicUrl(data.path).data
-          ?.publicUrl || null
-      : null
+  //   imageUrl = data?.path
+  //     ? supabase.storage.from("paymentProof").getPublicUrl(data.path).data
+  //         ?.publicUrl || null
+  //     : null
 
-    if (!imageUrl) {
-      throw new ResponseError(500, "failed-to-generate-image-url")
-    }
+  //   if (!imageUrl) {
+  //     throw new ResponseError(500, "failed-to-generate-image-url")
+  //   }
 
-    const updatedOrder = await prismaClient.order.update({
-      where: { id: orderId },
-      data: { 
-        paymentImage: imageUrl, 
-        customerPaymentBankName: customerPaymentBankName,
-        customerAccountName: customerAccountName,
-        customerAccount: customerAccount,
-        status: OrderStatus.WAITING_ADMIN_PAYMENT_VERIFICATION
-       },
-      select: { id: true, paymentImage: true }, 
-    })
+  //   const updatedOrder = await prismaClient.order.update({
+  //     where: { id: orderId },
+  //     data: { 
+  //       paymentImage: imageUrl, 
+  //       customerPaymentBankName: customerPaymentBankName,
+  //       customerAccountName: customerAccountName,
+  //       customerAccount: customerAccount,
+  //       status: OrderStatus.WAITING_ADMIN_PAYMENT_VERIFICATION
+  //      },
+  //     select: { id: true, paymentImage: true }, 
+  //   })
 
-    if (!updatedOrder) {
-      throw new ResponseError(400, "order-not-found")
-    }
+  //   if (!updatedOrder) {
+  //     throw new ResponseError(400, "order-not-found")
+  //   }
 
-    return updatedOrder
-  }
+  //   return updatedOrder
+  // }
 
 
   static async getOrderDetail(orderId: string) {
@@ -310,7 +310,6 @@ export class OrderService {
       data: {
         status: order.status == OrderStatus.NOT_YET_PAY ? OrderStatus.CANCELED : OrderStatus.ADMIN_REVIEWING_CANCELLATION,
         cancellationReason: request.cancellationReason,
-        cancelledBy: request.userRole,
         cancelledAt: new Date(),
         cancellationRequestImage: request.cancellationImage,
         previousStatus: orderStatusTemp
@@ -412,91 +411,91 @@ export class OrderService {
 
 
   //ADMIN ROLE
-  static async confirmPaymentByAdmin(orderId: string) {
-    const order = await prismaClient.order.findUnique({ where: { id: orderId } });
+  // static async confirmPaymentByAdmin(orderId: string) {
+  //   const order = await prismaClient.order.findUnique({ where: { id: orderId } });
   
-    if (!order) throw new ResponseError(404, "order-not-found");
-    if (order.status !== OrderStatus.WAITING_ADMIN_PAYMENT_VERIFICATION) {
-      throw new ResponseError(400, "payment-already-confirmed");
-    }
+  //   if (!order) throw new ResponseError(404, "order-not-found");
+  //   if (order.status !== OrderStatus.WAITING_ADMIN_PAYMENT_VERIFICATION) {
+  //     throw new ResponseError(400, "payment-already-confirmed");
+  //   }
   
-    const updatedOrder = await prismaClient.order.update({
-      where: { id: orderId },
-      data: { status: OrderStatus.ON_PROCCESS },
-    });
+  //   const updatedOrder = await prismaClient.order.update({
+  //     where: { id: orderId },
+  //     data: { status: OrderStatus.ON_PROCCESS },
+  //   });
 
-    await ChatService.sendMessage(
-      order.roomId,
-      "admin-system",
-      Role.ADMIN,
-      // `✅ Pembayaran untuk Order #${order.id} telah dikonfirmasi oleh Admin.`,
-      order.id,
-      ChatType.PAYMENT_CUSTOMER_CONFIRMED 
-    );
+  //   await ChatService.sendMessage(
+  //     order.roomId,
+  //     "admin-system",
+  //     Role.ADMIN,
+  //     // `✅ Pembayaran untuk Order #${order.id} telah dikonfirmasi oleh Admin.`,
+  //     order.id,
+  //     ChatType.PAYMENT_CUSTOMER_CONFIRMED 
+  //   );
     
-    return updatedOrder;
-  }
+  //   return updatedOrder;
+  // }
 
-  static async uploadProofOfPaymentToTailor(
-    image: Express.Multer.File,
-    orderId: string,
-  ) {
-    if (!image) {
-      throw new ResponseError(400, "no-image-uploaded")
-    }
+  // static async uploadProofOfPaymentToTailor(
+  //   image: Express.Multer.File,
+  //   orderId: string,
+  // ) {
+  //   if (!image) {
+  //     throw new ResponseError(400, "no-image-uploaded")
+  //   }
 
-    const order = await prismaClient.order.findUnique({
-      where: { id: orderId },
-    });
+  //   const order = await prismaClient.order.findUnique({
+  //     where: { id: orderId },
+  //   });
 
-    if (!order) {
-      throw new ResponseError(400, "order-not-found")
-    }
+  //   if (!order) {
+  //     throw new ResponseError(400, "order-not-found")
+  //   }
 
-    let imageUrl: string | null = null
-    const fileName = `${orderId}-${Date.now()}`
+  //   let imageUrl: string | null = null
+  //   const fileName = `${orderId}-${Date.now()}`
 
-    const { data, error } = await supabase.storage
-      .from("paymentProof") 
-      .upload(fileName, image.buffer, {
-        contentType: image.mimetype,
-      })
+  //   const { data, error } = await supabase.storage
+  //     .from("paymentProof") 
+  //     .upload(fileName, image.buffer, {
+  //       contentType: image.mimetype,
+  //     })
 
-    if (error) {
-      throw new ResponseError(500, "failed-upload-payment-proof-to-database");
-    }
+  //   if (error) {
+  //     throw new ResponseError(500, "failed-upload-payment-proof-to-database");
+  //   }
 
-    imageUrl = data?.path
-      ? supabase.storage.from("paymentProof").getPublicUrl(data.path).data
-          ?.publicUrl || null
-      : null
+  //   imageUrl = data?.path
+  //     ? supabase.storage.from("paymentProof").getPublicUrl(data.path).data
+  //         ?.publicUrl || null
+  //     : null
 
-    if (!imageUrl) {
-      throw new ResponseError(500, "failed-to-generate-image-url")
-    }
+  //   if (!imageUrl) {
+  //     throw new ResponseError(500, "failed-to-generate-image-url")
+  //   }
 
-    const updatedOrder = await prismaClient.order.update({
-      where: { id: orderId },
-      data: { 
-        paymentToTailorImage: imageUrl, 
-        status: OrderStatus.DONE
-       }
-    })
+  //   const updatedOrder = await prismaClient.order.update({
+  //     where: { id: orderId },
+  //     data: { 
+  //       paymentToTailorImage: imageUrl, 
+  //       status: OrderStatus.DONE
+  //      }
+  //   })
 
-    if (!updatedOrder) {
-      throw new ResponseError(400, "order-not-found")
-    }
+  //   if (!updatedOrder) {
+  //     throw new ResponseError(400, "order-not-found")
+  //   }
 
-    await ChatService.sendMessage(
-      order.roomId,
-      "admin",
-      Role.ADMIN,
-      order.id,
-      ChatType.PAYMENT_TO_TAILOR_SUCCESS
-    );
+  //   await ChatService.sendMessage(
+  //     order.roomId,
+  //     "admin",
+  //     Role.ADMIN,
+  //     order.id,
+  //     ChatType.PAYMENT_TO_TAILOR_SUCCESS
+  //   );
 
-    return updatedOrder
-  }
+  //   return updatedOrder
+  // }
 
   static async approveCancelation(
     orderId: string,
@@ -583,33 +582,33 @@ export class OrderService {
     return updatedOrder;
   }
 
-  static async rejectPaymentProofByAdmin(orderId: string, rejectReason: string) {
-    const order = await prismaClient.order.findUnique({ where: { id: orderId } });
+  // static async rejectPaymentProofByAdmin(orderId: string, rejectReason: string) {
+  //   const order = await prismaClient.order.findUnique({ where: { id: orderId } });
   
-    if (!order) throw new ResponseError(404, "order-not-found");
+  //   if (!order) throw new ResponseError(404, "order-not-found");
   
-    if (order.status !== OrderStatus.WAITING_ADMIN_PAYMENT_VERIFICATION) {
-      throw new ResponseError(400, "order-is-not-in-review-status");
-    }
+  //   if (order.status !== OrderStatus.WAITING_ADMIN_PAYMENT_VERIFICATION) {
+  //     throw new ResponseError(400, "order-is-not-in-review-status");
+  //   }
   
-    const updatedOrder = await prismaClient.order.update({
-      where: { id: orderId },
-      data: {
-        status: OrderStatus.PAYMENT_REJECTED,
-        cancellationReason: rejectReason,
-      },
-    });
+  //   const updatedOrder = await prismaClient.order.update({
+  //     where: { id: orderId },
+  //     data: {
+  //       status: OrderStatus.PAYMENT_REJECTED,
+  //       cancellationReason: rejectReason,
+  //     },
+  //   });
 
-    await ChatService.sendMessage(
-      order.roomId,
-      "admin",
-      Role.ADMIN,
-      order.id,
-      ChatType.PAYMENT_CUSTOMER_REJECTED
-    );
+  //   await ChatService.sendMessage(
+  //     order.roomId,
+  //     "admin",
+  //     Role.ADMIN,
+  //     order.id,
+  //     ChatType.PAYMENT_CUSTOMER_REJECTED
+  //   );
   
-    return updatedOrder;
-  }
+  //   return updatedOrder;
+  // }
 
   static async createMidtransSnapToken(orderId: string) {
     const order = await prismaClient.order.findUnique({

@@ -19,25 +19,25 @@ export class OrderController {
     }
   }
 
-  static async uploadPaymentProof(req: Request, res: Response, next: NextFunction) {
-    try {
-      const orderId = req.params.orderId
+  // static async uploadPaymentProof(req: Request, res: Response, next: NextFunction) {
+  //   try {
+  //     const orderId = req.params.orderId
 
-      const { customerPaymentBankName, customerAccountName, customerAccount } = req.body
+  //     const { customerPaymentBankName, customerAccountName, customerAccount } = req.body
 
-      if (!req.file) {
-        return next()
-      }
+  //     if (!req.file) {
+  //       return next()
+  //     }
 
-      const response = await OrderService.uploadProofOfPayment(req.file, orderId, customerPaymentBankName, customerAccountName, customerAccount )
+  //     const response = await OrderService.uploadProofOfPayment(req.file, orderId, customerPaymentBankName, customerAccountName, customerAccount )
       
-      res.status(200).json({
-        data: response,
-      })
-    } catch (e) {
-      next(e)
-    }
-  }
+  //     res.status(200).json({
+  //       data: response,
+  //     })
+  //   } catch (e) {
+  //     next(e)
+  //   }
+  // }
 
   static async getDetailOrder(req: Request, res: Response, next: NextFunction) {
     try {
