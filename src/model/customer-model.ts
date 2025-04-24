@@ -31,7 +31,7 @@ export type CustomersResponse = {
     token?: string | null;
 }
 
-export type LoginCustomerRequest = {
+export type LoginRequest = {
     email: string;
     password: string;
 }

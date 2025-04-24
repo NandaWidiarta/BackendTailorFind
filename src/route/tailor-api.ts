@@ -8,6 +8,7 @@ import { CourseController } from "../controller/course-controller";
 import { StuffController } from "../controller/stuff-controller";
 import { TailorController } from "../controller/tailor-controller";
 import { GeneralController } from "../controller/general-controller";
+import { authController } from "../instance/controller-instance";
 
 export const tailorApiRouter = express.Router()
 tailorApiRouter.use(authMiddleware)
@@ -52,7 +53,7 @@ tailorApiRouter.patch("/article/:id", upload.single('file'), ArticleController.u
 tailorApiRouter.delete("/article/:id", ArticleController.deleteArticle)
 
 //logout
-tailorApiRouter.post("/logout", GeneralController.logout)
+tailorApiRouter.post("/logout", authController.logout.bind(authController))
 
 tailorApiRouter.patch("/update-profile", upload.single('file'), TailorController.updateProfile)
 tailorApiRouter.post(
@@ -64,8 +65,8 @@ tailorApiRouter.post(
 tailorApiRouter.get("/certificates", TailorController.getCertificate)
 tailorApiRouter.delete("/certificates", TailorController.deleteCertificate)
 
-tailorApiRouter.post("/reset-password", GeneralController.resetPassword)
-tailorApiRouter.post("/forgot-password", GeneralController.forgotPassword);
+tailorApiRouter.post("/reset-password", authController.resetPassword.bind(authController))
+tailorApiRouter.post("/forgot-password", authController.forgotPassword.bind(authController));
 
 tailorApiRouter.get("/user-detail", GeneralController.getUserDetail);
 tailorApiRouter.post("/withdraw", GeneralController.withdraw);

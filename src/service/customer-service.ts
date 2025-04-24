@@ -5,7 +5,7 @@ import {
   CreateCustomerRequest,
   CustomerResponse,
   CustomersResponse,
-  LoginCustomerRequest,
+  LoginRequest,
   RatingReviewRequest,
   TailorFilterParams,
   toCustomerResponse,
@@ -96,7 +96,7 @@ export class CustomerService {
     return toCustomerResponse(customer)
   }
 
-  static async login(request: LoginCustomerRequest): Promise<CustomerResponse> {
+  static async login(request: LoginRequest): Promise<CustomerResponse> {
     const loginRequest = Validation.validate(CustomerValidation.LOGIN, request)
 
     let customer = await prismaClient.user.findUnique({

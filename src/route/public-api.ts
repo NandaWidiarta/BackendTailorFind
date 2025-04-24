@@ -4,28 +4,25 @@ import { CustomerService } from "../service/customer-service";
 import { Request, Response, NextFunction } from "express";
 import { GeneralController } from "../controller/general-controller";
 import { TailorController } from "../controller/tailor-controller";
-// import { TailorService } from "../service/tailor-service";
 import upload from "../middleware/multer";
 import { RoomChatController } from "../controller/room-chat-controller";
 import { CourseController } from "../controller/course-controller";
 import { ArticleController } from "../controller/article-controller";
+import { authController, regionController } from "../instance/controller-instance";
 
 export const publicRouter = express.Router();
 
 publicRouter.post("/customers/register", upload.single('profilePicture'), CustomerController.registerV2);
 // publicRouter.post("/customers/register", upload.single('profilePicture'), CustomerController.register);
 // publicRouter.post("/customers/login", CustomerController.login);
-publicRouter.post("/customers/login", GeneralController.loginV2);
 
 publicRouter.get("/testis", CustomerController.tes);
-// publicRouter.post("/logout", GeneralController.logoutV2);
 
 //general
-publicRouter.get("/province", GeneralController.getProvince);
-publicRouter.get("/regency/:provinceCode", GeneralController.getRegency);
-publicRouter.get("/district/:regencyCode", GeneralController.getDistrict);
-publicRouter.get("/village/:districtCode", GeneralController.getVillage);
-
+publicRouter.get("/province", regionController.getProvince.bind(regionController));
+publicRouter.get("/regency/:provinceCode", regionController.getRegency.bind(regionController));
+publicRouter.get("/district/:regencyCode", regionController.getDistrict.bind(regionController));
+publicRouter.get("/village/:districtCode", regionController.getVillage.bind(regionController));
 
 //ini handling ganti ke autheticated api 
 
@@ -54,7 +51,6 @@ publicRouter.post("/rooms/:roomId/chats", RoomChatController.sendMessage);
 //   ]),
 //   TailorController.register
 // );
-publicRouter.post("/tailors/login", GeneralController.loginV2);
 publicRouter.post(
   "/tailors/register",
   upload.fields([
@@ -82,5 +78,6 @@ publicRouter.get("/article", ArticleController.getAllArticles)
 publicRouter.get("/article/:id", ArticleController.getArticleDetail)
 publicRouter.get("/articles/search", ArticleController.searchArticle)
 
-publicRouter.post("/forgot-password", GeneralController.forgotPassword);
-publicRouter.post("/login", GeneralController.loginV2);
+publicRouter.post("/forgot-password", authController.forgotPassword.bind(authController));
+publicRouter.post("/login", authController.login.bind(authController))
+publicRouter.post("/logout", authController.logout.bind(authController))

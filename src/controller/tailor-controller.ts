@@ -1,14 +1,14 @@
 import { Request, Response, NextFunction } from "express";
 import { CreateTailorRequest } from "../model/tailor-model";
 import { TailorService } from "../service/tailor-service";
-import { LoginCustomerRequest } from "../model/customer-model";
+import { LoginRequest } from "../model/customer-model";
 import { UserRequest } from "../type/user-request";
 import { ResponseError } from "../error/response-error";
 
 export class TailorController {
   static async login(req: Request, res: Response, next: NextFunction) {
       try {
-          const request: LoginCustomerRequest = req.body as LoginCustomerRequest
+          const request: LoginRequest = req.body as LoginRequest
           const response = await TailorService.login(request)
           res.status(200).json({
               data: response

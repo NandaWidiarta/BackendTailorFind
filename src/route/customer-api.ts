@@ -7,6 +7,7 @@ import { OrderController } from "../controller/order-controller";
 import { GeneralController } from "../controller/general-controller";
 import { CourseController } from "../controller/course-controller";
 import { ArticleController } from "../controller/article-controller";
+import { authController } from "../instance/controller-instance";
 
 export const customerApiRouter = express.Router()
 customerApiRouter.use(authMiddleware)
@@ -27,10 +28,10 @@ customerApiRouter.post("/order/midtrans-token/:orderId", OrderController.getMidt
 customerApiRouter.post("/order/payment-complete/:orderId", OrderController.processOrder);
 
 customerApiRouter.get("/home", getHome)
-customerApiRouter.post("/logout", GeneralController.logout)
+customerApiRouter.post("/logout", authController.logout.bind(authController))
 customerApiRouter.patch("/update-profile",upload.single('file'), CustomerController.updateCustomerProfile)
-customerApiRouter.post("/reset-password", GeneralController.resetPassword)
-customerApiRouter.post("/forgot-password", GeneralController.forgotPassword);
+customerApiRouter.post("/reset-password", authController.resetPassword.bind(authController))
+customerApiRouter.post("/forgot-password", authController.forgotPassword.bind(authController));
 
 customerApiRouter.get("/user-detail", GeneralController.getUserDetail);
 customerApiRouter.get("/home", GeneralController.getHomeData)

@@ -4,7 +4,7 @@ import {
   CreateCustomerRequest,
   CustomerResponse,
   CustomersResponse,
-  LoginCustomerRequest,
+  LoginRequest,
   toCustomerResponse,
 } from "../model/customer-model";
 import { CustomerValidation } from "../validation/customer-validation";
@@ -21,7 +21,7 @@ import { supabase } from "../supabase-client";
 import { Role } from "@prisma/client";
 
 export class TailorService {
-  static async login(request: LoginCustomerRequest): Promise<TailorResponse> {
+  static async login(request: LoginRequest): Promise<TailorResponse> {
     const loginRequest = Validation.validate(CustomerValidation.LOGIN, request)
 
     let tailor = await prismaClient.user.findUnique({
