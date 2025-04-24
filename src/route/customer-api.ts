@@ -50,3 +50,4 @@ customerApiRouter.get("/article/:id", ArticleController.getArticleDetail)
 customerApiRouter.get("/articles/search", ArticleController.searchArticle)
 
 customerApiRouter.post("/withdraw", GeneralController.withdraw);
+customerApiRouter.get("/user-oauth", authController.getDetailUserLoggedIn.bind(authController))

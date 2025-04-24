@@ -92,5 +92,26 @@ export class AuthService {
         return "Gagal Reset Password"
     }
 
+    async getDetailUserByEmail(email: string) {
+        const user = await prismaClient.user.findUnique({
+            where: {
+                email: email
+            },
+            include: {
+                tailorProfile: true
+            }
+        })
+
+        if (!user) {
+            throw new ResponseError(401, "User tidak ditemukan")
+        }
+
+        if (user.role === Role.CUSTOMER || user.role === Role.ADMIN) {
+            return toCustomerResponse(user)
+        } else {
+            return toTailorResponse(user)
+        }
+    }
+
 
 }

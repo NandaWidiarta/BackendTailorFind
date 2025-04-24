@@ -63,6 +63,19 @@ export class AuthController {
         }
     }
 
+    async getDetailUserLoggedIn(req: Request, res: Response, next: NextFunction) {
+        const userReq = req as UserRequest;
+        const userEmail = userReq.user?.email;
+        if (!userEmail) {
+            throw new ResponseError(400, "Terjadi Kesalahan");
+        }
+        const response = await this.authService.getDetailUserByEmail(userEmail);
+
+        res.status(200).json({
+            data: response,
+        });
+    }
+
     // static async logout(req: Request, res: Response, next: NextFunction) {
     //   try {
     //     const userReq = req as UserRequest;
