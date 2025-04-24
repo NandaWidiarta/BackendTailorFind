@@ -93,10 +93,9 @@ model Chat {
   roomId     String
   room       RoomChat @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
-  senderId   String
   senderType Role 
   message    String
-  type       String   @default("text") 
+  type       String   @default("text")  @db.VarChar(50)
   readAt     DateTime?
   createdAt  DateTime @default(now())
 }

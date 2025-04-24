@@ -27,7 +27,6 @@ export class OrderService {
 
     const chat = await ChatService.sendMessage(
       request.roomId,
-      request.tailorId,
       Role.TAILOR,
       orderId,
       ChatType.ORDER
@@ -223,7 +222,6 @@ export class OrderService {
 
     await ChatService.sendMessage(
       order.roomId,
-      order.customerId,
       Role.TAILOR,
       order.id,
       order.orderType == OrderType.DELIVERY ? ChatType.ORDER_DELIVERED  : ChatType.ORDER_COMPLETED_BY_TAILOR
@@ -274,7 +272,6 @@ export class OrderService {
 
     await ChatService.sendMessage(
       order.roomId,
-      "admin-system",
       Role.ADMIN,
       order.id,
       ChatType.PAYMENT_CUSTOMER_CONFIRMED 
@@ -324,7 +321,6 @@ export class OrderService {
     const chat = await prismaClient.chat.create({
       data: {
         roomId: order.roomId,
-        senderId: request.userId,
         senderType: request.userRole,
         message: order.id,
         type: ChatType.REQUEST_CANCEL_ORDER,
@@ -400,7 +396,6 @@ export class OrderService {
 
     await ChatService.sendMessage(
       order.roomId,
-      order.customerId,
       Role.CUSTOMER,
       order.id,
       ChatType.CUSTOMER_RECEIVED 
@@ -538,7 +533,6 @@ export class OrderService {
 
     await ChatService.sendMessage(
       order.roomId,
-      "admin",
       Role.CUSTOMER,
       order.id,
       ChatType.ORDER_CANCELED
@@ -573,7 +567,6 @@ export class OrderService {
     // (opsional) kirim chat ke customer
     await ChatService.sendMessage(
       order.roomId,
-      "admin-system",
       Role.ADMIN,
       order.id,
       ChatType.CANCELATION_REQUEST_REJECTED

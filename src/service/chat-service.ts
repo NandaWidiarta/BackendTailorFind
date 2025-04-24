@@ -130,16 +130,13 @@ export class ChatService {
 
   static async sendMessage(
     roomId: string,
-    senderId: string,
     senderType: Role,
     message: string,
     type: string
   ) {
-    console.log(roomId, senderId, senderType, message, type)
     const newChat = await prismaClient.chat.create({
       data: {
         roomId,
-        senderId,
         senderType,
         message,
         type

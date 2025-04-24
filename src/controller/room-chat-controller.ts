@@ -61,12 +61,11 @@ export class RoomChatController {
     }
   }
 
-  // Kirim pesan (opsional, jika pakai HTTP)
   static async sendMessage(req: Request, res: Response) {
     try {
       const roomId = req.params.roomId
-      const { senderId, senderType, message, type } = req.body
-      const chat = await ChatService.sendMessage(roomId, senderId, senderType, message, type)
+      const { senderType, message, type } = req.body
+      const chat = await ChatService.sendMessage(roomId, senderType, message, type)
       res.json(chat)
     } catch (e) {
       res.status(500).json({ error: getErrorMessage(e) })
@@ -76,13 +75,12 @@ export class RoomChatController {
   static async sendMessageV2(req: Request, res: Response, next: NextFunction) {
     try {
       const roomId = req.params.roomId
-      const { senderId, senderType, message, type } = req.body
+      const { senderType, message, type } = req.body
       const file = req.file
 
       let finalMessage = message
       let finalType = type
 
-      console.log('masuk sendMessageV2')
 
       if (file) {
         const publicURL = await uploadFileToSupabase(file, roomId)
@@ -96,7 +94,7 @@ export class RoomChatController {
         finalType = 'image'
       }
 
-      const chat = await ChatService.sendMessage(roomId, senderId, senderType, finalMessage, finalType)
+      const chat = await ChatService.sendMessage(roomId, senderType, finalMessage, finalType)
       
       res.status(200).json({
         data: chat,
