@@ -3,11 +3,11 @@ import { prismaClient } from "../application/database";
 import { ResponseError } from "../error/response-error";
 import { supabase } from "../supabase-client";
 import { Prisma } from "@prisma/client";
+import { CourseResponse } from "../model/course-model";
 
 export class CourseService {
-  static async addCourse(
+   async addCourse(
     tailorId: string,
-    authorName: string,
     courseName: string,
     shortDescription: string,
     registrationLink: string,
@@ -16,35 +16,20 @@ export class CourseService {
     courseDate: string,
     image: Express.Multer.File
   ) {
-    if (!image) {
-      throw new ResponseError(500, "image-not-found");
-    }
+    if (!image) throw new ResponseError(500, "Gambar tidak ditemukan");
 
     const fileName = `${tailorId}-${Date.now()}`;
+    const { data, error } = await supabase.storage.from("courseImage").upload(fileName, image.buffer, {
+      contentType: image.mimetype
+    });
+    if (error) throw new ResponseError(500, "Gagal mengupload gambar ke database");
 
-    const { data, error } = await supabase.storage
-      .from("courseImage")
-      .upload(fileName, image.buffer, {
-        contentType: image.mimetype,
-      });
-
-    if (error) {
-      throw new ResponseError(500, "failed-upload-image-to-database");
-    }
-
-    const imageUrl = data?.path
-      ? supabase.storage.from("courseImage").getPublicUrl(data.path).data
-          ?.publicUrl || null
-      : null;
-
-    if (!imageUrl) {
-      throw new ResponseError(500, "failed-to-generate-image-url");
-    }
+    const imageUrl = data?.path ? supabase.storage.from("courseImage").getPublicUrl(data.path).data?.publicUrl || null : null;
+    if (!imageUrl) throw new ResponseError(500, "Gagal membuat url gambar");
 
     const newCourse = await prismaClient.course.create({
       data: {
         tailorId,
-        authorName,
         imageUrl,
         courseName,
         shortDescription,
@@ -52,13 +37,18 @@ export class CourseService {
         description,
         place,
         courseDate
-      },
+      }
     });
 
-    return newCourse;
+    const tailor = await prismaClient.user.findUnique({ where: { id: tailorId }, select: { firstname: true, lastname: true } });
+
+    return {
+      ...newCourse,
+      authorName: `${tailor?.firstname || ""} ${tailor?.lastname || ""}`.trim()
+    };
   }
 
-  static async getAllCourse(page: number = 1, pageSize: number = 8) {
+  async getAllCourse(page: number = 1, pageSize: number = 8) {
     const totalCourse = await prismaClient.course.count();
 
     const skip = (page - 1) * pageSize;
@@ -67,12 +57,40 @@ export class CourseService {
       skip,
       take: pageSize,
       orderBy: { createdAt: "desc" },
+      include: {
+        tailor: {
+          include: {
+            user: {
+              select: {
+                firstname: true,
+                lastname: true
+              }
+            }
+          }
+        }
+      }
     });
 
     const totalPages = Math.ceil(totalCourse / pageSize);
 
+    const result: CourseResponse[] = courses.map((course) => ({
+      id: course.id,
+      tailorId: course.tailorId,
+      authorName: `${course.tailor?.user?.firstname || ""} ${course.tailor?.user?.lastname || ""}`.trim(),
+      imageUrl: course.imageUrl,
+      courseName: course.courseName,
+      shortDescription: course.shortDescription,
+      registrationLink: course.registrationLink,
+      description: course.description,
+      place: course.place,
+      courseDate: course.courseDate,
+      createdAt: course.createdAt,
+      updatedAt: course.updatedAt
+    }));
+
+
     return {
-      courses,
+      courses : result,
       meta: {
         totalData: totalCourse,
         totalPages,
@@ -82,114 +100,165 @@ export class CourseService {
     };
   }
 
-  static async searchCourse(name: string, page = 1, pageSize = 8, userId?: string, searchMode?: 'own' | 'others' | 'all') {
+  async searchCourse(name: string, page = 1, pageSize = 8, userId?: string, searchMode?: 'own' | 'others' | 'all') {
     const searchTerms = name.toLowerCase().split(/\s+/);
-
     let whereCondition: any = {
-      AND: searchTerms.map(term => ({
-        courseName: {
-          contains: term,
-          mode: Prisma.QueryMode.insensitive
-        }
-      }))
+      AND: searchTerms.map(term => ({ courseName: { contains: term, mode: Prisma.QueryMode.insensitive } }))
     };
-    
+
     if (userId && searchMode) {
-      if (searchMode === 'own') {
-        whereCondition = {
-          ...whereCondition,
-          tailorId: userId
-        };
-      } else if (searchMode === 'others') {
-        whereCondition = {
-          ...whereCondition,
-          NOT: {
-            tailorId: userId
-          }
-        };
-      }
+      if (searchMode === 'own') whereCondition.tailorId = userId;
+      else if (searchMode === 'others') whereCondition.NOT = { tailorId: userId };
     }
 
-    
-    const courses = await prismaClient.course.findMany({
-      where: whereCondition,
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-    
-    const totalCourses = await prismaClient.course.count({
-      where: whereCondition
-    });
+    const [courses, totalCourses] = await Promise.all([
+      prismaClient.course.findMany({
+        where: whereCondition,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        orderBy: { createdAt: "desc" },
+        include: {
+          tailor: {
+            include: {
+              user: {
+                select: {
+                  firstname: true,
+                  lastname: true
+                }
+              }
+            }
+          }
+        }
+      }),
+      prismaClient.course.count({ where: whereCondition })
+    ]);
 
-    const totalPages = Math.ceil(totalCourses / pageSize);
+    const result: CourseResponse[] = courses.map((course) => ({
+      id: course.id,
+      tailorId: course.tailorId,
+      authorName: `${course.tailor?.user?.firstname || ""} ${course.tailor?.user?.lastname || ""}`.trim(),
+      imageUrl: course.imageUrl,
+      courseName: course.courseName,
+      shortDescription: course.shortDescription,
+      registrationLink: course.registrationLink,
+      description: course.description,
+      place: course.place ?? undefined,
+      courseDate: course.courseDate ?? undefined,
+      createdAt: course.createdAt,
+      updatedAt: course.updatedAt
+    }));
 
     return {
-      data: courses,
+      data: result,
       meta: {
         totalData: totalCourses,
-        totalPages,
+        totalPages: Math.ceil(totalCourses / pageSize),
         currentPage: page,
         pageSize,
       },
     };
   }
 
-  static async getCourseDetail(courseId: string) {
+  async getCourseDetail(courseId: string) {
     const course = await prismaClient.course.findUnique({
       where: { id: courseId },
+      include: {
+        tailor: {
+          include: {
+            user: {
+              select: {
+                firstname: true,
+                lastname: true
+              }
+            }
+          }
+        }
+      }
     });
 
-    return {
-      course,
+    if (!course) throw new ResponseError(400, "Course Tidak Ditemukan");
+
+    const result: CourseResponse = {
+      id: course.id,
+      tailorId: course.tailorId,
+      authorName: `${course.tailor?.user?.firstname || ""} ${course.tailor?.user?.lastname || ""}`.trim(),
+      imageUrl: course.imageUrl,
+      courseName: course.courseName,
+      shortDescription: course.shortDescription,
+      registrationLink: course.registrationLink,
+      description: course.description,
+      place: course.place ?? undefined,
+      courseDate: course.courseDate ?? undefined,
+      createdAt: course.createdAt,
+      updatedAt: course.updatedAt
     };
+
+    return { course: result };
   }
 
   ///Tailor Course API
-  static async getAllCourseTailor(
+  async getAllCourseTailor(
     tailorId?: string,
     type: "own" | "others" = "own",
     page: number = 1,
     limit: number = 8
   ) {
-    const validPage = page > 0 ? page : 1;
-    const validLimit = limit > 0 && limit <= 20 ? limit : 8;
+    const validPage = Math.max(1, page);
+    const validLimit = Math.min(Math.max(1, limit), 20);
     const skip = (validPage - 1) * validLimit;
 
-    const filter =
-      tailorId && type === "own"
-        ? { tailorId }
-        : tailorId && type === "others"
-        ? { tailorId: { not: tailorId } }
-        : {};
+    const filter = tailorId && type === "own"
+      ? { tailorId }
+      : tailorId && type === "others"
+      ? { tailorId: { not: tailorId } }
+      : {};
 
-    const courses = await prismaClient.course.findMany({
-      where: filter,
-      skip,
-      take: validLimit,
-      orderBy: { createdAt: "desc" },
-    });
+    const [courses, totalCourses] = await Promise.all([
+      prismaClient.course.findMany({
+        where: filter,
+        skip,
+        take: validLimit,
+        orderBy: { createdAt: "desc" },
+        include: {
+          tailor: {
+            include: {
+              user: {
+                select: { firstname: true, lastname: true }
+              }
+            }
+          }
+        }
+      }),
+      prismaClient.course.count({ where: filter })
+    ]);
 
-    const totalCourses = await prismaClient.course.count({
-      where: filter,
-    });
-
-    const totalPages = Math.ceil(totalCourses / validLimit);
+    const result: CourseResponse[] = courses.map(course => ({
+      id: course.id,
+      tailorId: course.tailorId,
+      authorName: `${course.tailor?.user?.firstname || ""} ${course.tailor?.user?.lastname || ""}`.trim(),
+      imageUrl: course.imageUrl,
+      courseName: course.courseName,
+      shortDescription: course.shortDescription,
+      registrationLink: course.registrationLink,
+      description: course.description,
+      place: course.place ?? undefined,
+      courseDate: course.courseDate ?? undefined,
+      createdAt: course.createdAt,
+      updatedAt: course.updatedAt
+    }));
 
     return {
-      courses,
+      courses: result,
       meta: {
         totalData: totalCourses,
-        totalPages,
+        totalPages: Math.ceil(totalCourses / validLimit),
         currentPage: validPage,
         pageSize: validLimit,
-      },
+      }
     };
   }
 
-  static async updateCourse(
+  async updateCourse(
     courseId: string,
     tailorId: string,
     courseName?: string,
@@ -201,15 +270,10 @@ export class CourseService {
     image?: Express.Multer.File
   ) {
     const existingCourse = await prismaClient.course.findFirst({
-      where: {
-        id: courseId,
-        tailorId: tailorId,
-      },
+      where: { id: courseId, tailorId }
     });
 
-    if (!existingCourse) {
-      throw new ResponseError(404, "course-not-found");
-    }
+    if (!existingCourse) throw new ResponseError(404, "course-not-found");
 
     const updateData: any = {
       tailorId,
@@ -217,82 +281,48 @@ export class CourseService {
     };
 
     if (courseName !== undefined) updateData.courseName = courseName;
-    if (shortDescription !== undefined)
-      updateData.shortDescription = shortDescription;
-    if (registrationLink !== undefined)
-      updateData.registrationLink = registrationLink;
+    if (shortDescription !== undefined) updateData.shortDescription = shortDescription;
+    if (registrationLink !== undefined) updateData.registrationLink = registrationLink;
     if (description !== undefined) updateData.description = description;
     if (place !== undefined) updateData.place = place;
     if (courseDate !== undefined) updateData.courseDate = courseDate;
-
-    let imageUrl = existingCourse.imageUrl;
 
     if (image) {
       const fileName = `${tailorId}-${Date.now()}`;
 
       if (existingCourse.imageUrl) {
-        try {
-          const existingImagePath = this.extractImagePathFromUrl(
-            existingCourse.imageUrl
-          );
-
-          if (existingImagePath) {
-            const { error: deleteError } = await supabase.storage
-              .from("courseImage")
-              .remove([existingImagePath]);
-
-            if (deleteError) {
-              console.error(
-                "Warning: Failed to delete old image:",
-                deleteError
-              );
-            }
-          }
-        } catch (error) {
-          console.error("Error processing old image:", error);
+        const existingImagePath = this.extractImagePathFromUrl(existingCourse.imageUrl);
+        if (existingImagePath) {
+          await supabase.storage.from("courseImage").remove([existingImagePath]);
         }
       }
 
-      const { data, error } = await supabase.storage
-        .from("courseImage")
-        .upload(fileName, image.buffer, {
-          contentType: image.mimetype,
-          cacheControl: "3600",
-          upsert: false,
-        });
+      const { data, error } = await supabase.storage.from("courseImage").upload(fileName, image.buffer, {
+        contentType: image.mimetype,
+        cacheControl: "3600",
+        upsert: false
+      });
 
-      if (error) {
-        throw new ResponseError(500, "failed-upload-image-to-database");
-      }
+      if (error) throw new ResponseError(500, "Gagal mengupload gambar ke database");
 
-      const publicUrlResult = supabase.storage
-        .from("courseImage")
-        .getPublicUrl(data.path);
-
-      imageUrl = publicUrlResult.data?.publicUrl;
-
-      if (!imageUrl) {
-        throw new ResponseError(500, "failed-to-generate-image-url");
-      }
+      const publicUrlResult = supabase.storage.from("courseImage").getPublicUrl(data.path);
+      const imageUrl = publicUrlResult.data?.publicUrl;
+      if (!imageUrl) throw new ResponseError(500, "Gagal membuat url gambar");
 
       updateData.imageUrl = imageUrl;
     }
 
-    try {
-      const updatedCourse = await prismaClient.course.update({
-        where: {
-          id: courseId,
-        },
-        data: updateData,
-      });
+    const updatedCourse = await prismaClient.course.update({ where: { id: courseId }, data: updateData });
 
-      return updatedCourse;
-    } catch (error) {
-      throw new ResponseError(500, "failed-to-update-course");
-    }
+    const tailor = await prismaClient.user.findUnique({ where: { id: tailorId }, select: { firstname: true, lastname: true } });
+
+    return {
+      ...updatedCourse,
+      authorName: `${tailor?.firstname || ""} ${tailor?.lastname || ""}`.trim()
+    };
   }
 
-  private static extractImagePathFromUrl(url: string): string | null {
+  private extractImagePathFromUrl(url: string): string | null {
     try {
       const urlParts = url.split("/");
       const bucketIndex = urlParts.findIndex((part) => part === "courseImage");
@@ -307,7 +337,7 @@ export class CourseService {
     }
   }
 
-  static async deleteCourse(courseId: string, tailorId: string) {
+  async deleteCourse(courseId: string, tailorId: string) {
     const existingCourse = await prismaClient.course.findFirst({
       where: {
         id: courseId,

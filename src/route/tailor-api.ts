@@ -8,62 +8,62 @@ import { CourseController } from "../controller/course-controller";
 import { StuffController } from "../controller/stuff-controller";
 import { TailorController } from "../controller/tailor-controller";
 import { GeneralController } from "../controller/general-controller";
-import { authController } from "../instance/controller-instance";
+import { articleController, authController, chatController, courseController, orderController, stuffController, tailorController } from "../instance/controller-instance";
 
 export const tailorApiRouter = express.Router()
 tailorApiRouter.use(authMiddleware)
-tailorApiRouter.post("/rooms", RoomChatController.createOrGetRoom)
-tailorApiRouter.get("/rooms/:tailorId", RoomChatController.getRoomsByTailor)
-tailorApiRouter.get("/rooms/:roomId/chats", RoomChatController.getChatsInRoomByTailor)
-tailorApiRouter.post("/rooms/:roomId/chats", upload.single('file'), RoomChatController.sendMessageV2)
-tailorApiRouter.delete("/rooms/:roomId", RoomChatController.deleteRoomChat);
+tailorApiRouter.post("/rooms", chatController.createOrGetRoom.bind(chatController))
+tailorApiRouter.get("/rooms", chatController.getAllRoom.bind(chatController))
+tailorApiRouter.get("/rooms/:roomId/chats", chatController.getChatsInRoomByTailor.bind(chatController))
+tailorApiRouter.post("/rooms/:roomId/chats", upload.single('file'), chatController.sendMessageV2.bind(chatController))
+tailorApiRouter.delete("/rooms/:roomId", chatController.deleteRoomChat.bind(chatController));
 
 //order
-tailorApiRouter.post("/order/create", OrderController.createOrder)
-tailorApiRouter.get("/order/:orderId", OrderController.getDetailOrder)
-tailorApiRouter.get("/order/all/:userId", OrderController.getAllOrderByTailor)
-// tailorApiRouter.post("/order/process/:orderId", OrderController.processOrder)
-tailorApiRouter.post("/order/complete", upload.single('file'), OrderController.completeOrderByTailor)
-tailorApiRouter.post("/order/cancel/:orderId", OrderController.cancelOrder)
+tailorApiRouter.post("/order/create", orderController.createOrder.bind(orderController))
+tailorApiRouter.get("/order/:orderId", orderController.getDetailOrder.bind(orderController))
+tailorApiRouter.get("/order/all/:userId", orderController.getAllOrderByTailor.bind(orderController))
+// tailorApiRouter.post("/order/process/:orderId", orderController.processOrder)
+tailorApiRouter.post("/order/complete", upload.single('file'), orderController.completeOrderByTailor.bind(orderController))
+tailorApiRouter.post("/order/cancel/:orderId", orderController.cancelOrder.bind(orderController))
 
 //article
-tailorApiRouter.post("/article/add", upload.single('file'), ArticleController.addArticle)
-tailorApiRouter.post("/course/add", upload.single('file'), CourseController.addCourse)
-tailorApiRouter.post("/stuff/add", upload.single('file'), StuffController.addStuff)
-tailorApiRouter.get("/articles/search", ArticleController.searchArticle)
+tailorApiRouter.post("/article/add", upload.single('file'), articleController.addArticle.bind(articleController))
+tailorApiRouter.post("/course/add", upload.single('file'), courseController.addCourse.bind(courseController))
+tailorApiRouter.post("/stuff/add", upload.single('file'), stuffController.addStuff.bind(stuffController))
+tailorApiRouter.get("/articles/search", articleController.searchArticle.bind(articleController))
 
 //home
-tailorApiRouter.get("/home", TailorController.getHomeData)
+tailorApiRouter.get("/home", tailorController.getHomeData.bind(tailorController))
 
 //list stuff
-tailorApiRouter.get("/stuff", TailorController.getStuff)
-tailorApiRouter.get("/stuff/filter", TailorController.getFilteredStuff)
-tailorApiRouter.patch("/stuff/:id", upload.single('file'), StuffController.updateStuff)
-tailorApiRouter.delete("/stuff/:id", StuffController.deleteStuff)
+tailorApiRouter.get("/stuff", tailorController.getStuff.bind(tailorController))
+tailorApiRouter.get("/stuff/filter", tailorController.getFilteredStuff.bind(tailorController))
+tailorApiRouter.patch("/stuff/:id", upload.single('file'), stuffController.updateStuff.bind(stuffController))
+tailorApiRouter.delete("/stuff/:id", stuffController.deleteStuff.bind(stuffController))
 
 //list course
-tailorApiRouter.get("/course", CourseController.getCourseByTailor)
-tailorApiRouter.patch("/course/:id", upload.single('file'), CourseController.updateCourse)
-tailorApiRouter.delete("/course/:id", CourseController.deleteCourse)
-tailorApiRouter.get("/course/search", CourseController.searchCourse)
+tailorApiRouter.get("/course", courseController.getCourseByTailor.bind(courseController))
+tailorApiRouter.patch("/course/:id", upload.single('file'), courseController.updateCourse.bind(courseController))
+tailorApiRouter.delete("/course/:id", courseController.deleteCourse.bind(courseController))
+tailorApiRouter.get("/course/search", courseController.searchCourse.bind(courseController))
 
 //list article
-tailorApiRouter.get("/article", ArticleController.getAllArticleByTailor)
-tailorApiRouter.patch("/article/:id", upload.single('file'), ArticleController.updateArticle)
-tailorApiRouter.delete("/article/:id", ArticleController.deleteArticle)
+tailorApiRouter.get("/article", articleController.getAllArticleByTailor.bind(articleController))
+tailorApiRouter.patch("/article/:id", upload.single('file'), articleController.updateArticle.bind(articleController))
+tailorApiRouter.delete("/article/:id", articleController.deleteArticle.bind(articleController))
 
 //logout
 tailorApiRouter.post("/logout", authController.logout.bind(authController))
 
-tailorApiRouter.patch("/update-profile", upload.single('file'), TailorController.updateProfile)
+tailorApiRouter.patch("/update-profile", upload.single('file'), tailorController.updateProfile.bind(tailorController))
 tailorApiRouter.post(
   "/certificates",
   upload.fields([{ name: "certificate", maxCount: 5 }]),
-  TailorController.addCertificate
+  tailorController.addCertificate.bind(tailorController)
 );
 
-tailorApiRouter.get("/certificates", TailorController.getCertificate)
-tailorApiRouter.delete("/certificates", TailorController.deleteCertificate)
+tailorApiRouter.get("/certificates", tailorController.getCertificate.bind(tailorController))
+tailorApiRouter.delete("/certificates", tailorController.deleteCertificate.bind(tailorController))
 
 tailorApiRouter.post("/reset-password", authController.resetPassword.bind(authController))
 tailorApiRouter.post("/forgot-password", authController.forgotPassword.bind(authController));

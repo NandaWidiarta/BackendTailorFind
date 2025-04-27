@@ -1,4 +1,7 @@
 import { Role, User, Gender } from "@prisma/client";
+import { ArticleResponse, mapToArticleResponse } from "./article-model";
+import { CourseResponse, mapToCourseResponse } from "./course-model";
+import { mapToStuffResponse, StuffResponse } from "./stuff-model";
 
 export type CreateTailorRequest = {
   firstname: string
@@ -51,6 +54,18 @@ export type StuffFilterParams = {
   maxPrice?: number;
 }
 
+export interface TailorHomeResponse extends TailorResponse {
+  averageRating: number| null
+  provinceName?: string;
+  regencyName?: string;
+  districtName?: string;
+  villageName?: string;
+  unreadMessagesCount: number;
+  latestArticles: ArticleResponse[];
+  latestStuff: StuffResponse[]
+  latestCourses: CourseResponse[]
+}
+
 export function toTailorResponse(
   user: User & { tailorProfile?: any }
 ): TailorResponse {
@@ -61,7 +76,6 @@ export function toTailorResponse(
     lastname: user.lastname ?? null,
     email: user.email,
     phoneNumber: user.phoneNumber,
-
     provinceId: user.tailorProfile?.provinceId ?? null,
     regencyId: user.tailorProfile?.regencyId ?? null,
     districtId: user.tailorProfile?.districtId ?? null,
@@ -78,4 +92,42 @@ export function toTailorResponse(
     createdAt: user.createdAt,
     token: user.token ?? null,
   }
+}
+
+
+export function toTailorHomeResponse(tailor: any, unread: any, article: any, stuff: any, course: any): TailorHomeResponse {
+  return {
+    id: tailor.userId,
+    averageRating: tailor.averageRating,
+    firstname: tailor.user?.firstname || "",
+    lastname: tailor.user?.lastname || "",
+    email: tailor.user?.email || "",
+    phoneNumber: tailor.user?.phoneNumber || "",
+    profilePicture: tailor.user?.profilePicture ?? null,
+    role: tailor.user?.role ?? "TAILOR",
+    createdAt: tailor.user?.createdAt ?? new Date(),
+
+    gender: tailor.gender,
+    provinceId: tailor.provinceId ?? null,
+    regencyId: tailor.regencyId ?? null,
+    districtId: tailor.districtId ?? null,
+    villageId: tailor.villageId ?? null,
+    addressDetail: tailor.addressDetail ?? null,
+    workEstimation: tailor.workEstimation ?? null,
+    priceRange: tailor.priceRange ?? null,
+    specialization: tailor.specialization ?? [],
+    businessDescription: tailor.businessDescription ?? null,
+    certificate: tailor.certificate ?? [],
+    token: tailor.user?.token ?? null,
+
+    provinceName: tailor.province?.name ?? undefined,
+    regencyName: tailor.regency?.name ?? undefined,
+    districtName: tailor.district?.name ?? undefined,
+    villageName: tailor.village?.name ?? undefined,
+    unreadMessagesCount: unread,
+
+    latestArticles: (article || []).map(mapToArticleResponse),
+    latestCourses: (stuff || []).map(mapToCourseResponse),
+    latestStuff: (course || []).map(mapToStuffResponse),
+  };
 }

@@ -7,10 +7,11 @@ import { Role } from "@prisma/client";
 import { supabase } from "../supabase-client";
 
 export class OrderController {
-  static async createOrder(req: Request, res: Response, next: NextFunction) {
+  constructor ( private readonly orderService: OrderService ) {}
+  async createOrder(req: Request, res: Response, next: NextFunction) {
     try {
       const request = req.body as CreateOrderRequest
-      const response = await OrderService.createOrder(request);
+      const response = await this.orderService.createOrder(request);
       res.status(200).json({
         data: response,
       });
@@ -19,30 +20,10 @@ export class OrderController {
     }
   }
 
-  // static async uploadPaymentProof(req: Request, res: Response, next: NextFunction) {
-  //   try {
-  //     const orderId = req.params.orderId
-
-  //     const { customerPaymentBankName, customerAccountName, customerAccount } = req.body
-
-  //     if (!req.file) {
-  //       return next()
-  //     }
-
-  //     const response = await OrderService.uploadProofOfPayment(req.file, orderId, customerPaymentBankName, customerAccountName, customerAccount )
-      
-  //     res.status(200).json({
-  //       data: response,
-  //     })
-  //   } catch (e) {
-  //     next(e)
-  //   }
-  // }
-
-  static async getDetailOrder(req: Request, res: Response, next: NextFunction) {
+  async getDetailOrder(req: Request, res: Response, next: NextFunction) {
     try {
       const orderId = req.params.orderId
-      const response = await OrderService.getOrderDetail(orderId)
+      const response = await this.orderService.getOrderDetail(orderId)
       res.status(200).json({
         data: response,
       });
@@ -51,10 +32,10 @@ export class OrderController {
     }
   }
 
-  static async getAllOrderByCustomer(req: Request, res: Response, next: NextFunction) {
+  async getAllOrderByCustomer(req: Request, res: Response, next: NextFunction) {
     try {
       const userId = req.params.userId
-      const response = await OrderService.getAllOrderByCustomer(userId)
+      const response = await this.orderService.getAllOrderByCustomer(userId)
       res.status(200).json({
         data: response,
       });
@@ -63,10 +44,10 @@ export class OrderController {
     }
   }
 
-  static async getAllOrderByTailor(req: Request, res: Response, next: NextFunction) {
+  async getAllOrderByTailor(req: Request, res: Response, next: NextFunction) {
     try {
       const userId = req.params.userId
-      const response = await OrderService.getAllOrderByTailor(userId)
+      const response = await this.orderService.getAllOrderByTailor(userId)
       res.status(200).json({
         data: response,
       });
@@ -75,10 +56,10 @@ export class OrderController {
     }
   }
 
-  static async processOrder(req: Request, res: Response, next: NextFunction) {
+  async processOrder(req: Request, res: Response, next: NextFunction) {
     try {
       const orderId = req.params.orderId
-      const response = await OrderService.processOrder(orderId)
+      const response = await this.orderService.processOrder(orderId)
       res.status(200).json({
         data: response,
       });
@@ -87,10 +68,10 @@ export class OrderController {
     }
   }
 
-  static async completeOrderByTailor(req: Request, res: Response, next: NextFunction) {
+  async completeOrderByTailor(req: Request, res: Response, next: NextFunction) {
     try {
       const { orderId, deliveryServiceName, receiptNumber} = req.body
-      const response = await OrderService.completeOrderByTailor(
+      const response = await this.orderService.completeOrderByTailor(
         {orderId, deliveryServiceName, receiptNumber },
         req.file
       )
@@ -102,10 +83,10 @@ export class OrderController {
     }
   }
 
-  static async completeOrderByCustomer(req: Request, res: Response, next: NextFunction) {
+  async completeOrderByCustomer(req: Request, res: Response, next: NextFunction) {
     try {
       const { orderId } = req.params
-      const response = await OrderService.customerCompleteOrder(
+      const response = await this.orderService.customerCompleteOrder(
         orderId
       )
       res.status(200).json({
@@ -116,7 +97,7 @@ export class OrderController {
     }
   }
 
-  static async cancelOrder(req: Request, res: Response, next: NextFunction) {
+  async cancelOrder(req: Request, res: Response, next: NextFunction) {
     try {
       const userReq = req as UserRequest;
       const userId = userReq.user?.id;
@@ -148,7 +129,7 @@ export class OrderController {
         }
       }
   
-      const response = await OrderService.cancelOrder({
+      const response = await this.orderService.cancelOrder({
         orderId,
         userId, 
         userRole: userRole,
@@ -164,10 +145,10 @@ export class OrderController {
     }
   }
 
-  static async getMidtransToken(req: Request, res: Response, next: NextFunction) {
+  async getMidtransToken(req: Request, res: Response, next: NextFunction) {
     try {
       const { orderId } = req.params
-      const response = await OrderService.createMidtransSnapToken(orderId);
+      const response = await this.orderService.createMidtransSnapToken(orderId);
       res.status(200).json({
         token: response,
       });

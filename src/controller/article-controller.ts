@@ -6,7 +6,10 @@ import { GeneralController } from "./general-controller";
 import { GeneralService } from "../service/general-service";
 
 export class ArticleController {
-  static async addArticle(req: Request, res: Response, next: NextFunction) {
+  constructor(
+    private readonly articleService: ArticleService
+) { }
+  async addArticle(req: Request, res: Response, next: NextFunction) {
     try {
       const userReq = req as UserRequest
       const tailorId = userReq.user?.id
@@ -20,9 +23,8 @@ export class ArticleController {
         authorName += ` ${userReq.user?.lastname}`
       }
       const { title, content } = req.body;
-      const response = await ArticleService.addArticle(
+      const response = await this.articleService.addArticle(
         tailorId,
-        authorName,
         title,
         content,
         req.file
@@ -35,7 +37,7 @@ export class ArticleController {
     }
   }
 
-  static async getAllArticles(
+  async getAllArticles(
     req: Request,
     res: Response,
     next: NextFunction
@@ -44,7 +46,7 @@ export class ArticleController {
       const { page = "1" } = req.query;
       const currentPage = parseInt(page as string, 10) || 1;
       
-      const response = await ArticleService.getAllArticles(currentPage)
+      const response = await this.articleService.getAllArticles(currentPage)
     
       res.status(200).json({
         data: response,
@@ -54,7 +56,7 @@ export class ArticleController {
     }
   }
 
-  static async getArticleDetail(
+  async getArticleDetail(
     req: Request,
     res: Response,
     next: NextFunction
@@ -62,7 +64,7 @@ export class ArticleController {
     try {
       const articleId  = req.params.id
       
-      const response = await ArticleService.getArticleDetail(articleId)
+      const response = await this.articleService.getArticleDetail(articleId)
     
       res.status(200).json({
         data: response,
@@ -72,7 +74,7 @@ export class ArticleController {
     }
   }
 
-  static async searchArticle(
+  async searchArticle(
     req: Request,
     res: Response,
     next: NextFunction
@@ -93,7 +95,7 @@ export class ArticleController {
       
       const finalSearchMode = userRole === 'TAILOR' ? validSearchMode : 'all';
       
-      const response = await ArticleService.searchArticle(
+      const response = await this.articleService.searchArticle(
         name as string, 
         currentPage, 
         pageSizeInt, 
@@ -109,7 +111,7 @@ export class ArticleController {
     }
   }
 
-  static async getAllArticleByTailor(req: Request, res: Response, next: NextFunction) {
+  async getAllArticleByTailor(req: Request, res: Response, next: NextFunction) {
     try {
 
       const userReq = req as UserRequest
@@ -123,7 +125,7 @@ export class ArticleController {
       const currentPage = parseInt(page as string, 10) || 1;
       const pageSizeInt = parseInt(pageSize as string, 8) || 8
 
-      const response = await ArticleService.getAllArticleTailor(
+      const response = await this.articleService.getAllArticleTailor(
         tailorId,
         type === 'own' ? 'own' : 'others',
         currentPage,
@@ -138,7 +140,7 @@ export class ArticleController {
     }
   }
 
-  static async updateArticle(req: Request, res: Response, next: NextFunction) {
+  async updateArticle(req: Request, res: Response, next: NextFunction) {
     try {
       const userReq = req as UserRequest
       const tailorId = userReq.user?.id
@@ -153,7 +155,7 @@ export class ArticleController {
         content
       } = req.body
 
-      const response = await ArticleService.updateArticle(
+      const response = await this.articleService.updateArticle(
         courseId,
         tailorId,
         title, 
@@ -169,7 +171,7 @@ export class ArticleController {
     }
   }
 
-  static async deleteArticle(
+  async deleteArticle(
     req: Request,
     res: Response,
     next: NextFunction
@@ -183,7 +185,7 @@ export class ArticleController {
         throw new ResponseError(400, "Invalid-user-information");
       }
       
-      const response = await ArticleService.deleteArticle(articleId, tailorId)
+      const response = await this.articleService.deleteArticle(articleId, tailorId)
     
       res.status(200).json({
         data: response,

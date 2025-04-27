@@ -6,9 +6,12 @@ import {
   CustomerResponse,
   CustomersResponse,
   LoginRequest,
+  mapTailorProfileResponse,
+  mapUserToProfileResponse,
   RatingReviewRequest,
   TailorFilterParams,
   toCustomerResponse,
+  UpdateCustomerProfileResponse,
 } from "../model/customer-model";
 import { CustomerValidation } from "../validation/customer-validation";
 import { Validation } from "../validation/validation";
@@ -17,9 +20,11 @@ import { v4 as uuid } from "uuid";
 import { supabase } from "../supabase-client";
 import { Gender } from "@prisma/client";
 import { snap } from "../instance/midtrans-client";
+import { mapToArticleResponse } from "../model/article-model";
+import { mapToCourseResponse } from "../model/course-model";
 
 export class CustomerService {
-  static async register(
+  async register(
     registerRequest: CreateCustomerRequest,
     profilePictureFile?: Express.Multer.File,
   ): Promise<CustomerResponse> {
@@ -96,7 +101,7 @@ export class CustomerService {
     return toCustomerResponse(customer)
   }
 
-  static async login(request: LoginRequest): Promise<CustomerResponse> {
+  async login(request: LoginRequest): Promise<CustomerResponse> {
     const loginRequest = Validation.validate(CustomerValidation.LOGIN, request)
 
     let customer = await prismaClient.user.findUnique({
@@ -143,7 +148,7 @@ export class CustomerService {
     return response
   }
 
-  static async addRatingReview(request: RatingReviewRequest, ratingImage?: Express.Multer.File,): Promise<String> {
+  async addRatingReview(request: RatingReviewRequest, ratingImage?: Express.Multer.File,): Promise<String> {
     const ratingReview = await prismaClient.ratingReview.create({
       data: request,
     })
@@ -193,85 +198,51 @@ export class CustomerService {
     return "Success Add Review"
   }
 
-  static async getHomeData(customerId?: string) {
-    
-    let unreadMessagesCount : number | null = null
+  async getHomeData(customerId?: string) {
+    let unreadMessagesCount: number | null = null;
+  
     if (customerId) {
       const rooms = await prismaClient.roomChat.findMany({
         where: { customerId },
         select: { unreadCountCustomer: true },
-      })
+      });
       unreadMessagesCount = rooms.reduce(
         (total, room) => total + room.unreadCountCustomer,
         0
-      )
+      );
     }
-
-    const topTailors = await prismaClient.tailorProfile.findMany({
-      orderBy: { averageRating: "desc" },
-      take: 5,
-      include: {
-        user: {
-          select: {
-            firstname: true,
-            lastname: true,
-            profilePicture: true
-          },
+  
+    const [topTailors, latestArticles, latestCourses] = await Promise.all([
+      prismaClient.tailorProfile.findMany({
+        orderBy: { averageRating: "desc" },
+        take: 5,
+        include: {
+          user: { select: { firstname: true, lastname: true, profilePicture: true } },
+          province: { select: { name: true } },
+          regency: { select: { name: true } },
+          district: { select: { name: true } },
+          village: { select: { name: true } },
         },
-        province: {
-          select: { name: true },
-        },
-        regency: {
-          select: { name: true },
-        },
-        district: {
-          select: { name: true },
-        },
-        village: {
-          select: { name: true },
-        },
-      },
-    });
-
-    const latestArticles = await prismaClient.article.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    })
-
-    const latestCourses = await prismaClient.course.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    })
-
-    const simplifiedTailors = topTailors.map(tailor => ({
-      id: tailor.id,
-      userId: tailor.userId,
-      firstname: tailor.user.firstname,
-      lastname: tailor.user.lastname,
-      addressDetail: tailor.addressDetail,
-      workEstimation: tailor.workEstimation,
-      priceRange: tailor.priceRange,
-      specialization: tailor.specialization,
-      businessDescription: tailor.businessDescription,
-      profilePicture: tailor.user.profilePicture,
-      certificate: tailor.certificate,
-      averageRating: tailor.averageRating,
-      gender: tailor.gender,
-      provinceName: tailor.province.name,
-      regencyName: tailor.regency.name,
-      districtName: tailor.district.name,
-      villageName: tailor.village.name
-    }));
-    
+      }),
+      prismaClient.article.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 5,
+      }),
+      prismaClient.course.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 5,
+      }),
+    ]);
+  
     return {
       unreadMessagesCount,
-      topTailors: simplifiedTailors,
-      latestArticles,
-      latestCourses,
+      topTailors: topTailors.map(mapTailorProfileResponse),
+      latestArticles: latestArticles.map(mapToArticleResponse),
+      latestCourses: latestCourses.map(mapToCourseResponse),
     };
   }
 
-  static async getTailors(page: number = 1, pageSize: number = 8) {
+  async getTailors(page: number = 1, pageSize: number = 8) {
     const totalTailors = await prismaClient.user.count({
       where: { role: Role.TAILOR },
     })
@@ -297,30 +268,7 @@ export class CustomerService {
 
     const totalPages = Math.ceil(totalTailors / pageSize);
 
-    const formattedTailors = tailors.map(tailor => {
-      if (!tailor.tailorProfile) {
-        return {
-          firstname: tailor.firstname,
-          lastname: tailor.lastname,
-        };
-      }
-      
-      return {
-        id: tailor.id,
-        firstname: tailor.firstname,
-        lastname: tailor.lastname,
-        provinceName: tailor.tailorProfile.province.name,
-        regencyName: tailor.tailorProfile.regency.name,
-        districtName: tailor.tailorProfile.district.name,
-        villageName: tailor.tailorProfile.village.name,
-        addressDetail: tailor.tailorProfile.addressDetail,
-        workEstimation: tailor.tailorProfile.workEstimation,
-        priceRange: tailor.tailorProfile.priceRange,
-        specialization: tailor.tailorProfile.specialization,
-        profilePicture: tailor.profilePicture,
-        averageRating: tailor.tailorProfile.averageRating
-      };
-    });
+    const formattedTailors = tailors.map(mapTailorProfileResponse);
 
     return {
       formattedTailors,
@@ -333,7 +281,7 @@ export class CustomerService {
     };
   }
 
-  static async getFilteredTailors(params: TailorFilterParams) {
+  async getFilteredTailors(params: TailorFilterParams) {
     const {
       page = 1,
       pageSize = 8,
@@ -492,31 +440,7 @@ export class CustomerService {
 
     const totalPages = Math.ceil(totalTailors / pageSize);
 
-    const formattedTailors = tailors.map(tailor => {
-      if (!tailor.tailorProfile) {
-        return {
-          firstname: tailor.firstname,
-          lastname: tailor.lastname,
-        };
-      }
-      
-      return {
-        id: tailor.id,
-        firstname: tailor.firstname,
-        lastname: tailor.lastname,
-        provinceName: tailor.tailorProfile.province.name,
-        regencyName: tailor.tailorProfile.regency.name,
-        districtName: tailor.tailorProfile.district.name,
-        villageName: tailor.tailorProfile.village.name,
-        addressDetail: tailor.tailorProfile.addressDetail,
-        workEstimation: tailor.tailorProfile.workEstimation,
-        priceRange: tailor.tailorProfile.priceRange,
-        specialization: tailor.tailorProfile.specialization,
-        profilePicture: tailor.profilePicture,
-        averageRating: tailor.tailorProfile.averageRating,
-        gender: tailor.tailorProfile.gender
-      };
-    });
+    const formattedTailors = tailors.map(mapTailorProfileResponse);
 
     return {
       formattedTailors,
@@ -530,7 +454,7 @@ export class CustomerService {
   }
 
 
-  static async getTailorById(id: string) {
+  async getTailorById(id: string) {
     const tailor = await prismaClient.user.findFirst({
       where: {
         id: id,
@@ -620,7 +544,7 @@ export class CustomerService {
         title: article.title,
         content: article.content,
         imageUrl: article.imageUrl,
-        authorName: article.authorName,
+        authorName: tailorWithoutSensitiveInfo.firstname + tailorWithoutSensitiveInfo.lastname,
         createdAt: article.createdAt,
         updatedAt: article.updatedAt
       })) || [],
@@ -631,7 +555,7 @@ export class CustomerService {
   }
 
 
-  static async updateCustomerProfile(
+  async updateCustomerProfile(
     userId: string,
     userData: {
       firstname?: string;
@@ -640,7 +564,7 @@ export class CustomerService {
       phoneNumber?: string;
       profilePicture?: string | null;
     }
-  ) {
+  ) : Promise <UpdateCustomerProfileResponse> {
     const { profilePicture, ...others } = userData;
 
     const data = {
@@ -655,12 +579,11 @@ export class CustomerService {
       data
     });
 
-    const { password, createdAt, ...filteredUser } = updatedUser;
-    return filteredUser;
+    return mapUserToProfileResponse(updatedUser);
   }
   
 
-  static async registerCustomerV2(registerRequest: CreateCustomerRequest, profilePictureFile?: Express.Multer.File): Promise<CustomerResponse> {
+  async registerCustomerV2(registerRequest: CreateCustomerRequest, profilePictureFile?: Express.Multer.File): Promise<CustomerResponse> {
     
     const emailExists = await prismaClient.user.count({
       where: { email: registerRequest.email }

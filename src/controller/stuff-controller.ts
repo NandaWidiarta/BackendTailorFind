@@ -4,10 +4,13 @@ import { UserRequest } from "../type/user-request";
 import { StuffService } from "../service/stuff-service";
 
 export class StuffController {
-  static async addStuff(req: Request, res: Response, next: NextFunction) {
+  constructor(
+    private readonly stuffService: StuffService
+) { }
+  async addStuff(req: Request, res: Response, next: NextFunction) {
     try {
       if (!req.file) {
-        throw new ResponseError(500, "image-not-found");
+        throw new ResponseError(500, "Gambar tidak ditemukan");
       }
 
       const userReq = req as UserRequest
@@ -25,7 +28,7 @@ export class StuffController {
 
       const priceParsed = parseInt(price)
 
-      const response = await StuffService.addStuff(
+      const response = await this.stuffService.addStuff(
         tailorId,
         stuffName,
         priceParsed,
@@ -41,7 +44,7 @@ export class StuffController {
     }
   }
 
-  static async updateStuff(req: Request, res: Response, next: NextFunction) {
+  async updateStuff(req: Request, res: Response, next: NextFunction) {
     try {
       const userReq = req as UserRequest
       const tailorId = userReq.user?.id
@@ -59,7 +62,7 @@ export class StuffController {
 
       const priceParsed = parseInt(price)
 
-      const response = await StuffService.updateStuff(
+      const response = await this.stuffService.updateStuff(
         stuffId,
         tailorId,
         name,
@@ -76,7 +79,7 @@ export class StuffController {
     }
   }
 
-  static async deleteStuff(
+  async deleteStuff(
     req: Request,
     res: Response,
     next: NextFunction
@@ -90,7 +93,7 @@ export class StuffController {
         throw new ResponseError(400, "Invalid-user-information");
       }
       
-      const response = await StuffService.deleteStuff(stuffId, tailorId)
+      const response = await this.stuffService.deleteStuff(stuffId, tailorId)
     
       res.status(200).json({
         data: response,

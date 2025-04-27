@@ -41,13 +41,13 @@ model User {
 model TailorProfile {
   id                String    @id @default(cuid())  
   userId            String    @unique
-  provinceId        String
-  regencyId         String
-  districtId        String
-  villageId         String
-  addressDetail     String
-  workEstimation    String
-  priceRange        String
+  provinceId        String     
+  regencyId         String     
+  districtId        String     
+  villageId         String     
+  addressDetail     String  
+  workEstimation    String    @db.VarChar(255)     
+  priceRange        String     
   specialization    String[]
   businessDescription String
   certificate       String[]
@@ -68,11 +68,11 @@ model TailorProfile {
 
 model RoomChat {
   id         String   @id @default(cuid())  
-  customerId String   @db.VarChar(100)
-  tailorId   String   @db.VarChar(100)
+  customerId String  
+  tailorId   String  
   createdAt  DateTime @default(now())
-  customerName       String?  @db.VarChar(100)
-  tailorName         String?  @db.VarChar(100)
+  customerName       String?  @db.VarChar(100) 
+  tailorName         String?  @db.VarChar(100) 
 
   customer   User @relation("CustomerRooms", fields: [customerId], references: [id])
   tailor     User @relation("TailorRooms", fields: [tailorId], references: [id])
@@ -89,10 +89,10 @@ model RoomChat {
 }
 
 model Chat {
-  id         String   @id @default(cuid())  
-  roomId     String
+  id         String   @id @default(cuid()) 
+  roomId     String   
   room       RoomChat @relation(fields: [roomId], references: [id], onDelete: Cascade)
-
+ 
   senderType Role 
   message    String
   type       String   @default("text")  @db.VarChar(50)
@@ -101,11 +101,11 @@ model Chat {
 }
 
 model RatingReview {
-  id        String   @id @default(cuid())  
+  id        String   @id @default(cuid())
   rating    Int      @db.SmallInt  
-  review    String?   @db.VarChar(100)
-  tailorId  String
-  customerId String
+  review    String?   @db.VarChar(255)
+  tailorId  String  
+  customerId String  
   image     String?
   createdAt DateTime @default(now())
   tailor    User   @relation("TailorReviews", fields: [tailorId], references: [id], onDelete: Cascade)
@@ -147,43 +147,86 @@ model Village {
   tailors         TailorProfile[]    @relation("VillageTailors") 
 }
 
+// model Order {
+//   id           String       @id @default(cuid())
+//   tailorId     String        @db.VarChar(100)  
+//   customerId   String        @db.VarChar(100)  
+//   roomId       String?
+//   orderType    OrderType   @default(PICKUP)    
+//   totalPrice   Int
+//   status       OrderStatus  @default(NOT_YET_PAY) 
+//   orderDate    DateTime     @default(now())
+//   deliveryAddress String? 
+//   deliveryServiceName String?
+//   receiptNumber String?
+//   deliveryImage String?
+//   cancellationReason String?  
+//   cancelledAt   DateTime? 
+
+
+//   cancellationRequestImage   String?
+//   cancellationRequestReason  String?
+//   cancellationRejectedReason String?
+//   isCancellationApproved     Boolean?
+//   previousStatus             OrderStatus? 
+
+//   updatedAt       DateTime    @updatedAt
+
+//   room         RoomChat? @relation(fields: [roomId], references: [id], onDelete: SetNull)
+//   tailor       User @relation("TailorOrders", fields: [tailorId], references: [id])
+//   customer     User @relation("CustomerOrders", fields: [customerId], references: [id])
+
+//   orderItems   OrderItem[]  
+// }
+
 model Order {
-  id           String       @id @default(cuid())
-  tailorId     String
-  customerId   String
-  roomId       String
-  orderType    OrderType   @default(PICKUP)
+  id           String    @id @default(cuid()) 
+  tailorId     String     
+  customerId   String     
+  roomId       String?    
+  orderType    OrderType @default(PICKUP)
   totalPrice   Int
-  status       OrderStatus  @default(NOT_YET_PAY)
-  orderDate    DateTime     @default(now())
-  deliveryAddress String? 
-  deliveryServiceName String?
-  receiptNumber String?
-  deliveryImage String?
-  cancellationReason String?  
-  cancelledAt   DateTime? 
+  status       OrderStatus @default(NOT_YET_PAY)
+  orderDate    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-
-  cancellationRequestImage   String?
-  cancellationRequestReason  String?
-  cancellationRejectedReason String?
-  isCancellationApproved     Boolean?
-  previousStatus             OrderStatus? 
-
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-
-  room         RoomChat @relation(fields: [roomId], references: [id])
+  room         RoomChat? @relation(fields: [roomId], references: [id], onDelete: SetNull)
   tailor       User @relation("TailorOrders", fields: [tailorId], references: [id])
   customer     User @relation("CustomerOrders", fields: [customerId], references: [id])
-
-  orderItems   OrderItem[]  
+  orderItems   OrderItem[]
+  orderShipping      OrderShipping?
+  orderCancellation  OrderCancellation?
 }
 
+model OrderShipping {
+  id                  String   @id @default(cuid())  
+  orderId             String   @unique  
+  deliveryAddress     String? 
+  deliveryServiceName String?  @db.VarChar(255)
+  receiptNumber       String?  @db.VarChar(255)
+  deliveryImage       String? 
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model OrderCancellation {
+  id                         String   @id @default(cuid()) 
+  orderId                    String   @unique 
+  cancellationReason         String?  @db.VarChar(255)
+  cancelledAt                DateTime?
+  cancellationRequestImage   String?  
+  cancellationRejectedReason String?  @db.VarChar(255)
+  isCancellationApproved     Boolean?
+  previousStatus             OrderStatus?
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+
 model OrderItem {
-  id       String  @id @default(cuid())
+  id       String  @id @default(cuid()) 
   orderId  String
-  name     String
+  name     String @db.VarChar(255)
   qty      Int
   price    Int
 
@@ -191,11 +234,10 @@ model OrderItem {
 }
 
 model Article {
-  id           String       @id @default(cuid())
-  tailorId     String
-  authorName   String? //ini sebenarnya bisa dihapus
+  id           String       @id @default(cuid())  
+  tailorId     String       
   imageUrl     String?
-  title        String
+  title        String       @db.VarChar(255)
   content      String
 
   createdAt    DateTime    @default(now())
@@ -204,16 +246,15 @@ model Article {
 }
 
 model Course {
-  id           String       @id @default(cuid())
-  tailorId     String
-  authorName   String?  //ini sebenarnya bisa dihapus
-  imageUrl     String
-  courseName   String
-  shortDescription      String
+  id           String       @id @default(cuid())  
+  tailorId     String       
+  imageUrl     String         
+  courseName   String       @db.VarChar(255)
+  shortDescription      String    @db.VarChar(500)
   registrationLink      String
   description  String
-  place        String?
-  courseDate   String?
+  place        String?      
+  courseDate   String?      @db.VarChar(255)
 
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
@@ -221,10 +262,10 @@ model Course {
 }
 
 model Stuff {
-  id           String       @id @default(cuid())
-  tailorId     String
-  name         String
-  imageUrl        String
+  id           String       @id @default(cuid())  
+  tailorId     String       
+  name         String       @db.VarChar(255)
+  imageUrl        String    
   stuffCaetgory   StuffCategory
   price           Int
 

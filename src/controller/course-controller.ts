@@ -4,7 +4,10 @@ import { ResponseError } from "../error/response-error";
 import { UserRequest } from "../type/user-request";
 
 export class CourseController {
-  static async addCourse(req: Request, res: Response, next: NextFunction) {
+  constructor(
+    private readonly courseService: CourseService
+) { }
+  async addCourse(req: Request, res: Response, next: NextFunction) {
     try {
       if (!req.file) {
         return next()
@@ -12,16 +15,11 @@ export class CourseController {
 
       const userReq = req as UserRequest
       const tailorId = userReq.user?.id
-      let authorName = userReq.user?.firstname
 
-      if (!tailorId || !authorName) {
+      if (!tailorId) {
         throw new ResponseError(400, "Invalid-user-information");
       }
 
-      if (userReq.user?.lastname) {
-        authorName += ` ${userReq.user?.lastname}`
-      }
-      
       const {
         courseName,
         shortDescription,
@@ -31,9 +29,8 @@ export class CourseController {
         courseDate,
       } = req.body
 
-      const response = await CourseService.addCourse(
+      const response = await this.courseService.addCourse(
         tailorId,
-        authorName,
         courseName,
         shortDescription,
         registrationLink,
@@ -51,7 +48,7 @@ export class CourseController {
     }
   }
 
-  static async getAllCourses(
+  async getAllCourses(
     req: Request,
     res: Response,
     next: NextFunction
@@ -60,7 +57,7 @@ export class CourseController {
       const { page = "1" } = req.query;
       const currentPage = parseInt(page as string, 10) || 1;
       
-      const response = await CourseService.getAllCourse(currentPage)
+      const response = await this.courseService.getAllCourse(currentPage)
     
       res.status(200).json({
         data: response,
@@ -70,7 +67,7 @@ export class CourseController {
     }
   }
 
-  static async searchCourse(
+  async searchCourse(
     req: Request,
     res: Response,
     next: NextFunction
@@ -91,7 +88,7 @@ export class CourseController {
       
       const finalSearchMode = userRole === 'TAILOR' ? validSearchMode : 'all';
       
-      const response = await CourseService.searchCourse(name as string, currentPage, pageSizeInt, userId, finalSearchMode)
+      const response = await this.courseService.searchCourse(name as string, currentPage, pageSizeInt, userId, finalSearchMode)
       
       res.status(200).json({
         data: response,
@@ -101,7 +98,7 @@ export class CourseController {
     }
   }
 
-  static async getCourseDetail(
+  async getCourseDetail(
     req: Request,
     res: Response,
     next: NextFunction
@@ -109,7 +106,7 @@ export class CourseController {
     try {
       const courseId  = req.params.id
       
-      const response = await CourseService.getCourseDetail(courseId)
+      const response = await this.courseService.getCourseDetail(courseId)
     
       res.status(200).json({
         data: response,
@@ -119,7 +116,7 @@ export class CourseController {
     }
   }
 
-  static async getCourseByTailor(req: Request, res: Response, next: NextFunction) {
+  async getCourseByTailor(req: Request, res: Response, next: NextFunction) {
     try {
 
       const userReq = req as UserRequest
@@ -133,7 +130,7 @@ export class CourseController {
       const currentPage = parseInt(page as string, 10) || 1;
       const pageSizeInt = parseInt(pageSize as string, 8) || 8
 
-      const response = await CourseService.getAllCourseTailor(
+      const response = await this.courseService.getAllCourseTailor(
         tailorId,
         type === 'own' ? 'own' : 'others',
         currentPage,
@@ -148,7 +145,7 @@ export class CourseController {
     }
   }
 
-  static async updateCourse(req: Request, res: Response, next: NextFunction) {
+  async updateCourse(req: Request, res: Response, next: NextFunction) {
     try {
       const userReq = req as UserRequest
       const tailorId = userReq.user?.id
@@ -167,7 +164,7 @@ export class CourseController {
         courseDate,
       } = req.body
 
-      const response = await CourseService.updateCourse(
+      const response = await this.courseService.updateCourse(
         courseId,
         tailorId,
         courseName,
@@ -187,7 +184,7 @@ export class CourseController {
     }
   }
 
-  static async deleteCourse(
+  async deleteCourse(
     req: Request,
     res: Response,
     next: NextFunction
@@ -201,7 +198,7 @@ export class CourseController {
         throw new ResponseError(400, "Invalid-user-information");
       }
       
-      const response = await CourseService.deleteCourse(courseId, tailorId)
+      const response = await this.courseService.deleteCourse(courseId, tailorId)
     
       res.status(200).json({
         data: response,

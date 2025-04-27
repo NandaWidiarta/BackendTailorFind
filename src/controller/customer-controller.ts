@@ -12,11 +12,14 @@ import { Gender } from "@prisma/client";
 import { supabase } from "../supabase-client";
 
 export class CustomerController {
-  static async register(req: Request, res: Response, next: NextFunction) {
+  constructor(
+    private readonly customerService: CustomerService
+  ) { }
+  async register(req: Request, res: Response, next: NextFunction) {
     try {
       const request: CreateCustomerRequest = req.body as CreateCustomerRequest;
       const profilePicture = req.file
-      const response = await CustomerService.register(request, profilePicture);
+      const response = await this.customerService.register(request, profilePicture);
       res.status(200).json({
         data: response,
       });
@@ -25,7 +28,7 @@ export class CustomerController {
     }
   }
 
-  static async tes(req: Request, res: Response, next: NextFunction) {
+  async tes(req: Request, res: Response, next: NextFunction) {
     try {
       res.status(200).json({
         message: "test",
@@ -35,7 +38,7 @@ export class CustomerController {
     }
   }
 
-  static async addRatingReview(
+  async addRatingReview(
     req: UserRequest,
     res: Response,
     next: NextFunction
@@ -50,7 +53,7 @@ export class CustomerController {
         throw new ResponseError(400, "Invalid rating value");
       }
 
-      const response = await CustomerService.addRatingReview(
+      const response = await this.customerService.addRatingReview(
         { rating, review, tailorId, customerId },
         req.file
       );
@@ -63,7 +66,7 @@ export class CustomerController {
     }
   }
 
-  static async getHomeData(req: Request, res: Response, next: NextFunction) {
+  async getHomeData(req: Request, res: Response, next: NextFunction) {
     try {
       const userReq = req as UserRequest;
       const userId = userReq.user?.id;
@@ -71,19 +74,21 @@ export class CustomerController {
         throw new ResponseError(400, "user id null");
       }
 
-      const result = await CustomerService.getHomeData(userId);
-      return res.json({ data: result });
+      const result = await this.customerService.getHomeData(userId);
+      res.status(200).json({
+        data: result,
+      });
     } catch (e) {
       next(e);
     }
   }
 
-  static async getTailors(req: Request, res: Response, next: NextFunction) {
+  async getTailors(req: Request, res: Response, next: NextFunction) {
     try {
       const { page = "1" } = req.query;
       const currentPage = parseInt(page as string, 10) || 1;
 
-      const response = await CustomerService.getTailors(currentPage);
+      const response = await this.customerService.getTailors(currentPage);
 
       res.status(200).json({
         data: response,
@@ -93,7 +98,7 @@ export class CustomerController {
     }
   }
 
-  static async getFilteredTailors(
+  async getFilteredTailors(
     req: Request,
     res: Response,
     next: NextFunction
@@ -116,7 +121,7 @@ export class CustomerController {
       const currentPage = parseInt(page as string, 10) || 1;
       const pageSize = 8;
 
-      const result = await CustomerService.getFilteredTailors({
+      const result = await this.customerService.getFilteredTailors({
         page: currentPage,
         pageSize,
         search: name as string,
@@ -139,7 +144,7 @@ export class CustomerController {
     }
   }
 
-  static async getTailorDetail(
+  async getTailorDetail(
     req: Request,
     res: Response,
     next: NextFunction
@@ -147,7 +152,7 @@ export class CustomerController {
     try {
       const { id } = req.params;
 
-      const response = await CustomerService.getTailorById(id);
+      const response = await this.customerService.getTailorById(id);
 
       res.status(200).json({
         data: response,
@@ -157,7 +162,7 @@ export class CustomerController {
     }
   }
 
-  static async updateCustomerProfile(
+  async updateCustomerProfile(
     req: Request,
     res: Response,
     next: NextFunction
@@ -176,7 +181,7 @@ export class CustomerController {
         profilePicture = await uploadFileToSupabase(imageFile, userReq.user?.email ?? "email");
       }
 
-      const updatedUser = await CustomerService.updateCustomerProfile(userId, {
+      const updatedUser = await this.customerService.updateCustomerProfile(userId, {
         firstname,
         lastname,
         email,
@@ -193,12 +198,12 @@ export class CustomerController {
     }
   }
 
-  static async registerV2(req: Request, res: Response, next: NextFunction) {
+  async registerV2(req: Request, res: Response, next: NextFunction) {
     try {
       const request: CreateCustomerRequest = req.body as CreateCustomerRequest;
       const profilePicture = req.file
       console.log("registerv2", request)
-      const response = await CustomerService.registerCustomerV2(request, profilePicture);
+      const response = await this.customerService.registerCustomerV2(request, profilePicture);
       res.status(200).json({
         data: response,
       });
@@ -215,7 +220,8 @@ export const getHome: RequestHandler = async (req, res, next) => {
     if (!userId) {
       return next();
     }
-    const result = await CustomerService.getHomeData(userId);
+    const customerService = new CustomerService()
+    const result = await customerService.getHomeData(userId);
     res.json({ data: result });
     return
   } catch (error) {

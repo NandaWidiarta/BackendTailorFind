@@ -1,6 +1,6 @@
-import { OrderStatus, OrderType, Role } from "@prisma/client";
+import { Chat, OrderStatus, OrderType, Role } from "@prisma/client";
 import { prismaClient } from "../application/database";
-import { CancelOrderRequest, CompleteOrderRequest, CreateOrderRequest } from "../model/order-model";
+import { CancelOrderRequest, CompleteOrderRequest, CreateOrderRequest, mapOrderToOrderDetailResponse, orderDetailInclude, OrderDetailResponse, OrderWithRelations } from "../model/order-model";
 import { supabase } from "../supabase-client";
 import { ResponseError } from "../error/response-error";
 import { ChatService } from "./chat-service";
@@ -8,173 +8,101 @@ import { ChatType } from "../constants/chat-type";
 import { snap } from "../instance/midtrans-client";
 import { ADMIN_FEE, ADMIN_FEE_NAME } from "../constants/constant";
 import { v4 as uuid } from "uuid";
+import e from "express";
 
 export class OrderService {
-  static async createOrder(request: CreateOrderRequest) {
+  async createOrder(request: CreateOrderRequest): Promise<{ order: OrderDetailResponse; chat: any }> {
+    const chatService = new ChatService();
+  
     const newOrder = await prismaClient.order.create({
       data: {
-        ...request,
+        tailorId: request.tailorId,
+        customerId: request.customerId,
+        roomId: request.roomId,
+        orderType: request.orderType,
+        totalPrice: request.totalPrice,
+        status: OrderStatus.NOT_YET_PAY,
         orderItems: {
           create: request.orderItems,
         },
+        orderShipping: request.orderType === OrderType.DELIVERY ? {
+          create: {
+            deliveryAddress: request.deliveryAddress || null,
+            deliveryServiceName: request.deliveryServiceName || null,
+            receiptNumber: request.receiptNumber || null,
+            deliveryImage: null,
+          },
+        } : undefined,
       },
-      include: {
-        orderItems: true,
-      },
-    });
-
-    const orderId = newOrder.id;
-
-    const chat = await ChatService.sendMessage(
+      include: orderDetailInclude,
+    }) as unknown as OrderWithRelations;
+  
+    const chat = await chatService.sendMessage(
       request.roomId,
       Role.TAILOR,
-      orderId,
+      newOrder.id,
       ChatType.ORDER
     );
-
+  
+    const response = mapOrderToOrderDetailResponse(newOrder);
     return {
-      order: newOrder,
-      chat: chat,
+      order: response,
+      chat,
     };
   }
 
-  // static async uploadProofOfPayment(
-  //   image: Express.Multer.File,
-  //   orderId: string,
-  //   customerPaymentBankName: string,
-  //   customerAccountName: string,
-  //   customerAccount: string
-  // ) {
-  //   if (!image) {
-  //     throw new ResponseError(400, "no-image-uploadef")
-  //   }
-
-  //   let imageUrl: string | null = null
-  //   const fileName = `${orderId}-${Date.now()}`
-
-  //   const { data, error } = await supabase.storage
-  //     .from("paymentProof") 
-  //     .upload(fileName, image.buffer, {
-  //       contentType: image.mimetype,
-  //     })
-
-  //   if (error) {
-  //     throw new ResponseError(500, "failed-upload-payment-proof-to-database");
-  //   }
-
-  //   imageUrl = data?.path
-  //     ? supabase.storage.from("paymentProof").getPublicUrl(data.path).data
-  //         ?.publicUrl || null
-  //     : null
-
-  //   if (!imageUrl) {
-  //     throw new ResponseError(500, "failed-to-generate-image-url")
-  //   }
-
-  //   const updatedOrder = await prismaClient.order.update({
-  //     where: { id: orderId },
-  //     data: { 
-  //       paymentImage: imageUrl, 
-  //       customerPaymentBankName: customerPaymentBankName,
-  //       customerAccountName: customerAccountName,
-  //       customerAccount: customerAccount,
-  //       status: OrderStatus.WAITING_ADMIN_PAYMENT_VERIFICATION
-  //      },
-  //     select: { id: true, paymentImage: true }, 
-  //   })
-
-  //   if (!updatedOrder) {
-  //     throw new ResponseError(400, "order-not-found")
-  //   }
-
-  //   return updatedOrder
-  // }
-
-
-  static async getOrderDetail(orderId: string) {
+  async getOrderDetail(orderId: string): Promise<OrderDetailResponse> {
     const order = await prismaClient.order.findUnique({
-      where: {
-        id: orderId,
-      },
-      include: {
-        orderItems: true,
-        customer: {
-          select: {
-            firstname: true,
-            lastname: true,
-            profilePicture: true
-          }
-        },
-        tailor: {
-          select: {
-            firstname: true,
-            lastname: true,
-            profilePicture: true
-          }
-        }
-      }
-    })
+      where: { id: orderId },
+      include: orderDetailInclude,
+    }) as unknown as OrderWithRelations; 
   
     if (!order) {
-      throw new ResponseError(400, "order-not-found")
+      throw new ResponseError(404, "order-not-found");
     }
   
-    return order
+    const response = mapOrderToOrderDetailResponse(order);
+  
+    return response;
   }
 
-  static async getAllOrderByCustomer(userId: string) {
+  async getAllOrderByCustomer(userId: string): Promise< OrderDetailResponse[]> {
     const orders = await prismaClient.order.findMany({
-      where: {
-        customerId: userId,
-      },
-      include: {
-        orderItems: true,
-        tailor: {
-          select: {
-            firstname: true,
-            lastname: true,
-          }
-        }
-      }
-    })
+      where: { customerId: userId },
+      include: orderDetailInclude
+    })as unknown as OrderWithRelations[];
   
-    return orders
+    return  orders.map(mapOrderToOrderDetailResponse) ;
   }
   
-  static async getAllOrderByTailor(userId: string) {
+  async getAllOrderByTailor(userId: string): Promise< OrderDetailResponse[] > {
     const orders = await prismaClient.order.findMany({
-      where: {
-        tailorId: userId,
-      },
-      include: {
-        orderItems: true,
-        customer: {
-          select: {
-            firstname: true,
-            lastname: true,
-          }
-        }
-      }
-    })
-    return orders
+      where: { tailorId: userId },
+      include: orderDetailInclude
+    })as unknown as OrderWithRelations[];
+  
+    return orders.map(mapOrderToOrderDetailResponse);
+  }
+  
+  async getAllOrderByAdmin(): Promise<OrderDetailResponse[]> {
+    const orders = await prismaClient.order.findMany({
+      include: orderDetailInclude
+    })as unknown as OrderWithRelations[];
+  
+    return orders.map(mapOrderToOrderDetailResponse) ;
   }
 
-  static async getAllOrderByAdmin() {
-    const orders = await prismaClient.order.findMany({
-      include: {
-        tailor: {
-          select: {
-            firstname: true,
-            lastname: true,
-          }
-        }
-      }
-    })
-    return orders
-  }
-
-  static async completeOrderByTailor(request: CompleteOrderRequest, packetImage ?: Express.Multer.File) {
-
+  async completeOrderByTailor(request: CompleteOrderRequest, packetImage?: Express.Multer.File): Promise<OrderDetailResponse> {
+    const chatService = new ChatService();
+  
+    const order = await prismaClient.order.findUnique({
+      where: { id: request.orderId }
+    });
+  
+    if (!order) {
+      throw new ResponseError(400, "order-not-found");
+    }
+  
     let imageUrl: string | null = null;
     if (packetImage) {
       const fileName = `${request.orderId}-${Date.now()}`;
@@ -183,427 +111,356 @@ export class OrderService {
         .upload(fileName, packetImage.buffer, {
           contentType: packetImage.mimetype,
         });
-
+  
       if (error) {
         throw new ResponseError(500, "failed-upload-packet-image-to-database");
       }
-
+  
       imageUrl = data?.path
-        ? supabase.storage.from("packetImage").getPublicUrl(data.path).data
-            ?.publicUrl || null
+        ? supabase.storage.from("packetImage").getPublicUrl(data.path).data?.publicUrl || null
         : null;
     }
-
-    const order = await prismaClient.order.findUnique({
-      where: {
-        id: request.orderId
-      },
-      include: {
-        orderItems: true, 
-      }
-    })
-
-    if (!order) {
-      throw new ResponseError(400, "order-not-found")
-    }
-
+  
     const updatedOrder = await prismaClient.order.update({
       where: { id: request.orderId },
       data: {
-        status: order.orderType == OrderType.DELIVERY ? OrderStatus.TAILOR_SENT_PRODUCT : OrderStatus.WAITING_CUSTOMER_RECEIVE_CONFIRMATION,
-        deliveryServiceName: request.deliveryServiceName,
-        receiptNumber: request.receiptNumber,
-        deliveryImage: imageUrl
+        status: order.orderType === OrderType.DELIVERY
+          ? OrderStatus.TAILOR_SENT_PRODUCT
+          : OrderStatus.WAITING_CUSTOMER_RECEIVE_CONFIRMATION,
+        updatedAt: new Date(),
       },
-      include: {
-        orderItems: true,
-      },
-    })
-
-    await ChatService.sendMessage(
-      order.roomId,
+      include: orderDetailInclude,
+    }) as unknown as OrderWithRelations;
+  
+    const existingShipping = await prismaClient.orderShipping.findUnique({
+      where: { orderId: request.orderId }
+    });
+  
+    if (existingShipping) {
+      await prismaClient.orderShipping.update({
+        where: { orderId: request.orderId },
+        data: {
+          deliveryServiceName: request.deliveryServiceName,
+          receiptNumber: request.receiptNumber,
+          deliveryImage: imageUrl,
+        },
+      });
+    } else {
+      await prismaClient.orderShipping.create({
+        data: {
+          orderId: request.orderId,
+          deliveryServiceName: request.deliveryServiceName,
+          receiptNumber: request.receiptNumber,
+          deliveryImage: imageUrl,
+        },
+      });
+    }
+  
+    const roomId = await createRoomIfNeeded(updatedOrder)
+  
+    await chatService.sendMessage(
+      roomId,
       Role.TAILOR,
-      order.id,
-      order.orderType == OrderType.DELIVERY ? ChatType.ORDER_DELIVERED  : ChatType.ORDER_COMPLETED_BY_TAILOR
+      updatedOrder.id,
+      updatedOrder.orderType === OrderType.DELIVERY
+        ? ChatType.ORDER_DELIVERED
+        : ChatType.ORDER_COMPLETED_BY_TAILOR
     );
-
-    return updatedOrder
+  
+    const finalOrder = await prismaClient.order.findUnique({
+      where: { id: request.orderId },
+      include: orderDetailInclude,
+    }) as unknown as OrderWithRelations;
+  
+    return mapOrderToOrderDetailResponse(finalOrder);
   }
 
-  static async processOrder(orderId: string) {
+  async processOrder(orderId: string): Promise< OrderDetailResponse > {
     const order = await prismaClient.order.findUnique({
-      where: {
-        id: orderId
-      },
-      include: {
-        orderItems: true
-      }
-    })
-
+      where: { id: orderId },
+      include: orderDetailInclude,
+    });
+  
     if (!order) {
-      throw new ResponseError(400, "order-not-found")
+      throw new ResponseError(400, "order-not-found");
     }
-
+  
     const updatedOrder = await prismaClient.order.update({
       where: { id: orderId },
-      data: {
-        status: OrderStatus.ON_PROCCESS,
-      },
-      include: {
-        orderItems: true,
-      },
-    })
-
+      data: { status: OrderStatus.ON_PROCCESS },
+      include: orderDetailInclude,
+    }) as unknown as OrderWithRelations;
+  
     const admin = await prismaClient.user.findFirst({
       where: { role: Role.ADMIN },
-      select: { id: true } 
-    })
-
+      select: { id: true },
+    });
+  
     if (!admin) {
-      throw new ResponseError(500, "Terjadi Kesalahan")
+      throw new ResponseError(500, "admin-not-found");
     }
-
+  
     await prismaClient.user.update({
       where: { id: admin.id },
-      data: {
-        walletBalance: { increment: order.totalPrice }
-      }
-    })
-
-    await ChatService.sendMessage(
-      order.roomId,
+      data: { walletBalance: { increment: updatedOrder.totalPrice } },
+    });
+  
+    const chatService = new ChatService();
+    const roomId = await createRoomIfNeeded(updatedOrder);
+  
+    await chatService.sendMessage(
+      roomId,
       Role.ADMIN,
-      order.id,
-      ChatType.PAYMENT_CUSTOMER_CONFIRMED 
+      updatedOrder.id,
+      ChatType.PAYMENT_CUSTOMER_CONFIRMED
     );
-
-    return updatedOrder
+  
+    return mapOrderToOrderDetailResponse(updatedOrder);
   }
 
-  static async cancelOrder(request: CancelOrderRequest) {
+  async cancelOrder(request: CancelOrderRequest): Promise<{ order: OrderDetailResponse; chat: any }> {
     const order = await prismaClient.order.findUnique({
       where: { id: request.orderId },
+      include: orderDetailInclude,
     });
-    
+  
     if (!order) {
-      throw new ResponseError(400, "order-not-found")
+      throw new ResponseError(400, "order-not-found");
     }
-    
+  
     if (
-      (request.userRole === Role.CUSTOMER && order.customerId !== request.userId) || 
+      (request.userRole === Role.CUSTOMER && order.customerId !== request.userId) ||
       (request.userRole === Role.TAILOR && order.tailorId !== request.userId)
     ) {
-      throw new ResponseError(400, "user-not-same")
+      throw new ResponseError(400, "user-not-same");
     }
-    
-    if (order.status == OrderStatus.DONE) {
-      throw new ResponseError(400, "order-cannot-cancel")
+  
+    if (order.status === OrderStatus.DONE) {
+      throw new ResponseError(400, "order-cannot-cancel");
     }
-    
-    const orderStatusTemp = order.status
-
+  
+    const newStatus =
+      order.status === OrderStatus.NOT_YET_PAY
+        ? OrderStatus.CANCELED
+        : OrderStatus.ADMIN_REVIEWING_CANCELLATION;
+  
     const updatedOrder = await prismaClient.order.update({
       where: { id: request.orderId },
       data: {
-        status: order.status == OrderStatus.NOT_YET_PAY ? OrderStatus.CANCELED : OrderStatus.ADMIN_REVIEWING_CANCELLATION,
-        cancellationReason: request.cancellationReason,
-        cancelledAt: new Date(),
-        cancellationRequestImage: request.cancellationImage,
-        previousStatus: orderStatusTemp
+        status: newStatus,
+        updatedAt: new Date(),
       },
-      include: {
-        orderItems: true,
-      },
+      include: orderDetailInclude,
+    })as unknown as OrderWithRelations;
+  
+    const existingCancellation = await prismaClient.orderCancellation.findUnique({
+      where: { orderId: request.orderId },
     });
-    
-    // const cancellationMessage = `Order #${request.orderId} telah dibatalkan oleh ${request.userRole === Role.CUSTOMER ? 'customer' : 'tailor'} dengan alasan: ${request.cancellationReason}`;
-    
-    const chat = await prismaClient.chat.create({
-      data: {
-        roomId: order.roomId,
-        senderType: request.userRole,
-        message: order.id,
-        type: ChatType.REQUEST_CANCEL_ORDER,
-      },
-    });
-    
-    await prismaClient.roomChat.update({
-      where: { id: order.roomId },
-      data: {
-        latestMessage: ChatType.REQUEST_CANCEL_ORDER,
-        latestMessageTime: new Date(),
-        unreadCountCustomer: request.userRole === Role.TAILOR
-          ? { increment: 1 } 
-          : undefined,
-        unreadCountTailor: request.userRole === Role.CUSTOMER
-          ? { increment: 1 }  
-          : undefined,
-      }
-    });
-    
+  
+    if (existingCancellation) {
+      await prismaClient.orderCancellation.update({
+        where: { orderId: request.orderId },
+        data: {
+          cancellationReason: request.cancellationReason,
+          cancellationRequestImage: request.cancellationImage,
+          previousStatus: order.orderCancellation?.previousStatus ?? order.status, 
+        },
+      });
+    } else {
+      await prismaClient.orderCancellation.create({
+        data: {
+          orderId: request.orderId,
+          cancellationReason: request.cancellationReason,
+          cancellationRequestImage: request.cancellationImage,
+          previousStatus: order.status,
+        },
+      });
+    }
+  
+    const chatService = new ChatService();
+    const roomId = await createRoomIfNeeded(updatedOrder);
+  
+    const chat = await chatService.sendMessage(
+      roomId,
+      request.userRole,
+      updatedOrder.id,
+      ChatType.REQUEST_CANCEL_ORDER
+    );
+  
     return {
-      order: updatedOrder,
-      chat: chat,
+      order: mapOrderToOrderDetailResponse(updatedOrder),
+      chat,
     };
   }
 
-  static async customerCompleteOrder(orderId: string) {
+  async customerCompleteOrder(orderId: string): Promise< OrderDetailResponse > {
     const order = await prismaClient.order.findUnique({
-      where: {
-        id: orderId
-      },
-      include: {
-        orderItems: true
-      }
-    })
-
+      where: { id: orderId },
+      include: orderDetailInclude,
+    }) as unknown as OrderWithRelations;
+  
     if (!order) {
-      throw new ResponseError(400, "order-not-found")
+      throw new ResponseError(400, "order-not-found");
     }
-
+  
     const updatedOrder = await prismaClient.order.update({
       where: { id: orderId },
       data: {
         status: OrderStatus.DONE,
+        updatedAt: new Date(),
       },
-      include: {
-        orderItems: true,
-      },
-    })
-
+      include: orderDetailInclude,
+    }) as unknown as OrderWithRelations;
+  
     const admin = await prismaClient.user.findFirst({
       where: { role: Role.ADMIN },
-      select: { id: true } 
-    })
-
+      select: { id: true }
+    });
+  
     if (!admin) {
-      throw new ResponseError(500, "Terjadi Kesalahan")
+      throw new ResponseError(500, "admin-not-found");
     }
-
+  
     await prismaClient.user.update({
       where: { id: admin.id },
       data: {
         walletBalance: { decrement: order.totalPrice - ADMIN_FEE }
       }
-    })
-
+    });
+  
     await prismaClient.user.update({
       where: { id: order.tailorId },
       data: {
         walletBalance: { increment: order.totalPrice - ADMIN_FEE }
       }
-    })
-
-    await ChatService.sendMessage(
-      order.roomId,
+    });
+  
+    const chatService = new ChatService();
+    const roomId = await createRoomIfNeeded(updatedOrder);
+  
+    await chatService.sendMessage(
+      roomId,
       Role.CUSTOMER,
-      order.id,
-      ChatType.CUSTOMER_RECEIVED 
+      updatedOrder.id,
+      ChatType.CUSTOMER_RECEIVED
     );
-
-    return updatedOrder
+  
+    return  mapOrderToOrderDetailResponse(updatedOrder);
   }
 
-
-  //ADMIN ROLE
-  // static async confirmPaymentByAdmin(orderId: string) {
-  //   const order = await prismaClient.order.findUnique({ where: { id: orderId } });
-  
-  //   if (!order) throw new ResponseError(404, "order-not-found");
-  //   if (order.status !== OrderStatus.WAITING_ADMIN_PAYMENT_VERIFICATION) {
-  //     throw new ResponseError(400, "payment-already-confirmed");
-  //   }
-  
-  //   const updatedOrder = await prismaClient.order.update({
-  //     where: { id: orderId },
-  //     data: { status: OrderStatus.ON_PROCCESS },
-  //   });
-
-  //   await ChatService.sendMessage(
-  //     order.roomId,
-  //     "admin-system",
-  //     Role.ADMIN,
-  //     // `✅ Pembayaran untuk Order #${order.id} telah dikonfirmasi oleh Admin.`,
-  //     order.id,
-  //     ChatType.PAYMENT_CUSTOMER_CONFIRMED 
-  //   );
-    
-  //   return updatedOrder;
-  // }
-
-  // static async uploadProofOfPaymentToTailor(
-  //   image: Express.Multer.File,
-  //   orderId: string,
-  // ) {
-  //   if (!image) {
-  //     throw new ResponseError(400, "no-image-uploaded")
-  //   }
-
-  //   const order = await prismaClient.order.findUnique({
-  //     where: { id: orderId },
-  //   });
-
-  //   if (!order) {
-  //     throw new ResponseError(400, "order-not-found")
-  //   }
-
-  //   let imageUrl: string | null = null
-  //   const fileName = `${orderId}-${Date.now()}`
-
-  //   const { data, error } = await supabase.storage
-  //     .from("paymentProof") 
-  //     .upload(fileName, image.buffer, {
-  //       contentType: image.mimetype,
-  //     })
-
-  //   if (error) {
-  //     throw new ResponseError(500, "failed-upload-payment-proof-to-database");
-  //   }
-
-  //   imageUrl = data?.path
-  //     ? supabase.storage.from("paymentProof").getPublicUrl(data.path).data
-  //         ?.publicUrl || null
-  //     : null
-
-  //   if (!imageUrl) {
-  //     throw new ResponseError(500, "failed-to-generate-image-url")
-  //   }
-
-  //   const updatedOrder = await prismaClient.order.update({
-  //     where: { id: orderId },
-  //     data: { 
-  //       paymentToTailorImage: imageUrl, 
-  //       status: OrderStatus.DONE
-  //      }
-  //   })
-
-  //   if (!updatedOrder) {
-  //     throw new ResponseError(400, "order-not-found")
-  //   }
-
-  //   await ChatService.sendMessage(
-  //     order.roomId,
-  //     "admin",
-  //     Role.ADMIN,
-  //     order.id,
-  //     ChatType.PAYMENT_TO_TAILOR_SUCCESS
-  //   );
-
-  //   return updatedOrder
-  // }
-
-  static async approveCancelation(
-    orderId: string,
-    adminId: string
-  ) {
-
+  async approveCancelation(orderId: string, adminId: string): Promise<OrderDetailResponse> {
     const order = await prismaClient.order.findUnique({
       where: { id: orderId },
+      include: {
+        orderItems: true,
+        customer: { select: { firstname: true, lastname: true, profilePicture: true } },
+        tailor: { select: { firstname: true, lastname: true, profilePicture: true } },
+        orderShipping: true,
+        orderCancellation: true,
+      },
     });
-
+  
     if (!order) {
-      throw new ResponseError(400, "Order Tidak Ditemukan")
+      throw new ResponseError(400, "order-not-found");
     }
-
+  
     const updatedOrder = await prismaClient.order.update({
       where: { id: orderId },
-      data: { 
-        status: OrderStatus.CANCELED,
-        isCancellationApproved: true
-       }
-    })
-
-    if (!updatedOrder) {
-      throw new ResponseError(400, "Order Tidak Ditemukan")
-    }
-
-    await prismaClient.user.update({
-      where: { id: order.customerId },
       data: {
-        walletBalance: { increment: order.totalPrice }
-      }
-    })
-
+        status: OrderStatus.CANCELED,
+        updatedAt: new Date(),
+      },
+      include: orderDetailInclude,
+    }) as unknown as OrderWithRelations
+  
+    await prismaClient.orderCancellation.update({
+      where: { orderId: orderId },
+      data: { isCancellationApproved: true, cancelledAt: new Date() },
+    });
+  
+    await prismaClient.user.update({
+      where: { id: updatedOrder.customerId },
+      data: {
+        walletBalance: { increment: updatedOrder.totalPrice },
+      },
+    });
+  
     await prismaClient.user.update({
       where: { id: adminId },
       data: {
-        walletBalance: { decrement: order.totalPrice - ADMIN_FEE }
-      }
-    })
-
-    await ChatService.sendMessage(
-      order.roomId,
+        walletBalance: { decrement: updatedOrder.totalPrice - ADMIN_FEE },
+      },
+    });
+  
+    const chatService = new ChatService();
+    const roomId = await createRoomIfNeeded(updatedOrder);
+  
+    await chatService.sendMessage(
+      roomId,
       Role.CUSTOMER,
-      order.id,
+      updatedOrder.id,
       ChatType.ORDER_CANCELED
     );
-
-    return updatedOrder
+  
+    const result = mapOrderToOrderDetailResponse(updatedOrder);
+    return result;
   }
 
-  static async rejectCancellationByAdmin(orderId: string, rejectReason: string) {
-    const order = await prismaClient.order.findUnique({ where: { id: orderId } });
+  async rejectCancellationByAdmin(orderId: string, rejectReason: string): Promise<OrderDetailResponse> {
+    const order = await prismaClient.order.findUnique({
+      where: { id: orderId },
+      include: orderDetailInclude,
+    });
   
     if (!order) throw new ResponseError(404, "order-not-found");
+  
+    if (!order.orderCancellation) {
+      throw new ResponseError(400, "order-cancellation-not-found");
+    }
   
     if (order.status !== OrderStatus.ADMIN_REVIEWING_CANCELLATION) {
       throw new ResponseError(400, "order-is-not-in-review-status");
     }
   
-    if (!order.previousStatus) {
+    if (!order.orderCancellation.previousStatus) {
       throw new ResponseError(400, "cannot-revert-without-previous-status");
     }
   
+    // Update status Order
     const updatedOrder = await prismaClient.order.update({
       where: { id: orderId },
       data: {
-        status: order.previousStatus,
-        previousStatus: null,
+        status: order.orderCancellation.previousStatus,
+        updatedAt: new Date(),
+      },
+      include: orderDetailInclude,
+    }) as unknown as OrderWithRelations;
+  
+    await prismaClient.orderCancellation.update({
+      where: { orderId },
+      data: {
         isCancellationApproved: false,
+        previousStatus: null, 
         cancellationRejectedReason: rejectReason,
       },
     });
   
-    // (opsional) kirim chat ke customer
-    await ChatService.sendMessage(
-      order.roomId,
+    const chatService = new ChatService();
+    const roomId = await createRoomIfNeeded(updatedOrder);
+  
+    await chatService.sendMessage(
+      roomId,
       Role.ADMIN,
-      order.id,
+      updatedOrder.id,
       ChatType.CANCELATION_REQUEST_REJECTED
     );
   
-    return updatedOrder;
+    return mapOrderToOrderDetailResponse(updatedOrder);
   }
+  
 
-  // static async rejectPaymentProofByAdmin(orderId: string, rejectReason: string) {
-  //   const order = await prismaClient.order.findUnique({ where: { id: orderId } });
-  
-  //   if (!order) throw new ResponseError(404, "order-not-found");
-  
-  //   if (order.status !== OrderStatus.WAITING_ADMIN_PAYMENT_VERIFICATION) {
-  //     throw new ResponseError(400, "order-is-not-in-review-status");
-  //   }
-  
-  //   const updatedOrder = await prismaClient.order.update({
-  //     where: { id: orderId },
-  //     data: {
-  //       status: OrderStatus.PAYMENT_REJECTED,
-  //       cancellationReason: rejectReason,
-  //     },
-  //   });
 
-  //   await ChatService.sendMessage(
-  //     order.roomId,
-  //     "admin",
-  //     Role.ADMIN,
-  //     order.id,
-  //     ChatType.PAYMENT_CUSTOMER_REJECTED
-  //   );
-  
-  //   return updatedOrder;
-  // }
-
-  static async createMidtransSnapToken(orderId: string) {
+  async createMidtransSnapToken(orderId: string) {
     const order = await prismaClient.order.findUnique({
       where: { id: orderId },
       include: {
@@ -611,18 +468,18 @@ export class OrderService {
         customer: true
       }
     })
-  
+
     if (!order) throw new Error('Order not found')
-  
+
     const adminFee = ADMIN_FEE
-  
+
     const items = order.orderItems.map((item) => ({
       id: item.id,
       name: item.name,
       quantity: item.qty,
       price: item.price
     }))
-  
+
     // Tambahkan item untuk admin fee
     items.push({
       id: 'ADMIN_FEE',
@@ -630,13 +487,13 @@ export class OrderService {
       quantity: 1,
       price: adminFee
     })
-  
+
     const grossAmount = items.reduce((total, item) => {
       return total + item.price * item.quantity
     }, 0)
 
     const uniqueOrderId = `${order.id}${uuid().slice(0, 3)}`;
-  
+
     const parameter = {
       transaction_details: {
         order_id: uniqueOrderId,
@@ -649,13 +506,25 @@ export class OrderService {
         phone: order.customer.phoneNumber
       }
     }
-  
+
     const transaction = await snap.createTransaction(parameter)
     return transaction.token
   }
-  
+}
 
+async function createRoomIfNeeded(order: { id: string, roomId: string | null, customerId: string, tailorId: string }) {
+  const chatService = new ChatService();
 
+  if (!order.roomId) {
+    const room = await chatService.createOrGetRoom(order.customerId, order.tailorId);
 
+    await prismaClient.order.update({
+      where: { id: order.id },
+      data: { roomId: room.id },
+    });
 
+    return room.id;
+  }
+
+  return order.roomId;
 }

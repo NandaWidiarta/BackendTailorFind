@@ -7,17 +7,6 @@ import { Role } from "@prisma/client";
 
 export class GeneralController {
 
-  static async getHomeData(req: Request, res: Response, next: NextFunction) {
-    try {
-      const response = await CustomerService.getHomeData();
-      res.status(200).json({
-        data: response,
-      });
-    } catch (e) {
-      next(e);
-    }
-  }
-
   static async getUserDetail(req: Request, res: Response, next: NextFunction) {
     try {
       const userReq = req as UserRequest;

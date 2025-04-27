@@ -5,7 +5,7 @@ import { CustomerValidation } from "../validation/customer-validation";
 import { Validation } from "../validation/validation";
 import bcrypt from "bcrypt"
 import {v4 as uuid} from "uuid";
-import { ChatResponse, DistrictResponse, ProvinceResponse, RegencyResponse, VillageResponse } from "../model/general-model";
+import { DistrictResponse, ProvinceResponse, RegencyResponse, VillageResponse } from "../model/general-model";
 import { supabase, supabaseAdmin } from "../supabase-client";
 import { Role } from "@prisma/client";
 import { toTailorResponse } from "../model/tailor-model";

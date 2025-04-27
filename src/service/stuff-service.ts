@@ -2,40 +2,31 @@ import { StuffCategory } from "@prisma/client";
 import { ResponseError } from "../error/response-error";
 import { supabase } from "../supabase-client";
 import { prismaClient } from "../application/database";
+import { StuffResponse } from "../model/stuff-model";
 
 export class StuffService {
-  static async addStuff(
+  async addStuff(
     tailorId: string,
     name: string,
     price: number,
     stuffCaetgory: StuffCategory,
     image: Express.Multer.File
-  ) {
-    if (!image) {
-      throw new ResponseError(500, "image-not-found");
-    }
+  ): Promise<StuffResponse> {
+    if (!image) throw new ResponseError(500, "Gambar tidak ditemukan");
 
     const fileName = `${tailorId}-${Date.now()}`;
 
-    const { data, error } = await supabase.storage
-      .from("stuffImages")
-      .upload(fileName, image.buffer, {
-        contentType: image.mimetype,
-      });
+    const { data, error } = await supabase.storage.from("stuffImages").upload(fileName, image.buffer, {
+      contentType: image.mimetype
+    });
 
-    if (error) {
-      throw new ResponseError(500, "failed-upload-image-to-database");
-    }
+    if (error) throw new ResponseError(500, "Gagal mengupload gambar ke database");
 
     const imageUrl = data?.path
-      ? supabase.storage.from("stuffImages").getPublicUrl(data.path).data
-          ?.publicUrl || null
+      ? supabase.storage.from("stuffImages").getPublicUrl(data.path).data?.publicUrl || null
       : null;
 
-    if (!imageUrl) {
-      throw new ResponseError(500, "failed-to-generate-image-url");
-    }
-    
+    if (!imageUrl) throw new ResponseError(500, "Gagal membuat url gambar")
 
     const newStuff = await prismaClient.stuff.create({
       data: {
@@ -43,21 +34,21 @@ export class StuffService {
         name,
         imageUrl,
         stuffCaetgory,
-        price,
-      },
+        price
+      }
     });
 
     return newStuff;
   }
 
-  static async updateStuff(
+  async updateStuff(
     stuffId: string,
     tailorId: string,
     name?: string,
     price?: number,
     stuffCaetgory?: StuffCategory,
     image?: Express.Multer.File
-  ) {
+  ) : Promise<StuffResponse> {
 
     const existingStuff = await prismaClient.stuff.findFirst({
       where: {
@@ -111,7 +102,7 @@ export class StuffService {
         });
   
       if (error) {
-        throw new ResponseError(500, "failed-upload-image-to-database");
+        throw new ResponseError(500, "Gagal mengupload gambar ke database");
       }
   
       const publicUrlResult = supabase.storage
@@ -121,7 +112,7 @@ export class StuffService {
       imageUrl = publicUrlResult.data?.publicUrl;
   
       if (!imageUrl) {
-        throw new ResponseError(500, "failed-to-generate-image-url");
+        throw new ResponseError(500, "Gagal membuat url gambar");
       }
   
       updateData.imageUrl = imageUrl;
@@ -137,12 +128,12 @@ export class StuffService {
   
       return updatedStuff;
     } catch (error) {
-      throw new ResponseError(500, "failed-to-update-stuff");
+      throw new ResponseError(500, "Gagal update stuff");
     }
   
   }
 
-  private static extractImagePathFromUrl(url: string): string | null {
+  private extractImagePathFromUrl(url: string): string | null {
     try {
       const urlParts = url.split('/');
       const bucketIndex = urlParts.findIndex(part => part === 'stuffImages');
@@ -157,7 +148,7 @@ export class StuffService {
     }
   }
 
-  static async deleteStuff(stuffId: string, tailorId: string) {
+  async deleteStuff(stuffId: string, tailorId: string) {
     const existingStuff = await prismaClient.stuff.findFirst({
       where: {
         id: stuffId,
@@ -166,7 +157,7 @@ export class StuffService {
     });
 
     if (!existingStuff) {
-      throw new ResponseError(404, 'stuff-not-found');
+      throw new ResponseError(400, 'Stuff Tidak Ditemukan');
     }
 
     await prismaClient.stuff.delete({

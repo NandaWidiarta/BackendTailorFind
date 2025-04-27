@@ -3,76 +3,73 @@ import { ChatService } from "../service/chat-service";
 import { v4 as uuid } from "uuid";
 import { supabase } from "../supabase-client";
 import { Role } from "@prisma/client";
+import { UserRequest } from "../type/user-request";
+import { ResponseError } from "../error/response-error";
 
 
-export class RoomChatController {
-  static async createOrGetRoom(req: Request, res: Response) {
+export class RoomChatController  {
+  constructor ( private readonly chatService: ChatService ) {}
+  async createOrGetRoom(req: Request, res: Response) {
     try {
       const { customerId, tailorId } = req.body
-      const room = await ChatService.createOrGetRoom(customerId, tailorId)
+      const room = await this.chatService.createOrGetRoom(customerId, tailorId)
       res.json(room)
     } catch (e) {
-        res.status(500).json({ error: getErrorMessage(e) })
-    }
-  }
-
-  // Ambil daftar room milik customer
-  static async getRoomsByCustomer(req: Request, res: Response) {
-    try {
-        console.log("masuk controller try")
-      const customerId = req.params.customerId
-      const rooms = await ChatService.getRoomsByCustomer(customerId)
-      res.json(rooms)
-    } catch (e) {
-        console.log("masuk controller catch")
       res.status(500).json({ error: getErrorMessage(e) })
     }
   }
 
-  // Ambil daftar room milik tailor
-  static async getRoomsByTailor(req: Request, res: Response) {
+  async getAllRoom(req: Request, res: Response) {
     try {
-      const tailorId = req.params.tailorId
-      const rooms = await ChatService.getRoomsByTailor(tailorId)
-      res.json(rooms)
+      const userReq = req as UserRequest;
+      const userId = userReq.user?.id;
+      const userRole = userReq.user?.role;
+
+      if (userId && userRole) {
+        const rooms = await this.chatService.getRooms(userId, userRole)
+        res.json(rooms)
+      } else {
+        throw new ResponseError(400, "User tidak valid");
+      }
+      
     } catch (e) {
       res.status(500).json({ error: getErrorMessage(e) })
     }
   }
 
   // Ambil semua chat di room
-  static async getChatsInRoomByTailor(req: Request, res: Response) {
+  async getChatsInRoomByTailor(req: Request, res: Response) {
     try {
       const roomId = req.params.roomId
-      const chats = await ChatService.getChatsInRoom(roomId, Role.TAILOR)
+      const chats = await this.chatService.getChatsInRoom(roomId, Role.TAILOR)
       res.json(chats)
     } catch (e) {
       res.status(500).json({ error: getErrorMessage(e) })
     }
   }
 
-  static async getChatsInRoomByCustomer(req: Request, res: Response) {
+  async getChatsInRoomByCustomer(req: Request, res: Response) {
     try {
       const roomId = req.params.roomId
-      const chats = await ChatService.getChatsInRoom(roomId, Role.CUSTOMER)
+      const chats = await this.chatService.getChatsInRoom(roomId, Role.CUSTOMER)
       res.json(chats)
     } catch (e) {
       res.status(500).json({ error: getErrorMessage(e) })
     }
   }
 
-  static async sendMessage(req: Request, res: Response) {
+  async sendMessage(req: Request, res: Response) {
     try {
       const roomId = req.params.roomId
       const { senderType, message, type } = req.body
-      const chat = await ChatService.sendMessage(roomId, senderType, message, type)
+      const chat = await this.chatService.sendMessage(roomId, senderType, message, type)
       res.json(chat)
     } catch (e) {
       res.status(500).json({ error: getErrorMessage(e) })
     }
   }
 
-  static async sendMessageV2(req: Request, res: Response, next: NextFunction) {
+  async sendMessageV2(req: Request, res: Response, next: NextFunction) {
     try {
       const roomId = req.params.roomId
       const { senderType, message, type } = req.body
@@ -94,8 +91,8 @@ export class RoomChatController {
         finalType = 'image'
       }
 
-      const chat = await ChatService.sendMessage(roomId, senderType, finalMessage, finalType)
-      
+      const chat = await this.chatService.sendMessage(roomId, senderType, finalMessage, finalType)
+
       res.status(200).json({
         data: chat,
       })
@@ -104,11 +101,11 @@ export class RoomChatController {
     }
   }
 
-  static async deleteRoomChat(req: Request, res: Response, next: NextFunction) {
+  async deleteRoomChat(req: Request, res: Response, next: NextFunction) {
     try {
-      
+
       const { roomId } = req.params
-      await ChatService.deleteRoomChat(roomId);
+      await this.chatService.deleteRoomChat(roomId);
 
       res.status(200).json({
         data: "Berhasil menghapus Room Chat",
@@ -121,10 +118,10 @@ export class RoomChatController {
 }
 
 function getErrorMessage(e: unknown): string {
-    if (e instanceof Error) {
-        return e.message;
-    }
-    return 'An unknown error occurred';
+  if (e instanceof Error) {
+    return e.message;
+  }
+  return 'An unknown error occurred';
 }
 
 async function uploadFileToSupabase(
@@ -140,7 +137,7 @@ async function uploadFileToSupabase(
       .from('chat-images')
       .upload(path, file.buffer, {
         contentType: file.mimetype,
-        upsert: false, 
+        upsert: false,
       });
 
     if (error) {

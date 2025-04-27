@@ -6,10 +6,13 @@ import { UserRequest } from "../type/user-request";
 import { ResponseError } from "../error/response-error";
 
 export class TailorController {
-  static async login(req: Request, res: Response, next: NextFunction) {
+  constructor(
+    private readonly tailorService: TailorService
+  ) { }
+  async login(req: Request, res: Response, next: NextFunction) {
       try {
           const request: LoginRequest = req.body as LoginRequest
-          const response = await TailorService.login(request)
+          const response = await this.tailorService.login(request)
           res.status(200).json({
               data: response
           })
@@ -18,7 +21,7 @@ export class TailorController {
       }
   }
 
-  static async register(req: Request, res: Response, next: NextFunction) {
+  async register(req: Request, res: Response, next: NextFunction) {
     try {
       const request: CreateTailorRequest = {
         ...req.body,
@@ -35,7 +38,7 @@ export class TailorController {
 
       console.log(request.gender)
 
-      const response = await TailorService.register(
+      const response = await this.tailorService.register(
         request,
         profilePictureFile,
         certificateFiles as Express.Multer.File[] // Cast ke array file
@@ -49,7 +52,7 @@ export class TailorController {
     }
   }
 
-  static async getHomeData(req: Request, res: Response, next: NextFunction) {
+  async getHomeData(req: Request, res: Response, next: NextFunction) {
     try {
       const userReq = req as UserRequest;
       const userId = userReq.user?.id;
@@ -57,7 +60,7 @@ export class TailorController {
         throw new ResponseError(400, "user id null");
       }
 
-      const result = await TailorService.getHomeData(userId);
+      const result = await this.tailorService.getHomeData(userId);
       res.status(200).json({
         data: result,
       });
@@ -66,7 +69,7 @@ export class TailorController {
     }
   }
 
-  static async getStuff(
+  async getStuff(
     req: Request,
     res: Response,
     next: NextFunction
@@ -80,7 +83,7 @@ export class TailorController {
         throw new ResponseError(400, "user id null");
       }
       
-      const response = await TailorService.getStuff(currentPage, 8, userId)
+      const response = await this.tailorService.getStuff(currentPage, 8, userId)
     
       res.status(200).json({
         data: response,
@@ -90,7 +93,7 @@ export class TailorController {
     }
   }
 
-  static async getFilteredStuff(
+  async getFilteredStuff(
     req: Request,
     res: Response,
     next: NextFunction
@@ -107,7 +110,7 @@ export class TailorController {
         throw new ResponseError(400, "user id null");
       }
 
-      const result = await TailorService.filterStuff({
+      const result = await this.tailorService.filterStuff({
         page: currentPage,
         pageSize: 8, 
         name: name as string,
@@ -124,7 +127,7 @@ export class TailorController {
     }
   }
 
-  static async updateProfile(req: Request, res: Response, next: NextFunction) {
+  async updateProfile(req: Request, res: Response, next: NextFunction) {
     try {
 
       const userReq = req as UserRequest
@@ -173,7 +176,7 @@ export class TailorController {
       }
       if (businessDescription !== undefined) updateData.businessDescription = businessDescription;
       
-      const result = await TailorService.updateTailorProfile(
+      const result = await this.tailorService.updateTailorProfile(
         userId,
         updateData,
         req.file
@@ -187,7 +190,7 @@ export class TailorController {
     }
   }
 
-  static async addCertificate(req: Request, res: Response, next: NextFunction) {
+  async addCertificate(req: Request, res: Response, next: NextFunction) {
     try {
       const userReq = req as UserRequest
       const userId = userReq.user?.id
@@ -200,7 +203,7 @@ export class TailorController {
         ? []
         : req.files?.certificate || []
 
-      const response = await TailorService.addCertificates(
+      const response = await this.tailorService.addCertificates(
         userId,
         certificateFiles as Express.Multer.File[] 
       )
@@ -213,7 +216,7 @@ export class TailorController {
     }
   }
 
-  static async getCertificate(req: Request, res: Response, next: NextFunction) {
+  async getCertificate(req: Request, res: Response, next: NextFunction) {
     try {
       const userReq = req as UserRequest
       const userId = userReq.user?.id
@@ -222,7 +225,7 @@ export class TailorController {
         throw new ResponseError(400, "Invalid-user-information");
       }
 
-      const response = await TailorService.getCertificates(
+      const response = await this.tailorService.getCertificates(
         userId
       )
 
@@ -234,7 +237,7 @@ export class TailorController {
     }
   }
 
-  static async deleteCertificate(req: Request, res: Response, next: NextFunction) {
+  async deleteCertificate(req: Request, res: Response, next: NextFunction) {
     try {
       const userReq = req as UserRequest
       const userId = userReq.user?.id
@@ -247,7 +250,7 @@ export class TailorController {
         certificateUrl
       } = req.body;
 
-      const response = await TailorService.deleteCertificate(
+      const response = await this.tailorService.deleteCertificate(
         userId,
         certificateUrl
       )
@@ -260,7 +263,7 @@ export class TailorController {
     }
   }
 
-  static async registerV2(req: Request, res: Response, next: NextFunction) {
+  async registerV2(req: Request, res: Response, next: NextFunction) {
     try {
       const request: CreateTailorRequest = {
         ...req.body,
@@ -275,7 +278,7 @@ export class TailorController {
         ? []
         : req.files?.certificate || []
 
-      const response = await TailorService.registerV2(
+      const response = await this.tailorService.registerV2(
         request,
         profilePictureFile,
         certificateFiles as Express.Multer.File[] // Cast ke array file

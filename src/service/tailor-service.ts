@@ -5,6 +5,7 @@ import {
   CustomerResponse,
   CustomersResponse,
   LoginRequest,
+  TailorHomeResponse,
   toCustomerResponse,
 } from "../model/customer-model";
 import { CustomerValidation } from "../validation/customer-validation";
@@ -15,13 +16,14 @@ import {
   CreateTailorRequest,
   StuffFilterParams,
   TailorResponse,
+  toTailorHomeResponse,
   toTailorResponse,
 } from "../model/tailor-model";
 import { supabase } from "../supabase-client";
 import { Role } from "@prisma/client";
 
 export class TailorService {
-  static async login(request: LoginRequest): Promise<TailorResponse> {
+   async login(request: LoginRequest): Promise<TailorResponse> {
     const loginRequest = Validation.validate(CustomerValidation.LOGIN, request)
 
     let tailor = await prismaClient.user.findUnique({
@@ -71,7 +73,7 @@ export class TailorService {
     return response
   }
 
-  static async register(
+   async register(
     request: CreateTailorRequest,
     profilePictureFile?: Express.Multer.File,
     certificateFiles?: Express.Multer.File[] // Tambahkan array file
@@ -192,22 +194,23 @@ export class TailorService {
     return toTailorResponse(tailor);
   }
 
-  static async getHomeData(tailorId: string) {
-
+   async getHomeData(tailorId: string) {
     if (!tailorId) {
       throw new ResponseError(400, "tailorId-not-found");
     }
 
+    // Hitung unread message
     const rooms = await prismaClient.roomChat.findMany({
       where: { tailorId },
       select: { unreadCountCustomer: true },
-    })
+    });
 
     const unreadMessagesCount = rooms.reduce(
       (total, room) => total + room.unreadCountCustomer,
       0
-    )
+    );
 
+    // Ambil profile tailor + relasi provinsi, kota, dst
     const tailorProfile = await prismaClient.tailorProfile.findUnique({
       where: { userId: tailorId },
       include: {
@@ -215,65 +218,55 @@ export class TailorService {
           select: {
             firstname: true,
             lastname: true,
+            email: true,
+            phoneNumber: true,
+            profilePicture: true,
+            role: true,
+            createdAt: true,
+            token: true
           },
         },
-        province: {
-          select: {
-            name: true,
-          },
-        },
-        regency: {
-          select: {
-            name: true,
-          },
-        },
-        district: {
-          select: {
-            name: true,
-          },
-        },
-        village: {
-          select: {
-            name: true,
-          },
-        },
+        province: { select: { name: true } },
+        regency: { select: { name: true } },
+        district: { select: { name: true } },
+        village: { select: { name: true } },
       },
     });
-    
 
-    const latestArticles = await prismaClient.article.findMany({
-      where: { tailorId: tailorId },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    })
+    if (!tailorProfile) {
+      throw new ResponseError(400, "tailor-not-found");
+    }
 
-    const latestStuff = await prismaClient.stuff.findMany({
-      where: { tailorId: tailorId },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    })
+    // Ambil latest Articles, Stuff, Courses
+    const [latestArticles, latestStuff, latestCourses] = await Promise.all([
+      prismaClient.article.findMany({
+        where: { tailorId },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+      }),
+      prismaClient.stuff.findMany({
+        where: { tailorId },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+      }),
+      prismaClient.course.findMany({
+        where: { tailorId },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+      }),
+    ]);
 
-    const latestCourses = await prismaClient.course.findMany({
-      where: { tailorId: tailorId },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    })
-
-
-    return {
+    // Gabungkan data
+    const tailor = {
       ...tailorProfile,
-      provinceName: tailorProfile?.province?.name,
-      regencyName: tailorProfile?.regency?.name,
-      districtName: tailorProfile?.district?.name,
-      villageName: tailorProfile?.village?.name,
-      unreadMessagesCount,
-      latestArticles,
-      latestStuff,
-      latestCourses
     };
+
+    const response = toTailorHomeResponse(tailor, unreadMessagesCount, latestArticles, latestStuff, latestCourses);
+
+    return response;
   }
 
-  static async getStuff(page: number = 1, pageSize: number = 8, tailorId: string) {
+   async getStuff(page: number = 1, pageSize: number = 8, tailorId: string) {
     const skip = (page - 1) * pageSize
 
     const [stuff, totalStuff] = await prismaClient.$transaction([
@@ -301,7 +294,7 @@ export class TailorService {
     };
   }
 
-  static async filterStuff(params: StuffFilterParams, userId: string) {
+   async filterStuff(params: StuffFilterParams, userId: string) {
     const {
       page = 1,
       pageSize = 8,
@@ -368,7 +361,7 @@ export class TailorService {
     };
   }
 
-  static async updateTailorProfile(
+   async updateTailorProfile(
     userId: string,
     data: {
       firstname?: string;
@@ -525,7 +518,7 @@ export class TailorService {
     }
   }
 
-  private static extractImagePathFromUrl(url: string, bucketName: string): string | null {
+  private  extractImagePathFromUrl(url: string, bucketName: string): string | null {
     try {
       const urlParts = url.split("/");
       const bucketIndex = urlParts.findIndex((part) => part === bucketName);
@@ -540,7 +533,7 @@ export class TailorService {
     }
   }
 
-  static async getCertificates(
+   async getCertificates(
     tailorId: string
   ) {
 
@@ -558,7 +551,7 @@ export class TailorService {
     return existingUser.tailorProfile?.certificate
   }
 
-  static async addCertificates(
+   async addCertificates(
     tailorId: string,
     certificateFiles: Express.Multer.File[] 
   ) {
@@ -609,7 +602,7 @@ export class TailorService {
     return updatedProfile.certificate
   }
 
-  static async deleteCertificate(
+   async deleteCertificate(
     tailorId: string,
     certificateUrl: string
   ) {
@@ -661,7 +654,7 @@ export class TailorService {
     return updatedProfile.certificate
   }
 
-  private static extractImagePathFromUrlCertificate(url: string): string | null {
+  private extractImagePathFromUrlCertificate(url: string): string | null {
     try {
       const urlParts = url.split('/');
       const bucketIndex = urlParts.findIndex(part => part === 'certificates');
@@ -676,7 +669,7 @@ export class TailorService {
     }
   }
 
-  static async registerV2(
+  async registerV2(
     request: CreateTailorRequest,
     profilePictureFile?: Express.Multer.File,
     certificateFiles?: Express.Multer.File[]

@@ -7,47 +7,47 @@ import { OrderController } from "../controller/order-controller";
 import { GeneralController } from "../controller/general-controller";
 import { CourseController } from "../controller/course-controller";
 import { ArticleController } from "../controller/article-controller";
-import { authController } from "../instance/controller-instance";
+import { articleController, authController, chatController, courseController, customerController, orderController } from "../instance/controller-instance";
 
 export const customerApiRouter = express.Router()
 customerApiRouter.use(authMiddleware)
-customerApiRouter.post("/add-rating-review",upload.single('file'), CustomerController.addRatingReview);
-customerApiRouter.post("/rooms", RoomChatController.createOrGetRoom);
-customerApiRouter.get("/rooms/:customerId", RoomChatController.getRoomsByCustomer);
-customerApiRouter.get("/rooms/:roomId/chats", RoomChatController.getChatsInRoomByCustomer);
-customerApiRouter.post("/rooms/:roomId/chats", upload.single('file'), RoomChatController.sendMessageV2)
-customerApiRouter.delete("/rooms/:roomId", RoomChatController.deleteRoomChat);
+customerApiRouter.post("/add-rating-review",upload.single('file'), customerController.addRatingReview.bind(customerController));
+customerApiRouter.post("/rooms", chatController.createOrGetRoom.bind(chatController));
+customerApiRouter.get("/rooms", chatController.getAllRoom.bind(chatController));
+customerApiRouter.get("/rooms/:roomId/chats", chatController.getChatsInRoomByCustomer.bind(chatController));
+customerApiRouter.post("/rooms/:roomId/chats", upload.single('file'), chatController.sendMessageV2.bind(chatController))
+customerApiRouter.delete("/rooms/:roomId", chatController.deleteRoomChat.bind(chatController));
 
 //order
 // customerApiRouter.post("/order/upload-payment/:orderId", upload.single('file'), OrderController.uploadPaymentProof)
-customerApiRouter.get("/order/:orderId", OrderController.getDetailOrder)
-customerApiRouter.get("/order/all/:userId", OrderController.getAllOrderByCustomer)
-customerApiRouter.post("/order/cancel/:orderId", upload.single('file'), OrderController.cancelOrder)
-customerApiRouter.post("/order/complete/:orderId", OrderController.completeOrderByCustomer)
-customerApiRouter.post("/order/midtrans-token/:orderId", OrderController.getMidtransToken);
-customerApiRouter.post("/order/payment-complete/:orderId", OrderController.processOrder);
+customerApiRouter.get("/order/:orderId", orderController.getDetailOrder.bind(orderController))
+customerApiRouter.get("/order/all/:userId", orderController.getAllOrderByCustomer.bind(orderController))
+customerApiRouter.post("/order/cancel/:orderId", upload.single('file'), orderController.cancelOrder.bind(orderController))
+customerApiRouter.post("/order/complete/:orderId", orderController.completeOrderByCustomer.bind(orderController))
+customerApiRouter.post("/order/midtrans-token/:orderId", orderController.getMidtransToken.bind(orderController));
+customerApiRouter.post("/order/payment-complete/:orderId", orderController.processOrder.bind(orderController));
 
 customerApiRouter.get("/home", getHome)
 customerApiRouter.post("/logout", authController.logout.bind(authController))
-customerApiRouter.patch("/update-profile",upload.single('file'), CustomerController.updateCustomerProfile)
+customerApiRouter.patch("/update-profile",upload.single('file'), customerController.updateCustomerProfile.bind(customerController))
 customerApiRouter.post("/reset-password", authController.resetPassword.bind(authController))
 customerApiRouter.post("/forgot-password", authController.forgotPassword.bind(authController));
 
 customerApiRouter.get("/user-detail", GeneralController.getUserDetail);
-customerApiRouter.get("/home", GeneralController.getHomeData)
-customerApiRouter.get("/get-tailors", CustomerController.getTailors)
-customerApiRouter.get("/get-tailors/filter", CustomerController.getFilteredTailors)
-customerApiRouter.get("/tailor/:id", CustomerController.getTailorDetail)
+customerApiRouter.get("/home", customerController.getHomeData.bind(customerController))
+customerApiRouter.get("/get-tailors", customerController.getTailors.bind(customerController))
+customerApiRouter.get("/get-tailors/filter", customerController.getFilteredTailors.bind(customerController))
+customerApiRouter.get("/tailor/:id", customerController.getTailorDetail.bind(customerController))
 
 //kursus
-customerApiRouter.get("/course", CourseController.getAllCourses)
-customerApiRouter.get("/course/search", CourseController.searchCourse)
-customerApiRouter.get("/course/:id", CourseController.getCourseDetail)
+customerApiRouter.get("/course", courseController.getAllCourses.bind(courseController))
+customerApiRouter.get("/course/search", courseController.searchCourse.bind(courseController))
+customerApiRouter.get("/course/:id", courseController.getCourseDetail.bind(courseController))
 
 //article
-customerApiRouter.get("/article", ArticleController.getAllArticles)
-customerApiRouter.get("/article/:id", ArticleController.getArticleDetail)
-customerApiRouter.get("/articles/search", ArticleController.searchArticle)
+customerApiRouter.get("/article", articleController.getAllArticles.bind(articleController))
+customerApiRouter.get("/article/:id", articleController.getArticleDetail.bind(articleController))
+customerApiRouter.get("/articles/search", articleController.searchArticle.bind(articleController))
 
 customerApiRouter.post("/withdraw", GeneralController.withdraw);
 customerApiRouter.get("/user-oauth", authController.getDetailUserLoggedIn.bind(authController))
