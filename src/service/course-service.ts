@@ -3,7 +3,7 @@ import { prismaClient } from "../application/database";
 import { ResponseError } from "../error/response-error";
 import { supabase } from "../supabase-client";
 import { Prisma } from "@prisma/client";
-import { CourseResponse } from "../model/course-model";
+import { CourseResponse, mapToCourseResponse } from "../model/course-model";
 
 export class CourseService {
    async addCourse(
@@ -73,21 +73,7 @@ export class CourseService {
 
     const totalPages = Math.ceil(totalCourse / pageSize);
 
-    const result: CourseResponse[] = courses.map((course) => ({
-      id: course.id,
-      tailorId: course.tailorId,
-      authorName: `${course.tailor?.user?.firstname || ""} ${course.tailor?.user?.lastname || ""}`.trim(),
-      imageUrl: course.imageUrl,
-      courseName: course.courseName,
-      shortDescription: course.shortDescription,
-      registrationLink: course.registrationLink,
-      description: course.description,
-      place: course.place,
-      courseDate: course.courseDate,
-      createdAt: course.createdAt,
-      updatedAt: course.updatedAt
-    }));
-
+    const result: CourseResponse[] = courses.map(mapToCourseResponse)
 
     return {
       courses : result,
@@ -133,20 +119,7 @@ export class CourseService {
       prismaClient.course.count({ where: whereCondition })
     ]);
 
-    const result: CourseResponse[] = courses.map((course) => ({
-      id: course.id,
-      tailorId: course.tailorId,
-      authorName: `${course.tailor?.user?.firstname || ""} ${course.tailor?.user?.lastname || ""}`.trim(),
-      imageUrl: course.imageUrl,
-      courseName: course.courseName,
-      shortDescription: course.shortDescription,
-      registrationLink: course.registrationLink,
-      description: course.description,
-      place: course.place ?? undefined,
-      courseDate: course.courseDate ?? undefined,
-      createdAt: course.createdAt,
-      updatedAt: course.updatedAt
-    }));
+    const result: CourseResponse[] = courses.map(mapToCourseResponse)
 
     return {
       data: result,
@@ -178,20 +151,7 @@ export class CourseService {
 
     if (!course) throw new ResponseError(400, "Course Tidak Ditemukan");
 
-    const result: CourseResponse = {
-      id: course.id,
-      tailorId: course.tailorId,
-      authorName: `${course.tailor?.user?.firstname || ""} ${course.tailor?.user?.lastname || ""}`.trim(),
-      imageUrl: course.imageUrl,
-      courseName: course.courseName,
-      shortDescription: course.shortDescription,
-      registrationLink: course.registrationLink,
-      description: course.description,
-      place: course.place ?? undefined,
-      courseDate: course.courseDate ?? undefined,
-      createdAt: course.createdAt,
-      updatedAt: course.updatedAt
-    };
+    const result: CourseResponse = mapToCourseResponse(course)
 
     return { course: result };
   }
@@ -232,20 +192,7 @@ export class CourseService {
       prismaClient.course.count({ where: filter })
     ]);
 
-    const result: CourseResponse[] = courses.map(course => ({
-      id: course.id,
-      tailorId: course.tailorId,
-      authorName: `${course.tailor?.user?.firstname || ""} ${course.tailor?.user?.lastname || ""}`.trim(),
-      imageUrl: course.imageUrl,
-      courseName: course.courseName,
-      shortDescription: course.shortDescription,
-      registrationLink: course.registrationLink,
-      description: course.description,
-      place: course.place ?? undefined,
-      courseDate: course.courseDate ?? undefined,
-      createdAt: course.createdAt,
-      updatedAt: course.updatedAt
-    }));
+    const result: CourseResponse[] = courses.map(mapToCourseResponse)
 
     return {
       courses: result,
@@ -312,14 +259,20 @@ export class CourseService {
       updateData.imageUrl = imageUrl;
     }
 
-    const updatedCourse = await prismaClient.course.update({ where: { id: courseId }, data: updateData });
+    const updatedCourse = await prismaClient.course.update(
+      { where: { id: courseId }, 
+      include: {
+        tailor: {
+          include: {
+            user: {
+              select: { firstname: true, lastname: true }
+            }
+          }
+        }
+      },
+      data: updateData });
 
-    const tailor = await prismaClient.user.findUnique({ where: { id: tailorId }, select: { firstname: true, lastname: true } });
-
-    return {
-      ...updatedCourse,
-      authorName: `${tailor?.firstname || ""} ${tailor?.lastname || ""}`.trim()
-    };
+    return mapToCourseResponse(updatedCourse)
   }
 
   private extractImagePathFromUrl(url: string): string | null {

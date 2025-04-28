@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { prismaClient } from "../application/database";
 import { ResponseError } from "../error/response-error";
-import { ArticleResponse } from "../model/article-model";
+import { ArticleResponse, mapToArticleResponse } from "../model/article-model";
 import { supabase } from "../supabase-client";
 
 export class ArticleService {
@@ -61,22 +61,10 @@ export class ArticleService {
         }
       }
     });
-
-    const result: ArticleResponse[] = articles.map(article => ({
-      id: article.id,
-      tailorId: article.tailorId,
-      authorName: `${article.tailor?.user?.firstname || ""} ${article.tailor?.user?.lastname || ""}`.trim(),
-      imageUrl: article.imageUrl,
-      title: article.title,
-      content: article.content,
-      createdAt: article.createdAt,
-      updatedAt: article.updatedAt
-    }));
-
     const totalPages = Math.ceil(totalArticles / pageSize);
 
     return {
-      articles: result,
+      articles: articles.map(mapToArticleResponse),
       meta: {
         totalData: totalArticles,
         totalPages,
@@ -102,16 +90,7 @@ export class ArticleService {
 
     if (!article) throw new ResponseError(404, "article-not-found");
 
-    return {
-      id: article.id,
-      tailorId: article.tailorId,
-      authorName: `${article.tailor?.user?.firstname || ""} ${article.tailor?.user?.lastname || ""}`.trim(),
-      imageUrl: article.imageUrl,
-      title: article.title,
-      content: article.content,
-      createdAt: article.createdAt,
-      updatedAt: article.updatedAt
-    };
+    return mapToArticleResponse(article)
   }
 
   async searchArticle(name: string, page = 1, pageSize = 8, userId?: string, searchMode?: 'own' | 'others' | 'all') {
@@ -161,16 +140,7 @@ export class ArticleService {
       prismaClient.article.count({ where: whereCondition })
     ]);
 
-    const result: ArticleResponse[] = articles.map(article => ({
-      id: article.id,
-      tailorId: article.tailorId,
-      authorName: `${article.tailor?.user?.firstname || ""} ${article.tailor?.user?.lastname || ""}`.trim(),
-      imageUrl: article.imageUrl,
-      title: article.title,
-      content: article.content,
-      createdAt: article.createdAt,
-      updatedAt: article.updatedAt
-    }));
+    const result: ArticleResponse[] = articles.map(mapToArticleResponse)
 
     return {
       data: result,
@@ -211,16 +181,7 @@ export class ArticleService {
       prismaClient.article.count({ where: filter })
     ]);
 
-    const result: ArticleResponse[] = articles.map(article => ({
-      id: article.id,
-      tailorId: article.tailorId,
-      authorName: `${article.tailor?.user?.firstname || ""} ${article.tailor?.user?.lastname || ""}`.trim(),
-      imageUrl: article.imageUrl,
-      title: article.title,
-      content: article.content,
-      createdAt: article.createdAt,
-      updatedAt: article.updatedAt
-    }));
+    const result: ArticleResponse[] = articles.map(mapToArticleResponse)
 
     return {
       articles: result,
@@ -274,18 +235,22 @@ export class ArticleService {
 
     const updatedArticle = await prismaClient.article.update({
       where: { id: articleId },
+      include: {
+        tailor: {
+          include: {
+            user : {
+              select: {
+                firstname: true,
+                lastname: true
+              }
+            }
+          }
+        }
+      },
       data: updateData
     });
-
-    const tailor = await prismaClient.user.findUnique({
-      where: { id: tailorId },
-      select: { firstname: true, lastname: true }
-    });
-
-    return {
-      ...updatedArticle,
-      authorName: `${tailor?.firstname || ""} ${tailor?.lastname || ""}`.trim()
-    };
+    
+    return mapToArticleResponse(updatedArticle)
   }
 
   private extractImagePathFromUrl(url: string): string | null {

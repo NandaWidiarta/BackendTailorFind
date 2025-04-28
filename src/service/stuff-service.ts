@@ -2,7 +2,7 @@ import { StuffCategory } from "@prisma/client";
 import { ResponseError } from "../error/response-error";
 import { supabase } from "../supabase-client";
 import { prismaClient } from "../application/database";
-import { StuffResponse } from "../model/stuff-model";
+import { mapToStuffResponse, StuffResponse } from "../model/stuff-model";
 
 export class StuffService {
   async addStuff(
@@ -38,7 +38,7 @@ export class StuffService {
       }
     });
 
-    return newStuff;
+    return mapToStuffResponse(newStuff);
   }
 
   async updateStuff(
@@ -126,7 +126,7 @@ export class StuffService {
         data: updateData,
       });
   
-      return updatedStuff;
+      return mapToStuffResponse(updatedStuff);
     } catch (error) {
       throw new ResponseError(500, "Gagal update stuff");
     }
