@@ -7,7 +7,6 @@ import { ArticleController } from "../controller/article-controller";
 import { CourseController } from "../controller/course-controller";
 import { StuffController } from "../controller/stuff-controller";
 import { TailorController } from "../controller/tailor-controller";
-import { GeneralController } from "../controller/general-controller";
 import { articleController, authController, chatController, courseController, orderController, stuffController, tailorController } from "../instance/controller-instance";
 
 export const tailorApiRouter = express.Router()
@@ -68,5 +67,5 @@ tailorApiRouter.delete("/certificates", tailorController.deleteCertificate.bind(
 tailorApiRouter.post("/reset-password", authController.resetPassword.bind(authController))
 tailorApiRouter.post("/forgot-password", authController.forgotPassword.bind(authController));
 
-tailorApiRouter.get("/user-detail", GeneralController.getUserDetail);
-tailorApiRouter.post("/withdraw", GeneralController.withdraw);
+tailorApiRouter.get("/user-detail", authController.getUserDetailById.bind(authController));
+tailorApiRouter.post("/withdraw", orderController.withdraw.bind(orderController));

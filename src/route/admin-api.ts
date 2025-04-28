@@ -4,8 +4,7 @@ import { RoomChatController } from "../controller/room-chat-controller";
 import upload from "../middleware/multer";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { AdminController } from "../controller/admin-controller";
-import { GeneralController } from "../controller/general-controller";
-import { adminController } from "../instance/controller-instance";
+import { adminController, authController, orderController } from "../instance/controller-instance";
 
 
 export const adminApiRouter = express.Router()
@@ -16,5 +15,5 @@ adminApiRouter.post("/approve-cancelation/:orderId", adminController.approveCanc
 adminApiRouter.post("/reject-cancelation/:orderId", adminController.rejectCancelation.bind(adminController));
 // adminApiRouter.post("/reject-payment-customer/:orderId", adminController.rejectPaymentCustomer);
 adminApiRouter.get("/all-order", adminController.getAllOrder.bind(adminController));
-adminApiRouter.get("/user-detail", GeneralController.getUserDetail);
-adminApiRouter.post("/withdraw", GeneralController.withdraw);
+adminApiRouter.get("/user-detail", authController.getUserDetailById.bind(authController));
+adminApiRouter.post("/withdraw", orderController.withdraw.bind(orderController));

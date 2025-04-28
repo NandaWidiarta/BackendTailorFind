@@ -156,6 +156,26 @@ export class OrderController {
       next(e);
     }
   }
+
+  async withdraw(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userReq = req as UserRequest;
+      const userId = userReq.user?.id;
+      if (!userId) {
+        throw new ResponseError(400, "User Tidak Ditemukan");
+      }
+
+      const { balance } = req.body
+
+      const response = await this.orderService.withdraw(userId as string, balance as number);
+
+      res.status(200).json({
+        data: response,
+      });
+    } catch (e) {
+      next(e)
+    }
+  }
   
 }
 

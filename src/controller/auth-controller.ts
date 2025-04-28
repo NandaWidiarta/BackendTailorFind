@@ -4,6 +4,7 @@ import { AuthService } from "../service/auth-service";
 import { LoginRequest } from "../model/customer-model";
 import { UserRequest } from "../type/user-request";
 import { ResponseError } from "../error/response-error";
+import { Role } from "@prisma/client";
 
 export class AuthController {
     constructor(
@@ -76,22 +77,22 @@ export class AuthController {
         });
     }
 
-    // static async logout(req: Request, res: Response, next: NextFunction) {
-    //   try {
-    //     const userReq = req as UserRequest;
-    //     const userId = userReq.user?.id;
-    //     if (!userId) {
-    //       throw new ResponseError(400, "user-id-null");
-    //     }
+    async getUserDetailById(req: Request, res: Response, next: NextFunction) {
+        try {
+            const userReq = req as UserRequest;
+            const userId = userReq.user?.id;
+            const userRole = userReq.user?.role;
+            if (!userId && !userRole) {
+                throw new ResponseError(400, "User Tidak Ditemukan");
+            }
 
-    //     const response = await GeneralService.logout(userId);
+            const response = await this.authService.getUserDetailById(userId as string, userRole as Role);
 
-    //     res.status(200).json({
-    //       data: response,
-    //     });
-    //   } catch (e) {
-    //     next(e);
-    //   }
-    // }
-
+            res.status(200).json({
+                data: response,
+            });
+        } catch (e) {
+            next(e);
+        }
+    }
 }

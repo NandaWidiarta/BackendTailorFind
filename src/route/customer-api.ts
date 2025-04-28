@@ -4,7 +4,6 @@ import { RoomChatController } from "../controller/room-chat-controller";
 import upload from "../middleware/multer";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { OrderController } from "../controller/order-controller";
-import { GeneralController } from "../controller/general-controller";
 import { CourseController } from "../controller/course-controller";
 import { ArticleController } from "../controller/article-controller";
 import { articleController, authController, chatController, courseController, customerController, orderController } from "../instance/controller-instance";
@@ -33,7 +32,7 @@ customerApiRouter.patch("/update-profile",upload.single('file'), customerControl
 customerApiRouter.post("/reset-password", authController.resetPassword.bind(authController))
 customerApiRouter.post("/forgot-password", authController.forgotPassword.bind(authController));
 
-customerApiRouter.get("/user-detail", GeneralController.getUserDetail);
+customerApiRouter.get("/user-detail", authController.getUserDetailById.bind(authController));
 customerApiRouter.get("/home", customerController.getHomeData.bind(customerController))
 customerApiRouter.get("/get-tailors", customerController.getTailors.bind(customerController))
 customerApiRouter.get("/get-tailors/filter", customerController.getFilteredTailors.bind(customerController))
@@ -49,5 +48,5 @@ customerApiRouter.get("/article", articleController.getAllArticles.bind(articleC
 customerApiRouter.get("/article/:id", articleController.getArticleDetail.bind(articleController))
 customerApiRouter.get("/articles/search", articleController.searchArticle.bind(articleController))
 
-customerApiRouter.post("/withdraw", GeneralController.withdraw);
+customerApiRouter.post("/withdraw", orderController.withdraw.bind(orderController));
 customerApiRouter.get("/user-oauth", authController.getDetailUserLoggedIn.bind(authController))

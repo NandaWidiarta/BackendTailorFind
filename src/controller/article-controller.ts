@@ -2,8 +2,6 @@ import { Request, Response, NextFunction } from "express";
 import { ArticleService } from "../service/article-service";
 import { UserRequest } from "../type/user-request";
 import { ResponseError } from "../error/response-error";
-import { GeneralController } from "./general-controller";
-import { GeneralService } from "../service/general-service";
 
 export class ArticleController {
   constructor(

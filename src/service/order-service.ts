@@ -510,6 +510,38 @@ export class OrderService {
     const transaction = await snap.createTransaction(parameter)
     return transaction.token
   }
+
+  async withdraw(userId: string, amount: number) {
+    const user = await prismaClient.user.findUnique({
+      where: { id: userId },
+      select: {
+        walletBalance: true
+      }
+    })
+  
+    if (!user) {
+      throw new ResponseError(400, "User tidak ditemukan")
+    }
+  
+    if (user.walletBalance < amount) {
+      throw new ResponseError(400, "Saldo tidak cukup")
+    }
+  
+    const updatedUser = await prismaClient.user.update({
+      where: { id: userId },
+      data: {
+        walletBalance: {
+          decrement: amount
+        }
+      }
+    })
+  
+    return {
+      message: 'Withdraw berhasil',
+      balance: updatedUser.walletBalance
+    }
+  }
+
 }
 
 async function createRoomIfNeeded(order: { id: string, roomId: string | null, customerId: string, tailorId: string }) {
