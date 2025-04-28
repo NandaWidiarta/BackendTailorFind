@@ -127,7 +127,7 @@ export function toTailorHomeResponse(tailor: any, unread: any, article: any, stu
     unreadMessagesCount: unread,
 
     latestArticles: (article || []).map(mapToArticleResponse),
-    latestCourses: (stuff || []).map(mapToCourseResponse),
-    latestStuff: (course || []).map(mapToStuffResponse),
+    latestCourses: (course || []).map(mapToCourseResponse),
+    latestStuff: (stuff || []).map(mapToStuffResponse),
   };
 }

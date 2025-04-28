@@ -23,7 +23,7 @@ import { supabase } from "../supabase-client";
 import { Role } from "@prisma/client";
 
 export class TailorService {
-   async login(request: LoginRequest): Promise<TailorResponse> {
+  async login(request: LoginRequest): Promise<TailorResponse> {
     const loginRequest = Validation.validate(CustomerValidation.LOGIN, request)
 
     let tailor = await prismaClient.user.findUnique({
@@ -73,7 +73,7 @@ export class TailorService {
     return response
   }
 
-   async register(
+  async register(
     request: CreateTailorRequest,
     profilePictureFile?: Express.Multer.File,
     certificateFiles?: Express.Multer.File[] // Tambahkan array file
@@ -112,10 +112,9 @@ export class TailorService {
       }
 
       profilePictureUrl = data?.path
-        ? `${
-            supabase.storage.from("profile").getPublicUrl(data.path).data
-              .publicUrl
-          }`
+        ? `${supabase.storage.from("profile").getPublicUrl(data.path).data
+          .publicUrl
+        }`
         : null
     }
 
@@ -134,10 +133,9 @@ export class TailorService {
         }
 
         if (data?.path) {
-          const publicUrl = `${
-            supabase.storage.from("certificates").getPublicUrl(data.path).data
-              .publicUrl
-          }`;
+          const publicUrl = `${supabase.storage.from("certificates").getPublicUrl(data.path).data
+            .publicUrl
+            }`;
           certificateUrls.push(publicUrl);
         }
       }
@@ -194,7 +192,7 @@ export class TailorService {
     return toTailorResponse(tailor);
   }
 
-   async getHomeData(tailorId: string) {
+  async getHomeData(tailorId: string) {
     if (!tailorId) {
       throw new ResponseError(400, "tailorId-not-found");
     }
@@ -237,36 +235,72 @@ export class TailorService {
       throw new ResponseError(400, "tailor-not-found");
     }
 
-    // Ambil latest Articles, Stuff, Courses
     const [latestArticles, latestStuff, latestCourses] = await Promise.all([
       prismaClient.article.findMany({
         where: { tailorId },
+        include: {
+          tailor: {
+            include: {
+              user: {
+                select: {
+                  firstname: true,
+                  lastname: true,
+                }
+              }
+            }
+          }
+        },
         orderBy: { createdAt: "desc" },
         take: 5,
       }),
       prismaClient.stuff.findMany({
         where: { tailorId },
+        include: {
+          tailor: {
+            include: {
+              user: {
+                select: {
+                  firstname: true,
+                  lastname: true,
+                }
+              }
+            }
+          }
+        },
         orderBy: { createdAt: "desc" },
         take: 5,
       }),
       prismaClient.course.findMany({
         where: { tailorId },
+        include: {
+          tailor: {
+            include: {
+              user: {
+                select: {
+                  firstname: true,
+                  lastname: true,
+                }
+              }
+            }
+          }
+        },
         orderBy: { createdAt: "desc" },
         take: 5,
       }),
     ]);
 
-    // Gabungkan data
     const tailor = {
       ...tailorProfile,
     };
+
+    console.log("course : ", latestCourses)
 
     const response = toTailorHomeResponse(tailor, unreadMessagesCount, latestArticles, latestStuff, latestCourses);
 
     return response;
   }
 
-   async getStuff(page: number = 1, pageSize: number = 8, tailorId: string) {
+  async getStuff(page: number = 1, pageSize: number = 8, tailorId: string) {
     const skip = (page - 1) * pageSize
 
     const [stuff, totalStuff] = await prismaClient.$transaction([
@@ -294,7 +328,7 @@ export class TailorService {
     };
   }
 
-   async filterStuff(params: StuffFilterParams, userId: string) {
+  async filterStuff(params: StuffFilterParams, userId: string) {
     const {
       page = 1,
       pageSize = 8,
@@ -318,7 +352,7 @@ export class TailorService {
 
     if (stuffCategory) {
       AND.push({
-        stuffCaetgory: stuffCategory, 
+        stuffCaetgory: stuffCategory,
       });
     }
 
@@ -344,7 +378,7 @@ export class TailorService {
       skip,
       take,
       orderBy: {
-        createdAt: "desc", 
+        createdAt: "desc",
       },
     });
 
@@ -361,7 +395,7 @@ export class TailorService {
     };
   }
 
-   async updateTailorProfile(
+  async updateTailorProfile(
     userId: string,
     data: {
       firstname?: string;
@@ -397,7 +431,7 @@ export class TailorService {
 
     if (data.email && data.email !== existingUser.email) {
       const isEmailExist = await prismaClient.user.count({
-        where: { 
+        where: {
           email: data.email,
           id: { not: userId }
         },
@@ -410,7 +444,7 @@ export class TailorService {
 
     if (data.phoneNumber && data.phoneNumber !== existingUser.phoneNumber) {
       const isPhoneExist = await prismaClient.user.count({
-        where: { 
+        where: {
           phoneNumber: data.phoneNumber,
           id: { not: userId }
         },
@@ -518,7 +552,7 @@ export class TailorService {
     }
   }
 
-  private  extractImagePathFromUrl(url: string, bucketName: string): string | null {
+  private extractImagePathFromUrl(url: string, bucketName: string): string | null {
     try {
       const urlParts = url.split("/");
       const bucketIndex = urlParts.findIndex((part) => part === bucketName);
@@ -533,7 +567,7 @@ export class TailorService {
     }
   }
 
-   async getCertificates(
+  async getCertificates(
     tailorId: string
   ) {
 
@@ -551,9 +585,9 @@ export class TailorService {
     return existingUser.tailorProfile?.certificate
   }
 
-   async addCertificates(
+  async addCertificates(
     tailorId: string,
-    certificateFiles: Express.Multer.File[] 
+    certificateFiles: Express.Multer.File[]
   ) {
 
     const existingUser = await prismaClient.user.findUnique({
@@ -582,10 +616,9 @@ export class TailorService {
       }
 
       if (data?.path) {
-        const publicUrl = `${
-          supabase.storage.from("certificates").getPublicUrl(data.path).data
-            .publicUrl
-        }`;
+        const publicUrl = `${supabase.storage.from("certificates").getPublicUrl(data.path).data
+          .publicUrl
+          }`;
         certificateUrls.push(publicUrl);
       }
     }
@@ -602,7 +635,7 @@ export class TailorService {
     return updatedProfile.certificate
   }
 
-   async deleteCertificate(
+  async deleteCertificate(
     tailorId: string,
     certificateUrl: string
   ) {
@@ -616,7 +649,7 @@ export class TailorService {
     }
 
     const certificates = existingUser.certificate || [];
-    const certificateToDelete = certificates.find(url => 
+    const certificateToDelete = certificates.find(url =>
       url.includes(certificateUrl)
     )
 
@@ -626,7 +659,7 @@ export class TailorService {
 
     try {
       const existingImagePath = this.extractImagePathFromUrlCertificate(certificateToDelete);
-      
+
       if (existingImagePath) {
         const { error: deleteError } = await supabase.storage
           .from("certificates")
@@ -658,7 +691,7 @@ export class TailorService {
     try {
       const urlParts = url.split('/');
       const bucketIndex = urlParts.findIndex(part => part === 'certificates');
-      
+
       if (bucketIndex !== -1 && bucketIndex < urlParts.length - 1) {
         return urlParts.slice(bucketIndex + 1).join('/');
       }
@@ -706,10 +739,9 @@ export class TailorService {
       }
 
       profilePictureUrl = data?.path
-        ? `${
-            supabase.storage.from("profile").getPublicUrl(data.path).data
-              .publicUrl
-          }`
+        ? `${supabase.storage.from("profile").getPublicUrl(data.path).data
+          .publicUrl
+        }`
         : null
     }
 
@@ -728,10 +760,9 @@ export class TailorService {
         }
 
         if (data?.path) {
-          const publicUrl = `${
-            supabase.storage.from("certificates").getPublicUrl(data.path).data
-              .publicUrl
-          }`;
+          const publicUrl = `${supabase.storage.from("certificates").getPublicUrl(data.path).data
+            .publicUrl
+            }`;
           certificateUrls.push(publicUrl);
         }
       }
@@ -748,7 +779,7 @@ export class TailorService {
     if (authError) {
       throw new ResponseError(400, authError.message)
     }
-    
+
     if (!authData.user) {
       throw new ResponseError(500, "Failed to create user")
     }
@@ -783,7 +814,7 @@ export class TailorService {
       },
     });
 
-    const response =  toTailorResponse(tailor);
+    const response = toTailorResponse(tailor);
     response.token = authData.session?.access_token || ''
     return response
   }
