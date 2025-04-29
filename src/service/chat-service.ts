@@ -1,7 +1,7 @@
 import { Role } from "@prisma/client";
 import { prismaClient } from "../application/database";
 import { ChatType } from "../constants/chat-type";
-import { ChatResponse, RoomChatResponse } from "../model/chat-model";
+import { ChatResponse, mapToChatResponse, mapToRoomChatResponse, RoomChatResponse } from "../model/chat-model";
 
 export class ChatService {
   async createOrGetRoom(customerId: string, tailorId: string) : Promise<RoomChatResponse>{
@@ -60,20 +60,7 @@ export class ChatService {
       }
     });
   
-    return rooms.map(room => ({
-      id: room.id,
-      customerId: room.customerId,
-      tailorId: room.tailorId,
-      customerName: room.customerName,
-      tailorName: room.tailorName,
-      latestMessage: room.latestMessage,
-      latestMessageTime: room.latestMessageTime,
-      unreadCountCustomer: room.unreadCountCustomer,
-      unreadCountTailor: room.unreadCountTailor,
-      customerProfilePicture: room.customer?.profilePicture ?? null,
-      tailorProfilePicture: room.tailor?.profilePicture ?? null,
-      createdAt: room.createdAt,
-    }));
+    return rooms.map(mapToRoomChatResponse);
   }
 
   async getChatsInRoom(roomId: string, userType: Role): Promise<ChatResponse[]>  {
@@ -109,7 +96,7 @@ export class ChatService {
       orderBy: { createdAt: 'asc' },
     })
 
-    return updatedChats
+    return updatedChats.map(mapToChatResponse);
   }
 
   async sendMessage(
@@ -141,7 +128,7 @@ export class ChatService {
       }
     })
     
-    return newChat
+    return mapToChatResponse(newChat);
   }
 
   async markAsRead(roomId: string, userType: Role) {
