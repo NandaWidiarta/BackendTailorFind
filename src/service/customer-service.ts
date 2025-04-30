@@ -6,6 +6,7 @@ import {
   CustomerResponse,
   CustomersResponse,
   LoginRequest,
+  mapTailorFromUser,
   mapTailorProfileResponse,
   mapUserToProfileResponse,
   RatingReviewRequest,
@@ -268,7 +269,7 @@ export class CustomerService {
 
     const totalPages = Math.ceil(totalTailors / pageSize);
 
-    const formattedTailors = tailors.map(mapTailorProfileResponse);
+    const formattedTailors = tailors.map(mapTailorFromUser);
 
     return {
       formattedTailors,
@@ -440,7 +441,7 @@ export class CustomerService {
 
     const totalPages = Math.ceil(totalTailors / pageSize);
 
-    const formattedTailors = tailors.map(mapTailorProfileResponse);
+    const formattedTailors = tailors.map(mapTailorFromUser);
 
     return {
       formattedTailors,

@@ -60,9 +60,8 @@ export interface TailorFilterParams {
 
 export interface TailorHomeResponse {
     id: string;
-    userId: string;
     firstname: string;
-    lastname: string;
+    lastname: string | null;
     addressDetail: string;
     workEstimation: string;
     priceRange: string;
@@ -89,8 +88,7 @@ export interface UpdateCustomerProfileResponse {
 
 export function mapTailorProfileResponse(tailor: any): TailorHomeResponse {
     return {
-        id: tailor.id,
-        userId: tailor.userId,
+        id: tailor.user.id,
         firstname: tailor.user.firstname,
         lastname: tailor.user.lastname,
         addressDetail: tailor.addressDetail,
@@ -131,3 +129,25 @@ export function mapUserToProfileResponse(user: User): UpdateCustomerProfileRespo
     };
   }
 
+  export function mapTailorFromUser(user: any): TailorHomeResponse {
+    const profile = user.tailorProfile;
+
+    return {
+        id: user.id,
+        firstname: user.firstname,
+        lastname: user.lastname || null,
+        addressDetail: profile.addressDetail,
+        workEstimation: profile.workEstimation,
+        priceRange: profile.priceRange,
+        specialization: profile.specialization || [],
+        businessDescription: profile.businessDescription,
+        profilePicture: user.profilePicture || null,
+        certificate: profile.certificate || [],
+        averageRating: profile.averageRating,
+        gender: profile.gender,
+        provinceName: profile.province?.name || '',
+        regencyName: profile.regency?.name || '',
+        districtName: profile.district?.name || '',
+        villageName: profile.village?.name || '',
+    };
+}
