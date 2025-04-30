@@ -58,7 +58,7 @@ export class AuthService {
         }
 
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: "https://tailor-find.vercel.app/forget-password"
+            redirectTo: "https://www.tailorfind.site/forget-password"
         })
 
         if (error) {
