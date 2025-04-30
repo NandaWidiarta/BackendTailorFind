@@ -284,7 +284,7 @@ export class OrderService {
       roomId,
       request.userRole,
       updatedOrder.id,
-      ChatType.REQUEST_CANCEL_ORDER
+      order.status === OrderStatus.NOT_YET_PAY ? ChatType.ORDER_CANCELED : ChatType.REQUEST_CANCEL_ORDER
     );
   
     return {
