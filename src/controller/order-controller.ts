@@ -176,6 +176,18 @@ export class OrderController {
       next(e)
     }
   }
+
+  async autoCompleteLongPendingOrders(req: Request, res: Response, next: NextFunction) {
+    try {
+      const response = await this.orderService.autoCompleteLongPendingOrders();
+
+      res.status(200).json({
+        data: response,
+      });
+    } catch (e) {
+      next(e)
+    }
+  }
   
 }
 

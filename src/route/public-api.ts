@@ -7,7 +7,7 @@ import upload from "../middleware/multer";
 import { RoomChatController } from "../controller/room-chat-controller";
 import { CourseController } from "../controller/course-controller";
 import { ArticleController } from "../controller/article-controller";
-import { articleController, authController, courseController, customerController, regionController, tailorController } from "../instance/controller-instance";
+import { articleController, authController, courseController, customerController, orderController, regionController, tailorController } from "../instance/controller-instance";
 
 export const publicRouter = express.Router();
 
@@ -43,3 +43,5 @@ publicRouter.get("/articles/search", articleController.searchArticle.bind(articl
 publicRouter.post("/forgot-password", authController.forgotPassword.bind(authController));
 publicRouter.post("/login", authController.login.bind(authController))
 publicRouter.post("/logout", authController.logout.bind(authController))
+
+publicRouter.post("/auto-complete-order", orderController.autoCompleteLongPendingOrders.bind(orderController))
