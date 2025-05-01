@@ -11,8 +11,10 @@ export class AuthService {
     async loginV2(request: LoginRequest) {
         const loginRequest = Validation.validate(CustomerValidation.LOGIN, request)
 
+        const email = loginRequest.email.toLowerCase()
+
         const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-            email: loginRequest.email,
+            email: email,
             password: loginRequest.password
         })
 
@@ -26,7 +28,7 @@ export class AuthService {
 
         const user = await prismaClient.user.findUnique({
             where: {
-                email: loginRequest.email
+                email: email
             },
             include: {
                 tailorProfile: true

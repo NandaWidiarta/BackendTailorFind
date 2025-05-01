@@ -709,8 +709,10 @@ export class TailorService {
   ): Promise<TailorResponse> {
     const registerRequest = request;
 
+    const email = registerRequest.email.toLowerCase()
+
     const isEmailExist = await prismaClient.user.count({
-      where: { email: request.email },
+      where: { email: email },
     });
 
     if (isEmailExist > 0) {
@@ -727,7 +729,7 @@ export class TailorService {
 
     let profilePictureUrl: string | null = null;
     if (profilePictureFile) {
-      const fileName = `${registerRequest.email}-${Date.now()}`;
+      const fileName = `${email}-${Date.now()}`;
       const { data, error } = await supabase.storage
         .from("profile")
         .upload(fileName, profilePictureFile.buffer, {
@@ -748,7 +750,7 @@ export class TailorService {
     let certificateUrls: string[] = [];
     if (certificateFiles && certificateFiles.length > 0) {
       for (const file of certificateFiles) {
-        const fileName = `${registerRequest.email}-${Date.now()}`;
+        const fileName = `${email}-${Date.now()}`;
         const { data, error } = await supabase.storage
           .from("certificates")
           .upload(fileName, file.buffer, {
@@ -772,7 +774,7 @@ export class TailorService {
     registerRequest.certificate = certificateUrls;
 
     const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: registerRequest.email,
+      email: email,
       password: registerRequest.password
     })
 
@@ -789,7 +791,7 @@ export class TailorService {
         id: authData.user.id,
         firstname: registerRequest.firstname,
         lastname: registerRequest.lastname,
-        email: registerRequest.email,
+        email: email,
         phoneNumber: registerRequest.phoneNumber,
         password: "",
         role: Role.TAILOR,

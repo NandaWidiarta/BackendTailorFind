@@ -586,8 +586,10 @@ export class CustomerService {
 
   async registerCustomerV2(registerRequest: CreateCustomerRequest, profilePictureFile?: Express.Multer.File): Promise<CustomerResponse> {
     
+    const email = registerRequest.email.toLowerCase()
+
     const emailExists = await prismaClient.user.count({
-      where: { email: registerRequest.email }
+      where: { email: email }
     }) > 0
     
     if (emailExists) {
@@ -604,7 +606,7 @@ export class CustomerService {
 
     let profilePictureUrl: string | null = null;
     if (profilePictureFile) {
-      const fileName = `${registerRequest.email}-${Date.now()}`;
+      const fileName = `${email}-${Date.now()}`;
       const { data, error } = await supabase.storage
         .from("profile")
         .upload(fileName, profilePictureFile.buffer, {
@@ -626,7 +628,7 @@ export class CustomerService {
     }
     
     const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: registerRequest.email,
+      email: email,
       password: registerRequest.password
     })
     
@@ -643,7 +645,7 @@ export class CustomerService {
         id: authData.user.id, 
         firstname: registerRequest.firstname,
         lastname: registerRequest.lastname,
-        email: registerRequest.email,
+        email: email,
         phoneNumber: registerRequest.phoneNumber,
         password: '', 
         role: Role.CUSTOMER,
