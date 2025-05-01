@@ -57,6 +57,8 @@ export interface OrderDetailResponse {
   customerId: string;
   customerName: string
   tailorName: string
+  customerProfilePicture: string | null
+  tailorProfilePicture: string | null
   roomId: string | null;
   orderType: OrderType;
   totalPrice: number;
@@ -113,6 +115,8 @@ export function mapOrderToOrderDetailResponse(order: OrderWithRelations): OrderD
     customerId: order.customerId,
     customerName: `${order.customer?.firstname ?? ''} ${order.customer?.lastname ?? ''}`.trim(),
     tailorName: `${order.tailor?.firstname ?? ''} ${order.tailor?.lastname ?? ''}`.trim(),
+    customerProfilePicture: order.customer.profilePicture,
+    tailorProfilePicture: order.tailor.profilePicture,
     roomId: order.roomId,
     orderType: order.orderType,
     totalPrice: order.totalPrice,
