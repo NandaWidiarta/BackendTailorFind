@@ -114,15 +114,15 @@ export class ChatService {
       }
     })
 
-    await prismaClient.roomChat.update({
+   const roomChat =  await prismaClient.roomChat.update({
       where: { id: roomId },
       data: {
         latestMessage: type == ChatType.TEXT ? message : type,
         latestMessageTime: new Date(),
-        unreadCountCustomer: senderType === Role.TAILOR || Role.ADMIN
+        unreadCountCustomer: senderType === Role.TAILOR || senderType === Role.ADMIN
           ? { increment: 1 } 
           : undefined,
-        unreadCountTailor: senderType === Role.CUSTOMER || Role.ADMIN
+        unreadCountTailor: senderType === Role.CUSTOMER || senderType === Role.ADMIN
           ? { increment: 1 }  
           : undefined,
       }
