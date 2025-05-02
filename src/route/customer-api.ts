@@ -16,6 +16,7 @@ customerApiRouter.get("/rooms", chatController.getAllRoom.bind(chatController));
 customerApiRouter.get("/rooms/:roomId/chats", chatController.getChatsInRoomByCustomer.bind(chatController));
 customerApiRouter.post("/rooms/:roomId/chats", upload.single('file'), chatController.sendMessageV2.bind(chatController))
 customerApiRouter.delete("/rooms/:roomId", chatController.deleteRoomChat.bind(chatController));
+customerApiRouter.post("/rooms/mark-read/:roomId", chatController.markAsRead.bind(chatController));
 
 //order
 // customerApiRouter.post("/order/upload-payment/:orderId", upload.single('file'), OrderController.uploadPaymentProof)

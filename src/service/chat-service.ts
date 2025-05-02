@@ -65,38 +65,14 @@ export class ChatService {
 
   async getChatsInRoom(roomId: string, userType: Role): Promise<ChatResponse[]>  {
 
-    if (userType == Role.CUSTOMER) {
-      await this.markAsRead(roomId, Role.CUSTOMER);
-    } else {
-      await this.markAsRead(roomId, Role.TAILOR);
-    }
+    await this.markAsRead(roomId, userType);
 
     const chats = await prismaClient.chat.findMany({
       where: { roomId },
       orderBy: { createdAt: 'asc' },
     })
-  
-    const unreadChatIds = chats
-      .filter((chat) => chat.readAt === null && chat.senderType !== userType)
-      .map((chat) => chat.id)
 
-    if (unreadChatIds.length > 0) {
-      await prismaClient.chat.updateMany({
-        where: {
-          id: { in: unreadChatIds },
-        },
-        data: {
-          readAt: new Date(),
-        },
-      })
-    }
-  
-    const updatedChats = await prismaClient.chat.findMany({
-      where: { roomId },
-      orderBy: { createdAt: 'asc' },
-    })
-
-    return updatedChats.map(mapToChatResponse);
+    return chats.map(mapToChatResponse);
   }
 
   async sendMessage(
@@ -138,8 +114,20 @@ export class ChatService {
         unreadCountCustomer: userType === Role.CUSTOMER ? 0 : undefined,
         unreadCountTailor: userType === Role.TAILOR ? 0 : undefined,
       }
-    })
+    });
+  
+    await prismaClient.chat.updateMany({
+      where: {
+        roomId,
+        readAt: null,
+        senderType: userType === Role.CUSTOMER ? Role.TAILOR : Role.CUSTOMER,
+      },
+      data: {
+        readAt: new Date(),
+      }
+    });
   }
+  
 
   async deleteRoomChat(roomId: string) {
     await prismaClient.roomChat.delete({

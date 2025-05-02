@@ -115,6 +115,23 @@ export class RoomChatController  {
     }
   }
 
+  async markAsRead(req: Request, res: Response) {
+    try {
+      const userReq = req as UserRequest;
+      const userRole = userReq.user?.role;
+      const { roomId } = req.params
+
+      if (userRole) {
+        const rooms = await this.chatService.markAsRead(roomId, userRole)
+        res.json(rooms)
+      } else {
+        throw new ResponseError(400, "User tidak valid");
+      }
+      
+    } catch (e) {
+      res.status(500).json({ error: getErrorMessage(e) })
+    }
+  }
 }
 
 function getErrorMessage(e: unknown): string {
