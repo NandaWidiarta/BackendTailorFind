@@ -89,6 +89,14 @@ export class ChatService {
           : undefined,
       }
     })
+
+    await prismaClient.roomChat.update({
+      where: { id: roomId },
+      data: {
+        deletedByCustomer: senderType === Role.TAILOR ? true : undefined,
+        deletedByTailor: senderType === Role.CUSTOMER ? true : undefined,
+      },
+    });
     
     return mapToChatResponse(newChat);
   }
