@@ -103,9 +103,15 @@ export class RoomChatController  {
 
   async deleteRoomChat(req: Request, res: Response, next: NextFunction) {
     try {
-
+      const userReq = req as UserRequest;
+      const userRole = userReq.user?.role;
       const { roomId } = req.params
-      await this.chatService.deleteRoomChat(roomId);
+
+      if (!userRole) {
+        throw new ResponseError(400, "User tidak valid");
+      }
+      
+      await this.chatService.deleteRoomChat(roomId, userRole);
 
       res.status(200).json({
         data: "Berhasil menghapus Room Chat",

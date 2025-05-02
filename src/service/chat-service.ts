@@ -35,28 +35,14 @@ export class ChatService {
     const isCustomer = role === Role.CUSTOMER;
   
     const rooms = await prismaClient.roomChat.findMany({
-      where: isCustomer ? { customerId: userId } : { tailorId: userId },
+      where: {
+        ...(isCustomer
+          ? { customerId: userId, deletedByCustomer: false }
+          : { tailorId: userId, deletedByTailor: false })
+      },
       include: {
-        customer: {
-          select: {
-            id: true,
-            firstname: true,
-            lastname: true,
-            profilePicture: true,
-            email: true,
-            phoneNumber: true,
-          }
-        },
-        tailor: {
-          select: {
-            id: true,
-            firstname: true,
-            lastname: true,
-            profilePicture: true,
-            email: true,
-            phoneNumber: true,
-          }
-        }
+        customer: { select: { id: true, firstname: true, lastname: true, profilePicture: true, email: true, phoneNumber: true } },
+        tailor: { select: { id: true, firstname: true, lastname: true, profilePicture: true, email: true, phoneNumber: true } }
       }
     });
   
@@ -129,10 +115,19 @@ export class ChatService {
   }
   
 
-  async deleteRoomChat(roomId: string) {
-    await prismaClient.roomChat.delete({
-      where: { id: roomId }
-    })
+  async deleteRoomChat(roomId: string, userType: Role) {
+    await prismaClient.roomChat.update({
+      where: { id: roomId },
+      data: {
+        deletedByCustomer: userType === Role.CUSTOMER ? true : undefined,
+        deletedByTailor: userType === Role.TAILOR ? true : undefined,
+      },
+    });
+  
+    const room = await prismaClient.roomChat.findUnique({ where: { id: roomId } });
+    if (room?.deletedByCustomer && room?.deletedByTailor) {
+      await prismaClient.roomChat.delete({ where: { id: roomId } });
+    }
   }
   
 }
