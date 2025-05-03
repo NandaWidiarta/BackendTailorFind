@@ -88,6 +88,8 @@ model RoomChat {
   deletedByTailorAt     DateTime?
   lastHiddenAtCustomer    DateTime?
   lastHiddenAtTailor      DateTime?
+  customerProfilePicture    String?
+  tailorProfilePicture    String?
 
   @@unique([customerId, tailorId])
 }

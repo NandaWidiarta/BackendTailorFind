@@ -25,6 +25,8 @@ export class ChatService {
           tailorId,
           customerName: customer.firstname + (customer.lastname ? ` ${customer.lastname}` : ""),
           tailorName: tailor.firstname + (tailor.lastname ? ` ${tailor.lastname}` : ""),
+          customerProfilePicture: customer.profilePicture,
+          tailorProfilePicture: tailor.profilePicture
         },
       });
     }
