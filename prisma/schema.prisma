@@ -84,8 +84,8 @@ model RoomChat {
   latestMessageTime  DateTime?
   unreadCountCustomer Int @default(0)  
   unreadCountTailor   Int @default(0) 
-  deletedByCustomer  Boolean @default(false)
-  deletedByTailor    Boolean @default(false)
+  deletedByCustomerAt   DateTime?
+  deletedByTailorAt     DateTime?
 
   @@unique([customerId, tailorId])
 }

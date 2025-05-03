@@ -37,8 +37,8 @@ export class ChatService {
     const rooms = await prismaClient.roomChat.findMany({
       where: {
         ...(isCustomer
-          ? { customerId: userId, deletedByCustomer: false }
-          : { tailorId: userId, deletedByTailor: false })
+          ? { customerId: userId, deletedByCustomerAt: null }
+          : { tailorId: userId, deletedByTailorAt: null })
       },
       include: {
         customer: { select: { id: true, firstname: true, lastname: true, profilePicture: true, email: true, phoneNumber: true } },
@@ -50,11 +50,16 @@ export class ChatService {
   }
 
   async getChatsInRoom(roomId: string, userType: Role): Promise<ChatResponse[]> {
+    const room = await prismaClient.roomChat.findUnique({ where: { id: roomId } });
+
+    const deletedAt = userType === Role.CUSTOMER
+      ? room?.deletedByCustomerAt
+      : room?.deletedByTailorAt;
 
     await this.markAsRead(roomId, userType);
 
     const chats = await prismaClient.chat.findMany({
-      where: { roomId },
+      where: { roomId, ...(deletedAt && { createdAt: { gt: deletedAt } }) },
       orderBy: { createdAt: 'asc' },
     })
 
@@ -86,9 +91,7 @@ export class ChatService {
           : undefined,
         unreadCountTailor: senderType === Role.CUSTOMER || senderType === Role.ADMIN
           ? { increment: 1 }
-          : undefined,
-        deletedByCustomer: senderType === Role.TAILOR ? false : undefined,
-        deletedByTailor: senderType === Role.CUSTOMER ? false : undefined,
+          : undefined
       }
     })
 
@@ -118,16 +121,19 @@ export class ChatService {
 
 
   async deleteRoomChat(roomId: string, userType: Role) {
+    const now = new Date();
+
     await prismaClient.roomChat.update({
       where: { id: roomId },
       data: {
-        deletedByCustomer: userType === Role.CUSTOMER ? true : undefined,
-        deletedByTailor: userType === Role.TAILOR ? true : undefined,
+        deletedByCustomerAt: userType === Role.CUSTOMER ? now : undefined,
+        deletedByTailorAt: userType === Role.TAILOR ? now : undefined,
       },
     });
 
     const room = await prismaClient.roomChat.findUnique({ where: { id: roomId } });
-    if (room?.deletedByCustomer && room?.deletedByTailor) {
+
+    if (room?.deletedByCustomerAt && room?.deletedByTailorAt) {
       await prismaClient.roomChat.delete({ where: { id: roomId } });
     }
   }
