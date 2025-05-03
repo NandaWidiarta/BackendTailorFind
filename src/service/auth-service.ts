@@ -117,19 +117,24 @@ export class AuthService {
 
     async getUserDetailById(userId: string, userRole: Role) {
         const user = await prismaClient.user.findUnique({
-          where: {
-            id: userId
-          },
-          include: {
-            tailorProfile: userRole == Role.TAILOR
-          }
+            where: {
+                id: userId
+            },
+            include: {
+                tailorProfile: userRole == Role.TAILOR
+            }
         })
-    
+
         if (user) {
-          const { password, ...userWithoutPassword } = user;
-          return userWithoutPassword;
+            // const { password, ...userWithoutPassword } = user;
+            // return userWithoutPassword;
+            const { password, walletBalance, ...rest } = user;
+            return {
+                ...rest,
+                walletBalance: walletBalance.toString(), 
+            };
         }
-        
+
         return null;
     }
 

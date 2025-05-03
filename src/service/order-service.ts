@@ -538,7 +538,7 @@ export class OrderService {
 
     return {
       message: 'Withdraw berhasil',
-      balance: updatedUser.walletBalance
+      balance: updatedUser.walletBalance.toString()
     }
   }
 
