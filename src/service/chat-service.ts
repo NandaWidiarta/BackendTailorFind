@@ -52,14 +52,14 @@ export class ChatService {
   async getChatsInRoom(roomId: string, userType: Role): Promise<ChatResponse[]> {
     const room = await prismaClient.roomChat.findUnique({ where: { id: roomId } });
 
-    const deletedAt = userType === Role.CUSTOMER
-      ? room?.deletedByCustomerAt
-      : room?.deletedByTailorAt;
+    const lastHiddenAt  = userType === Role.CUSTOMER
+      ? room?.lastHiddenAtCustomer
+      : room?.lastHiddenAtTailor;
 
     await this.markAsRead(roomId, userType);
 
     const chats = await prismaClient.chat.findMany({
-      where: { roomId, ...(deletedAt && { createdAt: { gt: deletedAt } }) },
+      where: { roomId, ...(lastHiddenAt  && { createdAt: { gt: lastHiddenAt  } }) },
       orderBy: { createdAt: 'asc' },
     })
 
@@ -91,7 +91,9 @@ export class ChatService {
           : undefined,
         unreadCountTailor: senderType === Role.CUSTOMER || senderType === Role.ADMIN
           ? { increment: 1 }
-          : undefined
+          : undefined,
+        deletedByCustomerAt: senderType === Role.TAILOR ? null : undefined,
+        deletedByTailorAt: senderType === Role.CUSTOMER ? null : undefined,
       }
     })
 
@@ -127,7 +129,9 @@ export class ChatService {
       where: { id: roomId },
       data: {
         deletedByCustomerAt: userType === Role.CUSTOMER ? now : undefined,
+        lastHiddenAtCustomer: userType === Role.CUSTOMER ? now : undefined,
         deletedByTailorAt: userType === Role.TAILOR ? now : undefined,
+        lastHiddenAtTailor: userType === Role.TAILOR ? now : undefined,
       },
     });
 
