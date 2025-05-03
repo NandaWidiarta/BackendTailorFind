@@ -197,14 +197,13 @@ export class TailorService {
       throw new ResponseError(400, "tailorId-not-found");
     }
 
-    // Hitung unread message
     const rooms = await prismaClient.roomChat.findMany({
       where: { tailorId },
-      select: { unreadCountCustomer: true },
+      select: { unreadCountTailor: true },
     });
 
     const unreadMessagesCount = rooms.reduce(
-      (total, room) => total + room.unreadCountCustomer,
+      (total, room) => total + room.unreadCountTailor,
       0
     );
 
