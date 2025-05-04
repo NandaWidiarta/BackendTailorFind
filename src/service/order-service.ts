@@ -375,7 +375,7 @@ export class OrderService {
 
     await prismaClient.orderCancellation.update({
       where: { orderId: orderId },
-      data: { isCancellationApproved: true, cancelledAt: new Date() },
+      data: { cancelledAt: new Date() },
     });
 
     await prismaClient.user.update({

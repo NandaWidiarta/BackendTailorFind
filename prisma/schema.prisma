@@ -45,11 +45,11 @@ model TailorProfile {
   regencyId         String     
   districtId        String     
   villageId         String     
-  addressDetail     String  
+  addressDetail     String    @db.VarChar(500) 
   workEstimation    String    @db.VarChar(255)     
   priceRange        String     
   specialization    String[]
-  businessDescription String
+  businessDescription String  @db.VarChar(500)    
   certificate       String[]
   averageRating     Float      @default(0.0)
   gender            Gender     @default(FEMALE)
@@ -109,7 +109,7 @@ model Chat {
 model RatingReview {
   id        String   @id @default(cuid())
   rating    Int      @db.SmallInt  
-  review    String?   @db.VarChar(255)
+  review    String?  
   tailorId  String  
   customerId String  
   image     String?
@@ -153,38 +153,6 @@ model Village {
   tailors         TailorProfile[]    @relation("VillageTailors") 
 }
 
-// model Order {
-//   id           String       @id @default(cuid())
-//   tailorId     String        @db.VarChar(100)  
-//   customerId   String        @db.VarChar(100)  
-//   roomId       String?
-//   orderType    OrderType   @default(PICKUP)    
-//   totalPrice   Int
-//   status       OrderStatus  @default(NOT_YET_PAY) 
-//   orderDate    DateTime     @default(now())
-//   deliveryAddress String? 
-//   deliveryServiceName String?
-//   receiptNumber String?
-//   deliveryImage String?
-//   cancellationReason String?  
-//   cancelledAt   DateTime? 
-
-
-//   cancellationRequestImage   String?
-//   cancellationRequestReason  String?
-//   cancellationRejectedReason String?
-//   isCancellationApproved     Boolean?
-//   previousStatus             OrderStatus? 
-
-//   updatedAt       DateTime    @updatedAt
-
-//   room         RoomChat? @relation(fields: [roomId], references: [id], onDelete: SetNull)
-//   tailor       User @relation("TailorOrders", fields: [tailorId], references: [id])
-//   customer     User @relation("CustomerOrders", fields: [customerId], references: [id])
-
-//   orderItems   OrderItem[]  
-// }
-
 model Order {
   id           String    @id @default(cuid()) 
   tailorId     String     
@@ -207,7 +175,7 @@ model Order {
 model OrderShipping {
   id                  String   @id @default(cuid())  
   orderId             String   @unique  
-  deliveryAddress     String? 
+  deliveryAddress     String?  @db.VarChar(500)
   deliveryServiceName String?  @db.VarChar(255)
   receiptNumber       String?  @db.VarChar(255)
   deliveryImage       String? 
@@ -222,7 +190,6 @@ model OrderCancellation {
   cancelledAt                DateTime?
   cancellationRequestImage   String?  
   cancellationRejectedReason String?  @db.VarChar(255)
-  isCancellationApproved     Boolean?
   previousStatus             OrderStatus?
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -259,7 +226,7 @@ model Course {
   shortDescription      String    @db.VarChar(500)
   registrationLink      String
   description  String
-  place        String?      
+  place        String?      @db.VarChar(500)
   courseDate   String?      @db.VarChar(255)
 
   createdAt       DateTime    @default(now())
@@ -279,25 +246,6 @@ model Stuff {
   updatedAt       DateTime    @updatedAt
   tailor          TailorProfile @relation("TailorStuffs", fields: [tailorId], references: [userId])
 }
-
-// model Notification {
-//   id         String   @id @default(cuid())
-//   userId     String
-//   message    String
-//   isRead     Boolean  @default(false)
-//   type       NotificationType
-//   relatedId  String?  
-//   createdAt  DateTime @default(now())
-
-//   user       User     @relation(fields: [userId], references: [id])
-
-//   @@map("Notification")
-// }
-
-// enum NotificationType {
-//   CHAT
-//   ORDER
-// }
 
 enum OrderStatus {
   NOT_YET_PAY
