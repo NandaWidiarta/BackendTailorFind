@@ -439,7 +439,6 @@ export class OrderService {
     await prismaClient.orderCancellation.update({
       where: { orderId },
       data: {
-        isCancellationApproved: false,
         previousStatus: null,
         cancellationRejectedReason: rejectReason,
       },

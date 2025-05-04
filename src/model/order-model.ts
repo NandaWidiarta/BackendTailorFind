@@ -130,7 +130,6 @@ export function mapOrderToOrderDetailResponse(order: OrderWithRelations): OrderD
     cancelledAt: order.orderCancellation?.cancelledAt ?? null,
     cancellationRequestImage: order.orderCancellation?.cancellationRequestImage ?? null,
     cancellationRejectedReason: order.orderCancellation?.cancellationRejectedReason ?? null,
-    isCancellationApproved: order.orderCancellation?.isCancellationApproved ?? null,
     previousStatus: order.orderCancellation?.previousStatus ?? null,
     updatedAt: order.updatedAt,
     orderItems: order.orderItems.map((item) => ({
