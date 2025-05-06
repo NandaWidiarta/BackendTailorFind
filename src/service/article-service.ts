@@ -14,7 +14,7 @@ export class ArticleService {
     if (!image) throw new ResponseError(500, "Gambar tidak ditemukan");
 
     const fileName = `${tailorId}-${Date.now()}`;
-    const { data, error } = await supabase.storage.from("articleImage").upload(fileName, image.buffer, {
+    const { data, error } = await supabase.storage.from("articleImages").upload(fileName, image.buffer, {
       contentType: image.mimetype
     });
 
