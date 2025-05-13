@@ -85,7 +85,7 @@ export class AuthController {
             const userReq = req as UserRequest;
             const userId = userReq.user?.id;
             if (!userId) {
-                throw new ResponseError(400, "user-id-null");
+                throw new ResponseError(400, "User id kosong ");
             }
             const response = await this.authService.resetPassword(newPassword, userId);
             res.status(200).json({

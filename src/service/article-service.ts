@@ -88,7 +88,7 @@ export class ArticleService {
       }
     });
 
-    if (!article) throw new ResponseError(404, "article-not-found");
+    if (!article) throw new ResponseError(400, "Artikel tidak ditemukan");
 
     return mapToArticleResponse(article)
   }

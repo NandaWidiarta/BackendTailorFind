@@ -58,7 +58,7 @@ export class StuffService {
     });
   
     if (!existingStuff) {
-      throw new ResponseError(404, "stuff-not-found");
+      throw new ResponseError(400, "Data tidak ditemukan");
     }
   
     const updateData: any = {

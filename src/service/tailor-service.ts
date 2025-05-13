@@ -26,7 +26,7 @@ export class TailorService {
 
   async getHomeData(tailorId: string) {
     if (!tailorId) {
-      throw new ResponseError(400, "tailorId-not-found");
+      throw new ResponseError(400, "Data tidak ditemukan");
     }
 
     const rooms = await prismaClient.roomChat.findMany({
@@ -63,7 +63,7 @@ export class TailorService {
     });
 
     if (!tailorProfile) {
-      throw new ResponseError(400, "tailor-not-found");
+      throw new ResponseError(400, "Data tidak ditemukan");
     }
 
     const [latestArticles, latestStuff, latestCourses] = await Promise.all([
@@ -253,11 +253,11 @@ export class TailorService {
     });
 
     if (!existingUser) {
-      throw new ResponseError(404, "user-not-found");
+      throw new ResponseError(400, "Data tidak ditemukan");
     }
 
     if (!existingUser.tailorProfile) {
-      throw new ResponseError(404, "tailor-profile-not-found");
+      throw new ResponseError(400, "Data tidak ditemukan");
     }
 
     if (data.email && data.email !== existingUser.email) {
@@ -269,20 +269,7 @@ export class TailorService {
       });
 
       if (isEmailExist > 0) {
-        throw new ResponseError(400, "email-already-exist");
-      }
-    }
-
-    if (data.phoneNumber && data.phoneNumber !== existingUser.phoneNumber) {
-      const isPhoneExist = await prismaClient.user.count({
-        where: {
-          phoneNumber: data.phoneNumber,
-          id: { not: userId }
-        },
-      });
-
-      if (isPhoneExist > 0) {
-        throw new ResponseError(400, "phone-number-already-exist");
+        throw new ResponseError(400, "Email sudah terdaftar");
       }
     }
 
@@ -336,7 +323,7 @@ export class TailorService {
         });
 
       if (error) {
-        throw new ResponseError(500, "failed-to-upload-profile-picture");
+        throw new ResponseError(500, "Gagal mengupload gambar ke server");
       }
 
       const profilePictureUrl = uploadData?.path
@@ -370,7 +357,7 @@ export class TailorService {
       });
 
       if (!updatedTailor) {
-        throw new ResponseError(500, "failed-to-update-tailor-profile");
+        throw new ResponseError(500, "Gagal mengupdate data");
       }
 
       return toTailorResponse(updatedTailor);
@@ -379,7 +366,7 @@ export class TailorService {
       if (error instanceof ResponseError) {
         throw error;
       }
-      throw new ResponseError(500, "failed-to-update-tailor-profile");
+      throw new ResponseError(500, "Gagal mengupdate data");
     }
   }
 
@@ -410,7 +397,7 @@ export class TailorService {
     })
 
     if (!existingUser) {
-      throw new ResponseError(404, "user-not-found");
+      throw new ResponseError(404, "Data tidak ditemukan");
     }
 
     return existingUser.tailorProfile?.certificate
@@ -429,7 +416,7 @@ export class TailorService {
     })
 
     if (!existingUser) {
-      throw new ResponseError(404, "user-not-found");
+      throw new ResponseError(400, "Data tidak ditemukan");
     }
 
     const existingCertificates = existingUser.tailorProfile?.certificate || [];
@@ -443,7 +430,7 @@ export class TailorService {
         });
 
       if (error) {
-        throw new ResponseError(500, "failed-to-upload-certificate");
+        throw new ResponseError(500, "Gagal mengupload gambar ke server");
       }
 
       if (data?.path) {
@@ -476,7 +463,7 @@ export class TailorService {
     })
 
     if (!existingUser) {
-      throw new ResponseError(404, "user-not-found");
+      throw new ResponseError(400, "Data tidak ditemukan");
     }
 
     const certificates = existingUser.certificate || [];
@@ -485,7 +472,7 @@ export class TailorService {
     )
 
     if (!certificateToDelete) {
-      throw new ResponseError(404, "Certificate-not-found");
+      throw new ResponseError(400, "Data tidak ditemukan");
     }
 
     try {
@@ -561,7 +548,7 @@ export class TailorService {
     });
 
     if (!tailor) {
-        throw new ResponseError(400, "tailor-not-found");
+        throw new ResponseError(400, "Data tidak ditemukan");
     }
 
     const reviewsCount = tailor.receivedReviews.length;

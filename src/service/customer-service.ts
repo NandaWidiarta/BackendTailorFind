@@ -41,7 +41,7 @@ export class CustomerService {
         });
 
       if (error) {
-        throw new ResponseError(500, "failed-upload-rating-image-to-database");
+        throw new ResponseError(500, "Gagal mengupload gambar ke server");
       }
 
       imageUrl = data?.path
@@ -365,7 +365,7 @@ export class CustomerService {
     });
   
     if (!tailor) {
-      throw new ResponseError(400, "tailor-not-found");
+      throw new ResponseError(400, "Data tidak ditemukan");
     }
   
     const reviewsCount = tailor.receivedReviews.length;
@@ -459,79 +459,5 @@ export class CustomerService {
     return mapUserToProfileResponse(updatedUser);
   }
   
-
-  async registerCustomerV2(registerRequest: CreateCustomerRequest, profilePictureFile?: Express.Multer.File): Promise<CustomerResponse> {
-    
-    const email = registerRequest.email.toLowerCase()
-
-    const emailExists = await prismaClient.user.count({
-      where: { email: email }
-    }) > 0
-    
-    if (emailExists) {
-      throw new ResponseError(400, "Email sudah digunakan")
-    }
-    
-    const phoneExists = await prismaClient.user.count({
-      where: { phoneNumber: registerRequest.phoneNumber }
-    }) > 0
-    
-    if (phoneExists) {
-      throw new ResponseError(400, "Phone number already exists")
-    }
-
-    let profilePictureUrl: string | null = null;
-    if (profilePictureFile) {
-      const fileName = `${email}-${Date.now()}`;
-      const { data, error } = await supabase.storage
-        .from("profile")
-        .upload(fileName, profilePictureFile.buffer, {
-          contentType: profilePictureFile.mimetype,
-        });
-
-      if (error) {
-        throw new ResponseError(500, "Failed to upload profile picture");
-      }
-
-      profilePictureUrl = data?.path
-        ? `${
-            supabase.storage.from("profile").getPublicUrl(data.path).data
-              .publicUrl
-          }`
-        : null
-    } else {
-      profilePictureUrl = "https://xtyrxekcsaesyyopouhh.supabase.co/storage/v1/object/public/profile/tes/user.png"
-    }
-    
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: email,
-      password: registerRequest.password
-    })
-    
-    if (authError) {
-      throw new ResponseError(400, authError.message)
-    }
-    
-    if (!authData.user) {
-      throw new ResponseError(500, "Failed to create user")
-    }
-    
-    const customer = await prismaClient.user.create({
-      data: {
-        id: authData.user.id, 
-        firstname: registerRequest.firstname,
-        lastname: registerRequest.lastname,
-        email: email,
-        phoneNumber: registerRequest.phoneNumber,
-        password: '', 
-        role: Role.CUSTOMER,
-        profilePicture: profilePictureUrl
-      }
-    })
-    
-    const response = toCustomerResponse(customer)
-    response.token = authData.session?.access_token || ''
-    return response
-  }
 
 }

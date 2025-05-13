@@ -14,7 +14,7 @@ export class ArticleController {
       let authorName = userReq.user?.firstname
 
       if (!tailorId || !authorName) {
-        throw new ResponseError(400, "Invalid-user-information");
+        throw new ResponseError(400, "Informasi user tidak valid");
       }
 
       if (userReq.user?.lastname) {
@@ -116,7 +116,7 @@ export class ArticleController {
       const tailorId = userReq.user?.id
 
       if (!tailorId) {
-        throw new ResponseError(400, "user-id-not-found");
+        throw new ResponseError(400, "User id tidak ditemukan");
       }
 
       const {type = 'own', page = "1", pageSize } = req.query;
@@ -145,7 +145,7 @@ export class ArticleController {
       const courseId = req.params.id
 
       if (!tailorId) {
-        throw new ResponseError(400, "Invalid-user-information");
+        throw new ResponseError(400, "Informasi user tidak valid");
       }
       
       const {
@@ -180,7 +180,7 @@ export class ArticleController {
       const articleId = req.params.id
 
       if (!tailorId) {
-        throw new ResponseError(400, "Invalid-user-information");
+        throw new ResponseError(400, "Informasi user tidak valid");
       }
       
       const response = await this.articleService.deleteArticle(articleId, tailorId)

@@ -58,7 +58,7 @@ export class OrderService {
     }) as unknown as OrderWithRelations;
 
     if (!order) {
-      throw new ResponseError(404, "order-not-found");
+      throw new ResponseError(404, "Order tidak ditemukan");
     }
 
     const response = mapOrderToOrderDetailResponse(order);
@@ -96,7 +96,7 @@ export class OrderService {
     });
 
     if (!order) {
-      throw new ResponseError(400, "order-not-found");
+      throw new ResponseError(400, "Order tidak ditemukan");
     }
 
     let imageUrl: string | null = null;
@@ -109,7 +109,7 @@ export class OrderService {
         });
 
       if (error) {
-        throw new ResponseError(500, "failed-upload-packet-image-to-database");
+        throw new ResponseError(500, "Gagal mengupload gambar ke server");
       }
 
       imageUrl = data?.path
@@ -178,7 +178,7 @@ export class OrderService {
     });
 
     if (!order) {
-      throw new ResponseError(400, "order-not-found");
+      throw new ResponseError(400, "Order tidak ditemukan");
     }
 
     const updatedOrder = await prismaClient.order.update({
@@ -193,7 +193,7 @@ export class OrderService {
     });
 
     if (!admin) {
-      throw new ResponseError(500, "admin-not-found");
+      throw new ResponseError(500, "Admin tidak ditemukan");
     }
 
     await prismaClient.user.update({
@@ -221,18 +221,18 @@ export class OrderService {
     });
 
     if (!order) {
-      throw new ResponseError(400, "order-not-found");
+      throw new ResponseError(400, "Order tidak ditemukan");
     }
 
     if (
       (request.userRole === Role.CUSTOMER && order.customerId !== request.userId) ||
       (request.userRole === Role.TAILOR && order.tailorId !== request.userId)
     ) {
-      throw new ResponseError(400, "user-not-same");
+      throw new ResponseError(400, "User tidak sama");
     }
 
     if (order.status === OrderStatus.DONE) {
-      throw new ResponseError(400, "order-cannot-cancel");
+      throw new ResponseError(400, "Order tidak bisa dicancel");
     }
 
     const newStatus =
@@ -296,7 +296,7 @@ export class OrderService {
     }) as unknown as OrderWithRelations;
 
     if (!order) {
-      throw new ResponseError(400, "order-not-found");
+      throw new ResponseError(400, "Order tidak ditemukan");
     }
 
     const updatedOrder = await prismaClient.order.update({
@@ -314,7 +314,7 @@ export class OrderService {
     });
 
     if (!admin) {
-      throw new ResponseError(500, "admin-not-found");
+      throw new ResponseError(500, "Admin tidak ditemukan");
     }
 
     await prismaClient.user.update({
@@ -357,7 +357,7 @@ export class OrderService {
     });
 
     if (!order) {
-      throw new ResponseError(400, "order-not-found");
+      throw new ResponseError(400, "Order tidak ditemukan");
     }
 
     const updatedOrder = await prismaClient.order.update({
@@ -408,18 +408,18 @@ export class OrderService {
       include: orderDetailInclude,
     });
 
-    if (!order) throw new ResponseError(404, "order-not-found");
+    if (!order) throw new ResponseError(400, "Order tidak ditemukan");
 
     if (!order.orderCancellation) {
-      throw new ResponseError(400, "order-cancellation-not-found");
+      throw new ResponseError(400, "data tidak ditemukan");
     }
 
     if (order.status !== OrderStatus.ADMIN_REVIEWING_CANCELLATION) {
-      throw new ResponseError(400, "order-is-not-in-review-status");
+      throw new ResponseError(400, "Order tidak dalam status review admin");
     }
 
     if (!order.orderCancellation.previousStatus) {
-      throw new ResponseError(400, "cannot-revert-without-previous-status");
+      throw new ResponseError(400, "Data status sebelumnya tidak ditemukan");
     }
 
     // Update status Order

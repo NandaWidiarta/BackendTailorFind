@@ -149,7 +149,7 @@ export class CourseService {
       }
     });
 
-    if (!course) throw new ResponseError(400, "Course Tidak Ditemukan");
+    if (!course) throw new ResponseError(400, "Kursus Tidak Ditemukan");
 
     const result: CourseResponse = mapToCourseResponse(course)
 
@@ -220,7 +220,7 @@ export class CourseService {
       where: { id: courseId, tailorId }
     });
 
-    if (!existingCourse) throw new ResponseError(404, "course-not-found");
+    if (!existingCourse) throw new ResponseError(400, "Kursus tidak ditemukan");
 
     const updateData: any = {
       tailorId,
@@ -299,7 +299,7 @@ export class CourseService {
     });
 
     if (!existingCourse) {
-      throw new ResponseError(404, "course-not-found");
+      throw new ResponseError(404, "Kursus tidak ditemukan");
     }
 
     await prismaClient.course.delete({

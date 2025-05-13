@@ -194,11 +194,11 @@ export class AuthService {
         })
 
         if (authError) {
-            throw new ResponseError(401, "Email atau password salah")
+            throw new ResponseError(400, "Email atau password salah")
         }
 
         if (!authData.user) {
-            throw new ResponseError(401, "User tidak ditemukan")
+            throw new ResponseError(400, "User tidak ditemukan")
         }
 
         const user = await prismaClient.user.findUnique({
@@ -211,7 +211,7 @@ export class AuthService {
         })
 
         if (!user) {
-            throw new ResponseError(401, "User tidak ditemukan")
+            throw new ResponseError(400, "User tidak ditemukan")
         }
 
         if (user.role === Role.CUSTOMER || user.role === Role.ADMIN) {
@@ -280,7 +280,7 @@ export class AuthService {
         })
 
         if (!user) {
-            throw new ResponseError(401, "User tidak ditemukan")
+            throw new ResponseError(400, "User tidak ditemukan")
         }
 
         if (user.role === Role.CUSTOMER || user.role === Role.ADMIN) {

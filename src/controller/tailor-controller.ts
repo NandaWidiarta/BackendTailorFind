@@ -15,7 +15,7 @@ export class TailorController {
       const userReq = req as UserRequest;
       const userId = userReq.user?.id;
       if (!userId) {
-        throw new ResponseError(400, "user id null");
+        throw new ResponseError(400, "User id kosong");
       }
 
       const result = await this.tailorService.getHomeData(userId);
@@ -38,7 +38,7 @@ export class TailorController {
       const userReq = req as UserRequest;
       const userId = userReq.user?.id;
       if (!userId) {
-        throw new ResponseError(400, "user id null");
+        throw new ResponseError(400, "User id kosong");
       }
       
       const response = await this.tailorService.getStuff(currentPage, 8, userId)
@@ -65,7 +65,7 @@ export class TailorController {
       const max = maxPrice ? parseInt(maxPrice as string, 10) : undefined;
 
       if (!userId) {
-        throw new ResponseError(400, "user id null");
+        throw new ResponseError(400, "User id kosong");
       }
 
       const result = await this.tailorService.filterStuff({
@@ -92,7 +92,7 @@ export class TailorController {
       const userId = userReq.user?.id
 
       if (!userId) {
-        throw new ResponseError(400, "Invalid-user-information");
+        throw new ResponseError(400, "Informasi user tidak valid");
       }
 
       const {
@@ -154,7 +154,7 @@ export class TailorController {
       const userId = userReq.user?.id
 
       if (!userId) {
-        throw new ResponseError(400, "Invalid-user-information");
+        throw new ResponseError(400, "Informasi user tidak valid");
       }
 
       const certificateFiles = Array.isArray(req.files)
@@ -180,7 +180,7 @@ export class TailorController {
       const userId = userReq.user?.id
 
       if (!userId) {
-        throw new ResponseError(400, "Invalid-user-information");
+        throw new ResponseError(400, "Informasi user tidak valid");
       }
 
       const response = await this.tailorService.getCertificates(
@@ -201,7 +201,7 @@ export class TailorController {
       const userId = userReq.user?.id
 
       if (!userId) {
-        throw new ResponseError(400, "Invalid-user-information");
+        throw new ResponseError(400, "Informasi user tidak valid");
       }
 
       const {
@@ -226,7 +226,7 @@ export class TailorController {
       const userReq = req as UserRequest;
       const userId = userReq.user?.id;
       if (!userId) {
-        throw new ResponseError(400, "user id null");
+        throw new ResponseError(400, "User id kosong");
       }
 
       const result = await this.tailorService.getReviewData(userId);

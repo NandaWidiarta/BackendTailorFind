@@ -60,7 +60,7 @@ export class AdminController {
             throw new ResponseError(400, "User Tidak Valid");
         }
 
-          const response = await this.orderService.getAllOrder(adminId, userRole)
+          const response = await this.orderService.getAllOrder(adminId,userRole)
           res.status(200).json({
             data: response,
           });

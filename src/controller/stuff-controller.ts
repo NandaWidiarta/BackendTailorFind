@@ -17,7 +17,7 @@ export class StuffController {
       const tailorId = userReq.user?.id
 
       if (!tailorId) {
-        throw new ResponseError(400, "Invalid-user-information");
+        throw new ResponseError(400, "Informasi user tidak valid");
       }
 
       const {
@@ -51,7 +51,7 @@ export class StuffController {
       const stuffId = req.params.id
 
       if (!tailorId) {
-        throw new ResponseError(400, "Invalid-user-information");
+        throw new ResponseError(400, "Informasi user tidak valid");
       }
       
       const {
@@ -90,7 +90,7 @@ export class StuffController {
       const stuffId = req.params.id
 
       if (!tailorId) {
-        throw new ResponseError(400, "Invalid-user-information");
+        throw new ResponseError(400, "Informasi user tidak valid");
       }
       
       const response = await this.stuffService.deleteStuff(stuffId, tailorId)

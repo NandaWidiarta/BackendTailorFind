@@ -17,7 +17,7 @@ export class CourseController {
       const tailorId = userReq.user?.id
 
       if (!tailorId) {
-        throw new ResponseError(400, "Invalid-user-information");
+        throw new ResponseError(400, "Informasi user tidak valid");
       }
 
       const {
@@ -123,7 +123,7 @@ export class CourseController {
       const tailorId = userReq.user?.id
 
       if (!tailorId) {
-        throw new ResponseError(400, "invalid-user-id");
+        throw new ResponseError(400, "User id tidak valid");
       }
 
       const {type = 'own', page = "1", pageSize } = req.query;
@@ -152,7 +152,7 @@ export class CourseController {
       const courseId = req.params.id
 
       if (!tailorId) {
-        throw new ResponseError(400, "Invalid-user-information");
+        throw new ResponseError(400, "Informasi user tidak valid");
       }
       
       const {
@@ -195,7 +195,7 @@ export class CourseController {
       const courseId = req.params.id
 
       if (!tailorId) {
-        throw new ResponseError(400, "Invalid-user-information");
+        throw new ResponseError(400, "Informasi user tidak valid");
       }
       
       const response = await this.courseService.deleteCourse(courseId, tailorId)

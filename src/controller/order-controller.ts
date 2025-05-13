@@ -106,7 +106,7 @@ export class OrderController {
   
       const { orderId } = req.params;
       if (!orderId) {
-        throw new ResponseError(400, "orderId is required");
+        throw new ResponseError(400, "OrderId diperlukan");
       }
 
       const { cancellationReason } = req.body
@@ -121,7 +121,7 @@ export class OrderController {
             throw new Error("Failed to upload image");
           }
         } catch (uploadErr) {
-          throw new ResponseError(500, "Failed to upload file to Supabase");
+          throw new ResponseError(500, "Gagal mengupload gambar ke server");
         }
       }
   

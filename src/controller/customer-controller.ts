@@ -49,7 +49,7 @@ export class CustomerController {
       const userReq = req as UserRequest;
       const userId = userReq.user?.id;
       if (!userId) {
-        throw new ResponseError(400, "user id null");
+        throw new ResponseError(400, "User id kosong");
       }
 
       const result = await this.customerService.getHomeData(userId);
@@ -149,7 +149,7 @@ export class CustomerController {
       const userReq = req as UserRequest;
       const userId = userReq.user?.id;
       if (!userId) {
-        throw new ResponseError(400, "user id null");
+        throw new ResponseError(400, "User id kosong");
       }
       const { firstname, lastname, email, phoneNumber } = req.body;
       const imageFile = req.file
@@ -170,20 +170,6 @@ export class CustomerController {
       res.status(200).json({
         message: "Customer profile updated successfully",
         data: updatedUser,
-      });
-    } catch (e) {
-      next(e);
-    }
-  }
-
-  async registerV2(req: Request, res: Response, next: NextFunction) {
-    try {
-      const request: CreateCustomerRequest = req.body as CreateCustomerRequest;
-      const profilePicture = req.file
-      console.log("registerv2", request)
-      const response = await this.customerService.registerCustomerV2(request, profilePicture);
-      res.status(200).json({
-        data: response,
       });
     } catch (e) {
       next(e);
