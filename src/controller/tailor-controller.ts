@@ -292,4 +292,21 @@ export class TailorController {
     }
   }
 
+  async getReviewData(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userReq = req as UserRequest;
+      const userId = userReq.user?.id;
+      if (!userId) {
+        throw new ResponseError(400, "user id null");
+      }
+
+      const result = await this.tailorService.getReviewData(userId);
+      res.status(200).json({
+        data: result,
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
+
 }

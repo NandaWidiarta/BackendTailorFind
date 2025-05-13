@@ -819,4 +819,60 @@ export class TailorService {
     response.token = authData.session?.access_token || ''
     return response
   }
+
+  async getReviewData(id: string) {
+    const tailor = await prismaClient.user.findFirst({
+        where: {
+            id: id,
+            role: Role.TAILOR
+        },
+        include: {
+            receivedReviews: {
+                include: {
+                    customer: {
+                        select: {
+                            id: true,
+                            firstname: true,
+                            lastname: true,
+                            profilePicture: true 
+                        }
+                    }
+                }
+            },
+            tailorProfile: {
+                select: {
+                    averageRating: true
+                }
+            }
+        }
+    });
+
+    if (!tailor) {
+        throw new ResponseError(400, "tailor-not-found");
+    }
+
+    const reviewsCount = tailor.receivedReviews.length;
+  
+    const reviews = tailor.receivedReviews.map(review => ({
+        id: review.id,
+        rating: review.rating,
+        review: review.review,
+        image: review.image,
+        createdAt: review.createdAt,
+        customer: {
+            id: review.customer.id,
+            name: `${review.customer.firstname} ${review.customer.lastname || ''}`,
+            imageUrl: review.customer.profilePicture
+        }
+    }));
+
+    const averageRating = tailor.tailorProfile?.averageRating || 0;
+
+    return {
+        reviewsCount,
+        reviews,
+        averageRating
+    };
+}
+
 }
