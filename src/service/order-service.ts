@@ -85,6 +85,8 @@ export class OrderService {
       }) as unknown as OrderWithRelations[];
     }
 
+    await this.autoCompleteLongPendingOrders()
+
     return orders.map(mapOrderToOrderDetailResponse)
   }
 
@@ -398,6 +400,8 @@ export class OrderService {
       ChatType.ORDER_CANCELED
     );
 
+    await this.autoCompleteLongPendingOrders()
+
     const result = mapOrderToOrderDetailResponse(updatedOrder);
     return result;
   }
@@ -449,6 +453,8 @@ export class OrderService {
       updatedOrder.id,
       ChatType.CANCELATION_REQUEST_REJECTED
     );
+
+    await this.autoCompleteLongPendingOrders()
 
     return mapOrderToOrderDetailResponse(updatedOrder);
   }
