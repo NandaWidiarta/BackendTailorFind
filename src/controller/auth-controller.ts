@@ -1,25 +1,69 @@
 import { LocationService } from "../service/location-service";
 import e, { Request, Response, NextFunction } from "express";
 import { AuthService } from "../service/auth-service";
-import { LoginRequest } from "../model/customer-model";
+import { CreateCustomerRequest, LoginRequest } from "../model/customer-model";
 import { UserRequest } from "../type/user-request";
 import { ResponseError } from "../error/response-error";
 import { Role } from "@prisma/client";
+import { CreateTailorRequest } from "../model/tailor-model";
 
 export class AuthController {
     constructor(
         private readonly authService: AuthService
     ) { }
 
-    async login(req: Request, res: Response, next: NextFunction) {
+    async registerCustomer(req: Request, res: Response, next: NextFunction) {
         try {
-            const request: LoginRequest = req.body as LoginRequest;
-            const response = await this.authService.loginV2(request);
+            const request: CreateCustomerRequest = req.body as CreateCustomerRequest;
+            const profilePicture = req.file
+            console.log("registerv2", request)
+            const response = await this.authService.registerCustomer(request, profilePicture);
             res.status(200).json({
                 data: response,
             });
         } catch (e) {
-            next(e);
+            next(e)
+        }
+    }
+
+    async registerTailor(req: Request, res: Response, next: NextFunction) {
+        try {
+            const request: CreateTailorRequest = {
+                ...req.body,
+                specialization: JSON.parse(req.body.specialization || "[]"), // Pastikan specialization di-parse jadi array
+            }
+
+            const profilePictureFile = Array.isArray(req.files)
+                ? undefined
+                : req.files?.profilePicture?.[0]
+
+            const certificateFiles = Array.isArray(req.files)
+                ? []
+                : req.files?.certificate || []
+
+            const response = await this.authService.registerTailor(
+                request,
+                profilePictureFile,
+                certificateFiles as Express.Multer.File[]
+            )
+
+            res.status(200).json({
+                data: response,
+            });
+        } catch (e) {
+            next(e)
+        }
+    }
+
+    async login(req: Request, res: Response, next: NextFunction) {
+        try {
+            const request: LoginRequest = req.body as LoginRequest
+            const response = await this.authService.login(request)
+            res.status(200).json({
+                data: response,
+            })
+        } catch (e) {
+            next(e)
         }
     }
 

@@ -9,48 +9,6 @@ export class TailorController {
   constructor(
     private readonly tailorService: TailorService
   ) { }
-  async login(req: Request, res: Response, next: NextFunction) {
-      try {
-          const request: LoginRequest = req.body as LoginRequest
-          const response = await this.tailorService.login(request)
-          res.status(200).json({
-              data: response
-          })
-      } catch (e) {
-          next(e)
-      }
-  }
-
-  async register(req: Request, res: Response, next: NextFunction) {
-    try {
-      const request: CreateTailorRequest = {
-        ...req.body,
-        specialization: JSON.parse(req.body.specialization || "[]"), // Pastikan specialization di-parse jadi array
-      }
-
-      const profilePictureFile = Array.isArray(req.files)
-        ? undefined
-        : req.files?.profilePicture?.[0]
-
-      const certificateFiles = Array.isArray(req.files)
-        ? []
-        : req.files?.certificate || []
-
-      console.log(request.gender)
-
-      const response = await this.tailorService.register(
-        request,
-        profilePictureFile,
-        certificateFiles as Express.Multer.File[] // Cast ke array file
-      )
-
-      res.status(200).json({
-        data: response,
-      });
-    } catch (e) {
-      next(e)
-    }
-  }
 
   async getHomeData(req: Request, res: Response, next: NextFunction) {
     try {
@@ -253,35 +211,6 @@ export class TailorController {
       const response = await this.tailorService.deleteCertificate(
         userId,
         certificateUrl
-      )
-
-      res.status(200).json({
-        data: response,
-      });
-    } catch (e) {
-      next(e)
-    }
-  }
-
-  async registerV2(req: Request, res: Response, next: NextFunction) {
-    try {
-      const request: CreateTailorRequest = {
-        ...req.body,
-        specialization: JSON.parse(req.body.specialization || "[]"), // Pastikan specialization di-parse jadi array
-      }
-
-      const profilePictureFile = Array.isArray(req.files)
-        ? undefined
-        : req.files?.profilePicture?.[0]
-
-      const certificateFiles = Array.isArray(req.files)
-        ? []
-        : req.files?.certificate || []
-
-      const response = await this.tailorService.registerV2(
-        request,
-        profilePictureFile,
-        certificateFiles as Express.Multer.File[] // Cast ke array file
       )
 
       res.status(200).json({

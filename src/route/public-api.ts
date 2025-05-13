@@ -11,7 +11,7 @@ import { articleController, authController, courseController, customerController
 
 export const publicRouter = express.Router();
 
-publicRouter.post("/customers/register", upload.single('profilePicture'), customerController.registerV2.bind(customerController));
+publicRouter.post("/customers/register", upload.single('profilePicture'), authController.registerCustomer.bind(authController));
 
 
 //general
@@ -26,7 +26,7 @@ publicRouter.post(
     { name: "profilePicture", maxCount: 1 }, 
     { name: "certificate", maxCount: 5 }, 
   ]),
-  tailorController.registerV2.bind(tailorController)
+  authController.registerTailor.bind(authController)
 );
 
 

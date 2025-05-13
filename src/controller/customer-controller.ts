@@ -15,28 +15,6 @@ export class CustomerController {
   constructor(
     private readonly customerService: CustomerService
   ) { }
-  async register(req: Request, res: Response, next: NextFunction) {
-    try {
-      const request: CreateCustomerRequest = req.body as CreateCustomerRequest;
-      const profilePicture = req.file
-      const response = await this.customerService.register(request, profilePicture);
-      res.status(200).json({
-        data: response,
-      });
-    } catch (e) {
-      next(e);
-    }
-  }
-
-  async tes(req: Request, res: Response, next: NextFunction) {
-    try {
-      res.status(200).json({
-        message: "test",
-      });
-    } catch (e) {
-      next(e);
-    }
-  }
 
   async addRatingReview(
     req: UserRequest,
