@@ -13,15 +13,15 @@ export const tailorApiRouter = express.Router()
 tailorApiRouter.use(authMiddleware)
 tailorApiRouter.post("/rooms", chatController.createOrGetRoom.bind(chatController))
 tailorApiRouter.get("/rooms", chatController.getAllRoom.bind(chatController))
-tailorApiRouter.get("/rooms/:roomId/chats", chatController.getChatsInRoomByTailor.bind(chatController))
-tailorApiRouter.post("/rooms/:roomId/chats", upload.single('file'), chatController.sendMessageV2.bind(chatController))
+tailorApiRouter.get("/rooms/:roomId/chats", chatController.getChatsInRoom.bind(chatController))
+tailorApiRouter.post("/rooms/:roomId/chats", upload.single('file'), chatController.sendMessage.bind(chatController))
 tailorApiRouter.delete("/rooms/:roomId", chatController.deleteRoomChat.bind(chatController));
 tailorApiRouter.post("/rooms/mark-read/:roomId", chatController.markAsRead.bind(chatController));
 
 //order
 tailorApiRouter.post("/order/create", orderController.createOrder.bind(orderController))
 tailorApiRouter.get("/order/:orderId", orderController.getDetailOrder.bind(orderController))
-tailorApiRouter.get("/order/all/:userId", orderController.getAllOrderByTailor.bind(orderController))
+tailorApiRouter.get("/order/all/:userId", orderController.getAllOrder.bind(orderController))
 // tailorApiRouter.post("/order/process/:orderId", orderController.processOrder)
 tailorApiRouter.post("/order/complete", upload.single('file'), orderController.completeOrderByTailor.bind(orderController))
 tailorApiRouter.post("/order/cancel/:orderId", orderController.cancelOrder.bind(orderController))

@@ -48,14 +48,19 @@ export class AdminController {
 
     async getAllOrder(req: Request, res: Response, next: NextFunction) {
       try {
-          const userReq = req as UserRequest;
-          const userRole = userReq.user?.role;
+          const userReq = req as UserRequest
+          const userRole = userReq.user?.role
+          const adminId = userReq.user?.id
 
           if (userRole !== Role.ADMIN) {
-              throw new ResponseError(400, "user invalid");
+              throw new ResponseError(400, "User Tidak Valid");
           }
 
-          const response = await this.orderService.getAllOrderByAdmin()
+          if (!adminId) {
+            throw new ResponseError(400, "User Tidak Valid");
+        }
+
+          const response = await this.orderService.getAllOrder(adminId, userRole)
           res.status(200).json({
             data: response,
           });

@@ -9,17 +9,17 @@ import { ResponseError } from "../error/response-error";
 
 export class RoomChatController  {
   constructor ( private readonly chatService: ChatService ) {}
-  async createOrGetRoom(req: Request, res: Response) {
+  async createOrGetRoom(req: Request, res: Response, next: NextFunction) {
     try {
       const { customerId, tailorId } = req.body
       const room = await this.chatService.createOrGetRoom(customerId, tailorId)
       res.json(room)
     } catch (e) {
-      res.status(500).json({ error: getErrorMessage(e) })
+      next(e)
     }
   }
 
-  async getAllRoom(req: Request, res: Response) {
+  async getAllRoom(req: Request, res: Response, next: NextFunction) {
     try {
       const userReq = req as UserRequest;
       const userId = userReq.user?.id;
@@ -33,43 +33,28 @@ export class RoomChatController  {
       }
       
     } catch (e) {
-      res.status(500).json({ error: getErrorMessage(e) })
+      next(e)
     }
   }
 
-  // Ambil semua chat di room
-  async getChatsInRoomByTailor(req: Request, res: Response) {
+  async getChatsInRoom(req: Request, res: Response, next: NextFunction) {
     try {
       const roomId = req.params.roomId
-      const chats = await this.chatService.getChatsInRoom(roomId, Role.TAILOR)
+      const userReq = req as UserRequest
+      const userRole = userReq.user?.role
+  
+      if (!userRole) {
+        throw new ResponseError(400, "User Tidak Valid")
+      }
+
+      const chats = await this.chatService.getChatsInRoom(roomId, userRole)
       res.json(chats)
     } catch (e) {
-      res.status(500).json({ error: getErrorMessage(e) })
+      next(e)
     }
   }
 
-  async getChatsInRoomByCustomer(req: Request, res: Response) {
-    try {
-      const roomId = req.params.roomId
-      const chats = await this.chatService.getChatsInRoom(roomId, Role.CUSTOMER)
-      res.json(chats)
-    } catch (e) {
-      res.status(500).json({ error: getErrorMessage(e) })
-    }
-  }
-
-  async sendMessage(req: Request, res: Response) {
-    try {
-      const roomId = req.params.roomId
-      const { senderType, message, type } = req.body
-      const chat = await this.chatService.sendMessage(roomId, senderType, message, type)
-      res.json(chat)
-    } catch (e) {
-      res.status(500).json({ error: getErrorMessage(e) })
-    }
-  }
-
-  async sendMessageV2(req: Request, res: Response, next: NextFunction) {
+  async sendMessage(req: Request, res: Response, next: NextFunction) {
     try {
       const roomId = req.params.roomId
       const { senderType, message, type } = req.body
@@ -84,7 +69,7 @@ export class RoomChatController  {
         if (!publicURL) {
           res
             .status(500)
-            .json({ error: 'Failed to upload file to Supabase' })
+            .json({ error: 'Gagal mengupload gambar ke supabase' })
         }
 
         finalMessage = publicURL
@@ -121,7 +106,7 @@ export class RoomChatController  {
     }
   }
 
-  async markAsRead(req: Request, res: Response) {
+  async markAsRead(req: Request, res: Response, next: NextFunction) {
     try {
       const userReq = req as UserRequest;
       const userRole = userReq.user?.role;
@@ -135,16 +120,9 @@ export class RoomChatController  {
       }
       
     } catch (e) {
-      res.status(500).json({ error: getErrorMessage(e) })
+      next(e)
     }
   }
-}
-
-function getErrorMessage(e: unknown): string {
-  if (e instanceof Error) {
-    return e.message;
-  }
-  return 'An unknown error occurred';
 }
 
 async function uploadFileToSupabase(

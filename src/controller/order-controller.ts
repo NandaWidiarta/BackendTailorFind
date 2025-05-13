@@ -32,27 +32,23 @@ export class OrderController {
     }
   }
 
-  async getAllOrderByCustomer(req: Request, res: Response, next: NextFunction) {
+  async getAllOrder(req: Request, res: Response, next: NextFunction) {
     try {
       const userId = req.params.userId
-      const response = await this.orderService.getAllOrderByCustomer(userId)
-      res.status(200).json({
-        data: response,
-      });
-    } catch (e) {
-      next(e);
-    }
-  }
+      const userReq = req as UserRequest
+      const userRole = userReq.user?.role
+  
+      if (!userId || !userRole) {
+        throw new ResponseError(400, "User Tidak Valid")
+      }
+  
+      const response = await this.orderService.getAllOrder(userId, userRole)
 
-  async getAllOrderByTailor(req: Request, res: Response, next: NextFunction) {
-    try {
-      const userId = req.params.userId
-      const response = await this.orderService.getAllOrderByTailor(userId)
       res.status(200).json({
         data: response,
       });
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 

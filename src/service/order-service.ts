@@ -66,30 +66,26 @@ export class OrderService {
     return response;
   }
 
-  async getAllOrderByCustomer(userId: string): Promise<OrderDetailResponse[]> {
-    const orders = await prismaClient.order.findMany({
-      where: { customerId: userId },
-      include: orderDetailInclude
-    }) as unknown as OrderWithRelations[];
+  async getAllOrder(userId: string, role: Role): Promise<OrderDetailResponse[]> {
+    let orders;
 
-    return orders.map(mapOrderToOrderDetailResponse);
-  }
+    if (role === Role.CUSTOMER) {
+      orders = await prismaClient.order.findMany({
+        where: { customerId: userId },
+        include: orderDetailInclude
+      }) as unknown as OrderWithRelations[];
+    } else if (role === Role.TAILOR) {
+      orders = await prismaClient.order.findMany({
+        where: { tailorId: userId },
+        include: orderDetailInclude
+      }) as unknown as OrderWithRelations[];
+    } else {
+      orders = await prismaClient.order.findMany({
+        include: orderDetailInclude
+      }) as unknown as OrderWithRelations[];
+    }
 
-  async getAllOrderByTailor(userId: string): Promise<OrderDetailResponse[]> {
-    const orders = await prismaClient.order.findMany({
-      where: { tailorId: userId },
-      include: orderDetailInclude
-    }) as unknown as OrderWithRelations[];
-
-    return orders.map(mapOrderToOrderDetailResponse);
-  }
-
-  async getAllOrderByAdmin(): Promise<OrderDetailResponse[]> {
-    const orders = await prismaClient.order.findMany({
-      include: orderDetailInclude
-    }) as unknown as OrderWithRelations[];
-
-    return orders.map(mapOrderToOrderDetailResponse);
+    return orders.map(mapOrderToOrderDetailResponse)
   }
 
   async completeOrderByTailor(request: CompleteOrderRequest, packetImage?: Express.Multer.File): Promise<OrderDetailResponse> {

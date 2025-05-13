@@ -13,15 +13,15 @@ customerApiRouter.use(authMiddleware)
 customerApiRouter.post("/add-rating-review",upload.single('file'), customerController.addRatingReview.bind(customerController));
 customerApiRouter.post("/rooms", chatController.createOrGetRoom.bind(chatController));
 customerApiRouter.get("/rooms", chatController.getAllRoom.bind(chatController));
-customerApiRouter.get("/rooms/:roomId/chats", chatController.getChatsInRoomByCustomer.bind(chatController));
-customerApiRouter.post("/rooms/:roomId/chats", upload.single('file'), chatController.sendMessageV2.bind(chatController))
+customerApiRouter.get("/rooms/:roomId/chats", chatController.getChatsInRoom.bind(chatController));
+customerApiRouter.post("/rooms/:roomId/chats", upload.single('file'), chatController.sendMessage.bind(chatController))
 customerApiRouter.delete("/rooms/:roomId", chatController.deleteRoomChat.bind(chatController));
 customerApiRouter.post("/rooms/mark-read/:roomId", chatController.markAsRead.bind(chatController));
 
 //order
 // customerApiRouter.post("/order/upload-payment/:orderId", upload.single('file'), OrderController.uploadPaymentProof)
 customerApiRouter.get("/order/:orderId", orderController.getDetailOrder.bind(orderController))
-customerApiRouter.get("/order/all/:userId", orderController.getAllOrderByCustomer.bind(orderController))
+customerApiRouter.get("/order/all/:userId", orderController.getAllOrder.bind(orderController))
 customerApiRouter.post("/order/cancel/:orderId", upload.single('file'), orderController.cancelOrder.bind(orderController))
 customerApiRouter.post("/order/complete/:orderId", orderController.completeOrderByCustomer.bind(orderController))
 customerApiRouter.post("/order/midtrans-token/:orderId", orderController.getMidtransToken.bind(orderController));
