@@ -406,7 +406,7 @@ export class OrderService {
     return result;
   }
 
-  async rejectCancellationByAdmin(orderId: string, rejectReason: string): Promise<OrderDetailResponse> {
+  async rejectCancellation(orderId: string, rejectReason: string): Promise<OrderDetailResponse> {
     const order = await prismaClient.order.findUnique({
       where: { id: orderId },
       include: orderDetailInclude,

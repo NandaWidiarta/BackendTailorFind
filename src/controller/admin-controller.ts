@@ -37,7 +37,7 @@ export class AdminController {
           const orderId = req.params.orderId
 
           const { rejectReason } = req.body
-          const response = await this.orderService.rejectCancellationByAdmin(orderId, rejectReason)
+          const response = await this.orderService.rejectCancellation(orderId, rejectReason)
           res.status(200).json({
             data: response,
           });
