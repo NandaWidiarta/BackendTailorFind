@@ -22,7 +22,6 @@ tailorApiRouter.post("/rooms/mark-read/:roomId", chatController.markAsRead.bind(
 tailorApiRouter.post("/order/create", orderController.createOrder.bind(orderController))
 tailorApiRouter.get("/order/:orderId", orderController.getDetailOrder.bind(orderController))
 tailorApiRouter.get("/order/all/:userId", orderController.getAllOrder.bind(orderController))
-// tailorApiRouter.post("/order/process/:orderId", orderController.processOrder)
 tailorApiRouter.post("/order/complete", upload.single('file'), orderController.completeOrderByTailor.bind(orderController))
 tailorApiRouter.post("/order/cancel/:orderId", orderController.cancelOrder.bind(orderController))
 

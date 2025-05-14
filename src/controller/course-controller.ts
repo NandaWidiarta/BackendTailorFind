@@ -40,9 +40,7 @@ export class CourseController {
         req.file
       )
 
-      res.status(200).json({
-        data: response,
-      })
+      res.status(200).json(response)
     } catch (e) {
       next(e);
     }
@@ -59,9 +57,7 @@ export class CourseController {
       
       const response = await this.courseService.getAllCourse(currentPage)
     
-      res.status(200).json({
-        data: response,
-      });
+      res.status(200).json(response);
     } catch (e) {
       next(e);
     }
@@ -90,9 +86,7 @@ export class CourseController {
       
       const response = await this.courseService.searchCourse(name as string, currentPage, pageSizeInt, userId, finalSearchMode)
       
-      res.status(200).json({
-        data: response,
-      });
+      res.status(200).json(response);
     } catch (e) {
       next(e);
     }
@@ -108,9 +102,7 @@ export class CourseController {
       
       const response = await this.courseService.getCourseDetail(courseId)
     
-      res.status(200).json({
-        data: response,
-      });
+      res.status(200).json(response);
     } catch (e) {
       next(e);
     }
@@ -137,9 +129,7 @@ export class CourseController {
         pageSizeInt
       )
 
-      res.status(200).json({
-        data: response,
-      })
+      res.status(200).json(response)
     } catch (e) {
       next(e);
     }
@@ -176,9 +166,7 @@ export class CourseController {
         req.file
       )
 
-      res.status(200).json({
-        data: response,
-      })
+      res.status(200).json(response)
     } catch (e) {
       next(e);
     }
@@ -200,9 +188,7 @@ export class CourseController {
       
       const response = await this.courseService.deleteCourse(courseId, tailorId)
     
-      res.status(200).json({
-        data: response,
-      });
+      res.status(200).json(response)
     } catch (e) {
       next(e);
     }

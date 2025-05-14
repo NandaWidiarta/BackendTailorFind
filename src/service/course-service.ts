@@ -156,7 +156,6 @@ export class CourseService {
     return { course: result };
   }
 
-  ///Tailor Course API
   async getAllCourseTailor(
     tailorId?: string,
     type: "own" | "others" = "own",

@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction, RequestHandler } from "express";
+import { Request, Response, NextFunction, RequestHandler, response } from "express";
 import {
   CreateCustomerRequest,
   LoginRequest,
@@ -36,9 +36,7 @@ export class CustomerController {
         req.file
       );
 
-      res.status(200).json({
-        data: response,
-      });
+      res.status(200).json(response);
     } catch (e) {
       next(e);
     }
@@ -53,9 +51,7 @@ export class CustomerController {
       }
 
       const result = await this.customerService.getHomeData(userId);
-      res.status(200).json({
-        data: result,
-      });
+      res.status(200).json(response);
     } catch (e) {
       next(e);
     }
@@ -68,9 +64,7 @@ export class CustomerController {
 
       const response = await this.customerService.getTailors(currentPage);
 
-      res.status(200).json({
-        data: response,
-      });
+      res.status(200).json(response);
     } catch (e) {
       next(e);
     }
@@ -114,9 +108,7 @@ export class CustomerController {
         gender: gender as Gender
       });
 
-      res.status(200).json({
-        data: result,
-      });
+      res.status(200).json(result);
     } catch (e) {
       next(e);
     }
@@ -132,9 +124,7 @@ export class CustomerController {
 
       const response = await this.customerService.getTailorById(id);
 
-      res.status(200).json({
-        data: response,
-      });
+      res.status(200).json(response);
     } catch (e) {
       next(e);
     }
@@ -186,7 +176,7 @@ export const getHome: RequestHandler = async (req, res, next) => {
     }
     const customerService = new CustomerService()
     const result = await customerService.getHomeData(userId);
-    res.json({ data: result });
+    res.status(200).json(result);
     return
   } catch (error) {
     next(error);

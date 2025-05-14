@@ -36,9 +36,7 @@ export class StuffController {
         req.file
       )
 
-      res.status(200).json({
-        response,
-      })
+      res.status(200).json(response)
     } catch (e) {
       next(e);
     }
@@ -71,9 +69,7 @@ export class StuffController {
         req.file
       )
 
-      res.status(200).json({
-        data: response,
-      })
+      res.status(200).json(response)
     } catch (e) {
       next(e);
     }
@@ -95,9 +91,7 @@ export class StuffController {
       
       const response = await this.stuffService.deleteStuff(stuffId, tailorId)
     
-      res.status(200).json({
-        data: response,
-      });
+      res.status(200).json(response);
     } catch (e) {
       next(e);
     }

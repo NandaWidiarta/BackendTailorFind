@@ -178,7 +178,6 @@ export class CustomerService {
       role: Role.TAILOR,
     };
 
-    console.log(gender)
 
     const AND: any[] = [];
 
@@ -371,8 +370,6 @@ export class CustomerService {
     const reviewsCount = tailor.receivedReviews.length;
   
     const { password, token, ...tailorWithoutSensitiveInfo } = tailor;
-
-    console.log('tailor detail', tailorWithoutSensitiveInfo)
   
     const formattedTailor = {
       id: tailorWithoutSensitiveInfo.id,

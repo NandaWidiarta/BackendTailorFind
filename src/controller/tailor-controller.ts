@@ -19,9 +19,7 @@ export class TailorController {
       }
 
       const result = await this.tailorService.getHomeData(userId);
-      res.status(200).json({
-        data: result,
-      });
+      res.status(200).json(result);
     } catch (e) {
       next(e);
     }
@@ -43,9 +41,7 @@ export class TailorController {
       
       const response = await this.tailorService.getStuff(currentPage, 8, userId)
     
-      res.status(200).json({
-        data: response,
-      });
+      res.status(200).json(response);
     } catch (e) {
       next(e);
     }
@@ -113,13 +109,11 @@ export class TailorController {
 
       const updateData: any = {};
       
-      // Data user
       if (firstname !== undefined) updateData.firstname = firstname;
       if (lastname !== undefined) updateData.lastname = lastname;
       if (email !== undefined) updateData.email = email;
       if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber;
       
-      // Data tailor profile
       if (provinceId !== undefined) updateData.provinceId = provinceId;
       if (regencyId !== undefined) updateData.regencyId = regencyId;
       if (districtId !== undefined) updateData.districtId = districtId;
@@ -140,9 +134,7 @@ export class TailorController {
         req.file
       );
 
-      res.status(200).json({
-        data: result,
-      });
+      res.status(200).json(result);
     } catch (e) {
       next(e)
     }
@@ -166,9 +158,7 @@ export class TailorController {
         certificateFiles as Express.Multer.File[] 
       )
 
-      res.status(200).json({
-        data: response,
-      });
+      res.status(200).json(response);
     } catch (e) {
       next(e)
     }
@@ -187,9 +177,7 @@ export class TailorController {
         userId
       )
 
-      res.status(200).json({
-        data: response,
-      });
+      res.status(200).json(response);
     } catch (e) {
       next(e)
     }
@@ -213,9 +201,7 @@ export class TailorController {
         certificateUrl
       )
 
-      res.status(200).json({
-        data: response,
-      });
+      res.status(200).json(response);
     } catch (e) {
       next(e)
     }
@@ -230,9 +216,7 @@ export class TailorController {
       }
 
       const result = await this.tailorService.getReviewData(userId);
-      res.status(200).json({
-        data: result,
-      });
+      res.status(200).json(result);
     } catch (e) {
       next(e);
     }

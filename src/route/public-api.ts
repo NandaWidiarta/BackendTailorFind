@@ -30,18 +30,9 @@ publicRouter.post(
 );
 
 
-//kursus (delete later)
-publicRouter.get("/course", courseController.getAllCourses.bind(courseController))
-publicRouter.get("/course/search", courseController.searchCourse.bind(courseController))
-publicRouter.get("/course/:id", courseController.getCourseDetail.bind(courseController))
-
-//article
-publicRouter.get("/article", articleController.getAllArticles.bind(articleController))
-publicRouter.get("/article/:id", articleController.getArticleDetail.bind(articleController))
-publicRouter.get("/articles/search", articleController.searchArticle.bind(articleController))
-
 publicRouter.post("/forgot-password", authController.forgotPassword.bind(authController));
 publicRouter.post("/login", authController.login.bind(authController))
 publicRouter.post("/logout", authController.logout.bind(authController))
 
+//readjust later
 publicRouter.post("/auto-complete-order", orderController.autoCompleteLongPendingOrders.bind(orderController))

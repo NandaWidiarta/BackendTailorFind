@@ -301,8 +301,6 @@ export class AuthService {
         })
 
         if (user) {
-            // const { password, ...userWithoutPassword } = user;
-            // return userWithoutPassword;
             const { password, walletBalance, ...rest } = user;
             return {
                 ...rest,

@@ -39,7 +39,6 @@ export class TailorService {
       0
     );
 
-    // Ambil profile tailor + relasi provinsi, kota, dst
     const tailorProfile = await prismaClient.tailorProfile.findUnique({
       where: { userId: tailorId },
       include: {
@@ -123,8 +122,6 @@ export class TailorService {
     const tailor = {
       ...tailorProfile,
     };
-
-    console.log("course : ", latestCourses)
 
     const response = toTailorHomeResponse(tailor, unreadMessagesCount, latestArticles, latestStuff, latestCourses);
 

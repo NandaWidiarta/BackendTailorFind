@@ -27,9 +27,7 @@ export class ArticleController {
         content,
         req.file
       );
-      res.status(200).json({
-        data: response,
-      });
+      res.status(200).json(response)
     } catch (e) {
       next(e);
     }
@@ -46,9 +44,7 @@ export class ArticleController {
       
       const response = await this.articleService.getAllArticles(currentPage)
     
-      res.status(200).json({
-        data: response,
-      });
+      res.status(200).json(response)
     } catch (e) {
       next(e);
     }
@@ -64,9 +60,7 @@ export class ArticleController {
       
       const response = await this.articleService.getArticleDetail(articleId)
     
-      res.status(200).json({
-        data: response,
-      });
+      res.status(200).json(response)
     } catch (e) {
       next(e);
     }
@@ -101,9 +95,7 @@ export class ArticleController {
         finalSearchMode
       );
   
-      res.status(200).json({
-        data: response,
-      });
+      res.status(200).json(response)
     } catch (e) {
       next(e);
     }
@@ -130,9 +122,7 @@ export class ArticleController {
         pageSizeInt
       )
 
-      res.status(200).json({
-        data: response,
-      })
+      res.status(200).json(response)
     } catch (e) {
       next(e);
     }
@@ -161,9 +151,7 @@ export class ArticleController {
         req.file
       )
 
-      res.status(200).json({
-        data: response,
-      })
+      res.status(200).json(response)
     } catch (e) {
       next(e);
     }
@@ -185,9 +173,7 @@ export class ArticleController {
       
       const response = await this.articleService.deleteArticle(articleId, tailorId)
     
-      res.status(200).json({
-        data: response,
-      });
+      res.status(200).json(response)
     } catch (e) {
       next(e);
     }

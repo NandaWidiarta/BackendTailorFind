@@ -426,7 +426,6 @@ export class OrderService {
       throw new ResponseError(400, "Data status sebelumnya tidak ditemukan");
     }
 
-    // Update status Order
     const updatedOrder = await prismaClient.order.update({
       where: { id: orderId },
       data: {
@@ -481,7 +480,6 @@ export class OrderService {
       price: item.price
     }))
 
-    // Tambahkan item untuk admin fee
     items.push({
       id: 'ADMIN_FEE',
       name: ADMIN_FEE_NAME,

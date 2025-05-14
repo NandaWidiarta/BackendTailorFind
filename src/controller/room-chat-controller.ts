@@ -13,7 +13,7 @@ export class RoomChatController  {
     try {
       const { customerId, tailorId } = req.body
       const room = await this.chatService.createOrGetRoom(customerId, tailorId)
-      res.json(room)
+      res.status(200).json(room)
     } catch (e) {
       next(e)
     }
@@ -27,7 +27,7 @@ export class RoomChatController  {
 
       if (userId && userRole) {
         const rooms = await this.chatService.getRooms(userId, userRole)
-        res.json(rooms)
+        res.status(200).json(rooms)
       } else {
         throw new ResponseError(400, "User tidak valid");
       }
@@ -48,7 +48,7 @@ export class RoomChatController  {
       }
 
       const chats = await this.chatService.getChatsInRoom(roomId, userRole)
-      res.json(chats)
+      res.status(200).json(chats)
     } catch (e) {
       next(e)
     }
@@ -114,7 +114,7 @@ export class RoomChatController  {
 
       if (userRole) {
         const rooms = await this.chatService.markAsRead(roomId, userRole)
-        res.json(rooms)
+        res.status(200).json(rooms)
       } else {
         throw new ResponseError(400, "User tidak valid");
       }

@@ -12,9 +12,7 @@ export class OrderController {
     try {
       const request = req.body as CreateOrderRequest
       const response = await this.orderService.createOrder(request);
-      res.status(200).json({
-        data: response,
-      });
+      res.status(200).json(response);
     } catch (e) {
       next(e);
     }
@@ -24,9 +22,7 @@ export class OrderController {
     try {
       const orderId = req.params.orderId
       const response = await this.orderService.getOrderDetail(orderId)
-      res.status(200).json({
-        data: response,
-      });
+      res.status(200).json(response);
     } catch (e) {
       next(e);
     }
@@ -44,9 +40,7 @@ export class OrderController {
   
       const response = await this.orderService.getAllOrder(userId, userRole)
 
-      res.status(200).json({
-        data: response,
-      });
+      res.status(200).json(response);
     } catch (e) {
       next(e)
     }
@@ -56,9 +50,7 @@ export class OrderController {
     try {
       const orderId = req.params.orderId
       const response = await this.orderService.processOrder(orderId)
-      res.status(200).json({
-        data: response,
-      });
+      res.status(200).json(response);
     } catch (e) {
       next(e);
     }
@@ -71,9 +63,7 @@ export class OrderController {
         {orderId, deliveryServiceName, receiptNumber },
         req.file
       )
-      res.status(200).json({
-        data: response,
-      });
+      res.status(200).json(response);
     } catch (e) {
       next(e);
     }
@@ -85,9 +75,7 @@ export class OrderController {
       const response = await this.orderService.customerCompleteOrder(
         orderId
       )
-      res.status(200).json({
-        data: response,
-      });
+      res.status(200).json(response);
     } catch (e) {
       next(e);
     }
@@ -133,9 +121,7 @@ export class OrderController {
         cancellationImage: imageUrl
       });
   
-      res.status(200).json({
-        data: response,
-      });
+      res.status(200).json(response);
     } catch (e) {
       next(e);
     }
@@ -145,9 +131,7 @@ export class OrderController {
     try {
       const { orderId } = req.params
       const response = await this.orderService.createMidtransSnapToken(orderId);
-      res.status(200).json({
-        token: response,
-      });
+      res.status(200).json(response);
     } catch (e) {
       next(e);
     }
@@ -165,9 +149,7 @@ export class OrderController {
 
       const response = await this.orderService.withdraw(userId as string, balance as number);
 
-      res.status(200).json({
-        data: response,
-      });
+      res.status(200).json(response);
     } catch (e) {
       next(e)
     }
@@ -177,9 +159,7 @@ export class OrderController {
     try {
       const response = await this.orderService.autoCompleteLongPendingOrders();
 
-      res.status(200).json({
-        data: response,
-      });
+      res.status(200).json(response);
     } catch (e) {
       next(e)
     }

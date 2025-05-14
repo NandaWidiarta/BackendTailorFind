@@ -16,11 +16,8 @@ export class AuthController {
         try {
             const request: CreateCustomerRequest = req.body as CreateCustomerRequest;
             const profilePicture = req.file
-            console.log("registerv2", request)
             const response = await this.authService.registerCustomer(request, profilePicture);
-            res.status(200).json({
-                data: response,
-            });
+            res.status(200).json(response)
         } catch (e) {
             next(e)
         }
@@ -47,9 +44,7 @@ export class AuthController {
                 certificateFiles as Express.Multer.File[]
             )
 
-            res.status(200).json({
-                data: response,
-            });
+            res.status(200).json(response)
         } catch (e) {
             next(e)
         }
@@ -59,9 +54,7 @@ export class AuthController {
         try {
             const request: LoginRequest = req.body as LoginRequest
             const response = await this.authService.login(request)
-            res.status(200).json({
-                data: response,
-            })
+            res.status(200).json(response)
         } catch (e) {
             next(e)
         }
@@ -71,9 +64,7 @@ export class AuthController {
         try {
             const { email } = req.body
             const response = await this.authService.forgotPassword(email);
-            res.status(200).json({
-                message: response,
-            });
+            res.status(200).json(response)
         } catch (e) {
             next(e);
         }
@@ -88,9 +79,7 @@ export class AuthController {
                 throw new ResponseError(400, "User id kosong ");
             }
             const response = await this.authService.resetPassword(newPassword, userId);
-            res.status(200).json({
-                message: response,
-            });
+            res.status(200).json(response)
         } catch (e) {
             next(e);
         }
@@ -100,9 +89,7 @@ export class AuthController {
         try {
             const response = await this.authService.logout();
 
-            res.status(200).json({
-                data: response,
-            });
+            res.status(200).json(response)
         } catch (e) {
             next(e);
         }
@@ -116,9 +103,7 @@ export class AuthController {
         }
         const response = await this.authService.getDetailUserByEmail(userEmail);
 
-        res.status(200).json({
-            data: response,
-        });
+        res.status(200).json(response)
     }
 
     async getUserDetailById(req: Request, res: Response, next: NextFunction) {
@@ -132,9 +117,7 @@ export class AuthController {
 
             const response = await this.authService.getUserDetailById(userId as string, userRole as Role);
 
-            res.status(200).json({
-                data: response,
-            });
+            res.status(200).json(response)
         } catch (e) {
             next(e);
         }
