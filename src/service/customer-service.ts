@@ -94,7 +94,7 @@ export class CustomerService {
         orderBy: { averageRating: "desc" },
         take: 5,
         include: {
-          user: { select: { firstname: true, lastname: true, profilePicture: true } },
+          user: { select: { id: true, firstname: true, lastname: true, profilePicture: true } },
           province: { select: { name: true } },
           regency: { select: { name: true } },
           district: { select: { name: true } },
