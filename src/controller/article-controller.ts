@@ -29,7 +29,7 @@ export class ArticleController {
       );
       res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
@@ -39,14 +39,14 @@ export class ArticleController {
     next: NextFunction
   ) {
     try {
-      const { page = "1" } = req.query;
-      const currentPage = parseInt(page as string, 10) || 1;
+      const { page = "1" } = req.query
+      const currentPage = parseInt(page as string, 10) || 1
       
       const response = await this.articleService.getAllArticles(currentPage)
     
       res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
@@ -62,7 +62,7 @@ export class ArticleController {
     
       res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
@@ -72,9 +72,9 @@ export class ArticleController {
     next: NextFunction
   ) {
     try {
-      const { page = "1", name, pageSize, searchMode = 'all' } = req.query;
-      const currentPage = parseInt(page as string, 10) || 1;
-      const pageSizeInt = parseInt(pageSize as string, 8) || 8;
+      const { page = "1", name, pageSize, searchMode = 'all' } = req.query
+      const currentPage = parseInt(page as string, 10) || 1
+      const pageSizeInt = parseInt(pageSize as string, 8) || 8
       
       const validSearchMode = ['own', 'others', 'all'].includes(searchMode as string) 
         ? searchMode as 'own' | 'others' | 'all'
@@ -82,10 +82,10 @@ export class ArticleController {
 
       const userReq = req as UserRequest
       
-      const userId = userReq.user?.id;
-      const userRole = userReq.user?.role; 
+      const userId = userReq.user?.id
+      const userRole = userReq.user?.role
       
-      const finalSearchMode = userRole === 'TAILOR' ? validSearchMode : 'all';
+      const finalSearchMode = userRole === 'TAILOR' ? validSearchMode : 'all'
       
       const response = await this.articleService.searchArticle(
         name as string, 
@@ -97,7 +97,7 @@ export class ArticleController {
   
       res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
@@ -108,10 +108,10 @@ export class ArticleController {
       const tailorId = userReq.user?.id
 
       if (!tailorId) {
-        throw new ResponseError(400, "User id tidak ditemukan");
+        throw new ResponseError(400, "User id tidak ditemukan")
       }
 
-      const {type = 'own', page = "1", pageSize } = req.query;
+      const {type = 'own', page = "1", pageSize } = req.query
       const currentPage = parseInt(page as string, 10) || 1;
       const pageSizeInt = parseInt(pageSize as string, 8) || 8
 
@@ -124,7 +124,7 @@ export class ArticleController {
 
       res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
@@ -153,7 +153,7 @@ export class ArticleController {
 
       res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
@@ -168,14 +168,14 @@ export class ArticleController {
       const articleId = req.params.id
 
       if (!tailorId) {
-        throw new ResponseError(400, "Informasi user tidak valid");
+        throw new ResponseError(400, "Informasi user tidak valid")
       }
       
       const response = await this.articleService.deleteArticle(articleId, tailorId)
     
       res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 

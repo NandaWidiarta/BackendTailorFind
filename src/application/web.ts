@@ -17,7 +17,7 @@ web.use(
     allowedHeaders: ["Content-Type", "Authorization", "x-api-token", "X-API-TOKEN"],
     credentials: true,
   })
-);
+)
 
 web.use(express.json())
 web.use(express.urlencoded({ extended: true }))

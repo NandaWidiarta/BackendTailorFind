@@ -10,28 +10,28 @@ export const authMiddleware = async (
   next: NextFunction
 ) => {
   try {
-    const token = req.get("X-API-TOKEN");
+    const token = req.get("X-API-TOKEN")
 
     const {
       data: { user },
       error,
-    } = await supabase.auth.getUser(token);
+    } = await supabase.auth.getUser(token)
 
     if (error || !user) {
-      throw new ResponseError(401, "Unauthorized");
+      throw new ResponseError(401, "Unauthorized")
     }
 
     const prismaUser = await prismaClient.user.findUnique({
       where: {
         email: user.email,
       },
-    });
+    })
 
     if (!prismaUser) {
-      throw new ResponseError(401, "Unauthorized");
+      throw new ResponseError(401, "Unauthorized")
     }
 
-    req.user = prismaUser;
+    req.user = prismaUser
     next()
 
   } catch (error) {
@@ -40,6 +40,6 @@ export const authMiddleware = async (
     .json({
       errors: "Unauthorized",
     })
-    .end();
+    .end()
   }
-};
+}

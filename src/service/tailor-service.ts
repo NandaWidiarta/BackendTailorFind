@@ -26,18 +26,18 @@ export class TailorService {
 
   async getHomeData(tailorId: string) {
     if (!tailorId) {
-      throw new ResponseError(400, "Data tidak ditemukan");
+      throw new ResponseError(400, "Data tidak ditemukan")
     }
 
     const rooms = await prismaClient.roomChat.findMany({
       where: { tailorId },
       select: { unreadCountTailor: true },
-    });
+    })
 
     const unreadMessagesCount = rooms.reduce(
       (total, room) => total + room.unreadCountTailor,
       0
-    );
+    )
 
     const tailorProfile = await prismaClient.tailorProfile.findUnique({
       where: { userId: tailorId },
@@ -59,10 +59,10 @@ export class TailorService {
         district: { select: { name: true } },
         village: { select: { name: true } },
       },
-    });
+    })
 
     if (!tailorProfile) {
-      throw new ResponseError(400, "Data tidak ditemukan");
+      throw new ResponseError(400, "Data tidak ditemukan")
     }
 
     const [latestArticles, latestStuff, latestCourses] = await Promise.all([
@@ -117,15 +117,15 @@ export class TailorService {
         orderBy: { createdAt: "desc" },
         take: 5,
       }),
-    ]);
+    ])
 
     const tailor = {
       ...tailorProfile,
-    };
+    }
 
-    const response = toTailorHomeResponse(tailor, unreadMessagesCount, latestArticles, latestStuff, latestCourses);
+    const response = toTailorHomeResponse(tailor, unreadMessagesCount, latestArticles, latestStuff, latestCourses)
 
-    return response;
+    return response
   }
 
   async getStuff(page: number = 1, pageSize: number = 8, tailorId: string) {
@@ -141,9 +141,9 @@ export class TailorService {
       prismaClient.stuff.count({
         where: { tailorId: tailorId }
       })
-    ]);
+    ])
 
-    const totalPages = Math.ceil(totalStuff / pageSize);
+    const totalPages = Math.ceil(totalStuff / pageSize)
 
     return {
       stuff,
@@ -153,7 +153,7 @@ export class TailorService {
         currentPage: page,
         pageSize,
       },
-    };
+    }
   }
 
   async filterStuff(params: StuffFilterParams, userId: string) {
@@ -163,11 +163,11 @@ export class TailorService {
       name,
       stuffCategory,
       maxPrice,
-    } = params;
+    } = params
 
-    const AND: any[] = [];
+    const AND: any[] = []
 
-    AND.push({ tailorId: userId });
+    AND.push({ tailorId: userId })
 
     if (name) {
       AND.push({
@@ -175,13 +175,13 @@ export class TailorService {
           contains: name,
           mode: "insensitive",
         },
-      });
+      })
     }
 
     if (stuffCategory) {
       AND.push({
         stuffCaetgory: stuffCategory,
-      });
+      })
     }
 
     if (maxPrice !== undefined) {
@@ -189,17 +189,17 @@ export class TailorService {
         price: {
           lte: maxPrice,
         },
-      });
+      })
     }
 
-    const whereConditions = AND.length > 0 ? { AND } : {};
+    const whereConditions = AND.length > 0 ? { AND } : {}
 
     const totalStuffs = await prismaClient.stuff.count({
       where: whereConditions,
-    });
+    })
 
-    const skip = (page - 1) * pageSize;
-    const take = pageSize;
+    const skip = (page - 1) * pageSize
+    const take = pageSize
 
     const stuffs = await prismaClient.stuff.findMany({
       where: whereConditions,
@@ -208,9 +208,9 @@ export class TailorService {
       orderBy: {
         createdAt: "desc",
       },
-    });
+    })
 
-    const totalPages = Math.ceil(totalStuffs / pageSize);
+    const totalPages = Math.ceil(totalStuffs / pageSize)
 
     return {
       data: stuffs,
@@ -220,25 +220,25 @@ export class TailorService {
         currentPage: page,
         pageSize,
       },
-    };
+    }
   }
 
   async updateTailorProfile(
     userId: string,
     data: {
-      firstname?: string;
-      lastname?: string;
-      email?: string;
-      phoneNumber?: string;
-      provinceId?: string;
-      regencyId?: string;
-      districtId?: string;
-      villageId?: string;
-      addressDetail?: string;
-      workEstimation?: string;
-      priceRange?: string;
-      specialization?: string[];
-      businessDescription?: string;
+      firstname?: string
+      lastname?: string
+      email?: string
+      phoneNumber?: string
+      provinceId?: string
+      regencyId?: string
+      districtId?: string
+      villageId?: string
+      addressDetail?: string
+      workEstimation?: string
+      priceRange?: string
+      specialization?: string[]
+      businessDescription?: string
     },
     profilePicture?: Express.Multer.File,
   ): Promise<TailorResponse> {
@@ -247,14 +247,14 @@ export class TailorService {
       include: {
         tailorProfile: true
       }
-    });
+    })
 
     if (!existingUser) {
-      throw new ResponseError(400, "Data tidak ditemukan");
+      throw new ResponseError(400, "Data tidak ditemukan")
     }
 
     if (!existingUser.tailorProfile) {
-      throw new ResponseError(400, "Data tidak ditemukan");
+      throw new ResponseError(400, "Data tidak ditemukan")
     }
 
     if (data.email && data.email !== existingUser.email) {
@@ -263,53 +263,53 @@ export class TailorService {
           email: data.email,
           id: { not: userId }
         },
-      });
+      })
 
       if (isEmailExist > 0) {
-        throw new ResponseError(400, "Email sudah terdaftar");
+        throw new ResponseError(400, "Email sudah terdaftar")
       }
     }
 
-    const userUpdateData: any = {};
-    if (data.firstname !== undefined) userUpdateData.firstname = data.firstname;
-    if (data.lastname !== undefined) userUpdateData.lastname = data.lastname;
-    if (data.email !== undefined) userUpdateData.email = data.email;
-    if (data.phoneNumber !== undefined) userUpdateData.phoneNumber = data.phoneNumber;
+    const userUpdateData: any = {}
+    if (data.firstname !== undefined) userUpdateData.firstname = data.firstname
+    if (data.lastname !== undefined) userUpdateData.lastname = data.lastname
+    if (data.email !== undefined) userUpdateData.email = data.email
+    if (data.phoneNumber !== undefined) userUpdateData.phoneNumber = data.phoneNumber
 
-    const tailorProfileUpdateData: any = {};
-    if (data.provinceId !== undefined) tailorProfileUpdateData.provinceId = data.provinceId;
-    if (data.regencyId !== undefined) tailorProfileUpdateData.regencyId = data.regencyId;
-    if (data.districtId !== undefined) tailorProfileUpdateData.districtId = data.districtId;
-    if (data.villageId !== undefined) tailorProfileUpdateData.villageId = data.villageId;
-    if (data.addressDetail !== undefined) tailorProfileUpdateData.addressDetail = data.addressDetail;
-    if (data.workEstimation !== undefined) tailorProfileUpdateData.workEstimation = data.workEstimation;
-    if (data.priceRange !== undefined) tailorProfileUpdateData.priceRange = data.priceRange;
-    if (data.specialization !== undefined) tailorProfileUpdateData.specialization = data.specialization;
-    if (data.businessDescription !== undefined) tailorProfileUpdateData.businessDescription = data.businessDescription;
+    const tailorProfileUpdateData: any = {}
+    if (data.provinceId !== undefined) tailorProfileUpdateData.provinceId = data.provinceId
+    if (data.regencyId !== undefined) tailorProfileUpdateData.regencyId = data.regencyId
+    if (data.districtId !== undefined) tailorProfileUpdateData.districtId = data.districtId
+    if (data.villageId !== undefined) tailorProfileUpdateData.villageId = data.villageId
+    if (data.addressDetail !== undefined) tailorProfileUpdateData.addressDetail = data.addressDetail
+    if (data.workEstimation !== undefined) tailorProfileUpdateData.workEstimation = data.workEstimation
+    if (data.priceRange !== undefined) tailorProfileUpdateData.priceRange = data.priceRange
+    if (data.specialization !== undefined) tailorProfileUpdateData.specialization = data.specialization
+    if (data.businessDescription !== undefined) tailorProfileUpdateData.businessDescription = data.businessDescription
 
     if (profilePicture) {
-      const fileName = `${existingUser.email}-${Date.now()}`;
+      const fileName = `${existingUser.email}-${Date.now()}`
       if (existingUser.profilePicture) {
         try {
           const existingImagePath = this.extractImagePathFromUrl(
             existingUser.profilePicture,
             "profile"
-          );
+          )
 
           if (existingImagePath) {
             const { error: deleteError } = await supabase.storage
               .from("profile")
-              .remove([existingImagePath]);
+              .remove([existingImagePath])
 
             if (deleteError) {
               console.error(
                 "Warning: Failed to delete old profile image:",
                 deleteError
-              );
+              )
             }
           }
         } catch (error) {
-          console.error("Error processing old profile image:", error);
+          console.error("Error processing old profile image:", error)
         }
       }
 
@@ -317,18 +317,18 @@ export class TailorService {
         .from("profile")
         .upload(fileName, profilePicture.buffer, {
           contentType: profilePicture.mimetype,
-        });
+        })
 
       if (error) {
-        throw new ResponseError(500, "Gagal mengupload gambar ke server");
+        throw new ResponseError(500, "Gagal mengupload gambar ke server")
       }
 
       const profilePictureUrl = uploadData?.path
         ? `${supabase.storage.from("profile").getPublicUrl(uploadData.path).data.publicUrl}`
-        : null;
+        : null
 
       if (profilePictureUrl) {
-        userUpdateData.profilePicture = profilePictureUrl;
+        userUpdateData.profilePicture = profilePictureUrl
       }
     }
 
@@ -338,47 +338,47 @@ export class TailorService {
         const updatedUser = await tx.user.update({
           where: { id: userId },
           data: userUpdateData
-        });
+        })
 
         const updatedTailorProfile = await tx.tailorProfile.update({
           where: { userId: userId },
           data: tailorProfileUpdateData
-        });
+        })
 
         return tx.user.findUnique({
           where: { id: userId },
           include: {
             tailorProfile: true
           }
-        });
-      });
+        })
+      })
 
       if (!updatedTailor) {
-        throw new ResponseError(500, "Gagal mengupdate data");
+        throw new ResponseError(500, "Gagal mengupdate data")
       }
 
-      return toTailorResponse(updatedTailor);
+      return toTailorResponse(updatedTailor)
     } catch (error) {
-      console.error("Error updating tailor profile:", error);
+      console.error("Error updating tailor profile:", error)
       if (error instanceof ResponseError) {
-        throw error;
+        throw error
       }
-      throw new ResponseError(500, "Gagal mengupdate data");
+      throw new ResponseError(500, "Gagal mengupdate data")
     }
   }
 
   private extractImagePathFromUrl(url: string, bucketName: string): string | null {
     try {
-      const urlParts = url.split("/");
-      const bucketIndex = urlParts.findIndex((part) => part === bucketName);
+      const urlParts = url.split("/")
+      const bucketIndex = urlParts.findIndex((part) => part === bucketName)
 
       if (bucketIndex !== -1 && bucketIndex < urlParts.length - 1) {
-        return urlParts.slice(bucketIndex + 1).join("/");
+        return urlParts.slice(bucketIndex + 1).join("/")
       }
-      return null;
+      return null
     } catch (error) {
-      console.error("Error extracting image path:", error);
-      return null;
+      console.error("Error extracting image path:", error)
+      return null
     }
   }
 
@@ -394,7 +394,7 @@ export class TailorService {
     })
 
     if (!existingUser) {
-      throw new ResponseError(404, "Data tidak ditemukan");
+      throw new ResponseError(404, "Data tidak ditemukan")
     }
 
     return existingUser.tailorProfile?.certificate
@@ -413,28 +413,28 @@ export class TailorService {
     })
 
     if (!existingUser) {
-      throw new ResponseError(400, "Data tidak ditemukan");
+      throw new ResponseError(400, "Data tidak ditemukan")
     }
 
-    const existingCertificates = existingUser.tailorProfile?.certificate || [];
-    let certificateUrls: string[] = [];
+    const existingCertificates = existingUser.tailorProfile?.certificate || []
+    let certificateUrls: string[] = []
     for (const file of certificateFiles) {
-      const fileName = `${existingUser.email}-${Date.now()}`;
+      const fileName = `${existingUser.email}-${Date.now()}`
       const { data, error } = await supabase.storage
         .from("certificates")
         .upload(fileName, file.buffer, {
           contentType: file.mimetype,
-        });
+        })
 
       if (error) {
-        throw new ResponseError(500, "Gagal mengupload gambar ke server");
+        throw new ResponseError(500, "Gagal mengupload gambar ke server")
       }
 
       if (data?.path) {
         const publicUrl = `${supabase.storage.from("certificates").getPublicUrl(data.path).data
           .publicUrl
-          }`;
-        certificateUrls.push(publicUrl);
+          }`
+        certificateUrls.push(publicUrl)
       }
     }
 
@@ -445,7 +445,7 @@ export class TailorService {
       data: {
         certificate: [...existingCertificates, ...certificateUrls],
       },
-    });
+    })
 
     return updatedProfile.certificate
   }
@@ -460,32 +460,32 @@ export class TailorService {
     })
 
     if (!existingUser) {
-      throw new ResponseError(400, "Data tidak ditemukan");
+      throw new ResponseError(400, "Data tidak ditemukan")
     }
 
-    const certificates = existingUser.certificate || [];
+    const certificates = existingUser.certificate || []
     const certificateToDelete = certificates.find(url =>
       url.includes(certificateUrl)
     )
 
     if (!certificateToDelete) {
-      throw new ResponseError(400, "Data tidak ditemukan");
+      throw new ResponseError(400, "Data tidak ditemukan")
     }
 
     try {
-      const existingImagePath = this.extractImagePathFromUrlCertificate(certificateToDelete);
+      const existingImagePath = this.extractImagePathFromUrlCertificate(certificateToDelete)
 
       if (existingImagePath) {
         const { error: deleteError } = await supabase.storage
           .from("certificates")
-          .remove([existingImagePath]);
+          .remove([existingImagePath])
 
         if (deleteError) {
-          console.error("Warning: Failed to delete old image:", deleteError);
+          console.error("Warning: Failed to delete old image:", deleteError)
         }
       }
     } catch (error) {
-      console.error("Error processing old image:", error);
+      console.error("Error processing old image:", error)
     }
 
     const updatedCertificates = certificates.filter(url => url !== certificateToDelete)
@@ -497,23 +497,23 @@ export class TailorService {
       data: {
         certificate: updatedCertificates,
       },
-    });
+    })
 
     return updatedProfile.certificate
   }
 
   private extractImagePathFromUrlCertificate(url: string): string | null {
     try {
-      const urlParts = url.split('/');
-      const bucketIndex = urlParts.findIndex(part => part === 'certificates');
+      const urlParts = url.split('/')
+      const bucketIndex = urlParts.findIndex(part => part === 'certificates')
 
       if (bucketIndex !== -1 && bucketIndex < urlParts.length - 1) {
-        return urlParts.slice(bucketIndex + 1).join('/');
+        return urlParts.slice(bucketIndex + 1).join('/')
       }
-      return null;
+      return null
     } catch (error) {
-      console.error("Error extracting image path:", error);
-      return null;
+      console.error("Error extracting image path:", error)
+      return null
     }
   }
 
@@ -542,13 +542,13 @@ export class TailorService {
                 }
             }
         }
-    });
+    })
 
     if (!tailor) {
-        throw new ResponseError(400, "Data tidak ditemukan");
+        throw new ResponseError(400, "Data tidak ditemukan")
     }
 
-    const reviewsCount = tailor.receivedReviews.length;
+    const reviewsCount = tailor.receivedReviews.length
   
     const reviews = tailor.receivedReviews.map(review => ({
         id: review.id,
@@ -561,15 +561,15 @@ export class TailorService {
             name: `${review.customer.firstname} ${review.customer.lastname || ''}`,
             imageUrl: review.customer.profilePicture
         }
-    }));
+    }))
 
-    const averageRating = tailor.tailorProfile?.averageRating || 0;
+    const averageRating = tailor.tailorProfile?.averageRating || 0
 
     return {
         reviewsCount,
         reviews,
         averageRating
-    };
+    }
 }
 
 }

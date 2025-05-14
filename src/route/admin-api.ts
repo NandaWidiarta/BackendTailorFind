@@ -1,6 +1,4 @@
 import express from "express";
-import { CustomerController, getHome } from "../controller/customer-controller";
-import { RoomChatController } from "../controller/room-chat-controller";
 import upload from "../middleware/multer";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { AdminController } from "../controller/admin-controller";

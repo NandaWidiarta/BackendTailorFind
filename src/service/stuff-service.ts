@@ -12,19 +12,19 @@ export class StuffService {
     stuffCaetgory: StuffCategory,
     image: Express.Multer.File
   ): Promise<StuffResponse> {
-    if (!image) throw new ResponseError(500, "Gambar tidak ditemukan");
+    if (!image) throw new ResponseError(500, "Gambar tidak ditemukan")
 
-    const fileName = `${tailorId}-${Date.now()}`;
+    const fileName = `${tailorId}-${Date.now()}`
 
     const { data, error } = await supabase.storage.from("stuffImages").upload(fileName, image.buffer, {
       contentType: image.mimetype
-    });
+    })
 
-    if (error) throw new ResponseError(500, "Gagal mengupload gambar ke database");
+    if (error) throw new ResponseError(500, "Gagal mengupload gambar ke database")
 
     const imageUrl = data?.path
       ? supabase.storage.from("stuffImages").getPublicUrl(data.path).data?.publicUrl || null
-      : null;
+      : null
 
     if (!imageUrl) throw new ResponseError(500, "Gagal membuat url gambar")
 
@@ -36,9 +36,9 @@ export class StuffService {
         stuffCaetgory,
         price
       }
-    });
+    })
 
-    return mapToStuffResponse(newStuff);
+    return mapToStuffResponse(newStuff)
   }
 
   async updateStuff(
@@ -55,41 +55,41 @@ export class StuffService {
         id: stuffId,
         tailorId: tailorId,
       },
-    });
+    })
   
     if (!existingStuff) {
-      throw new ResponseError(400, "Data tidak ditemukan");
+      throw new ResponseError(400, "Data tidak ditemukan")
     }
   
     const updateData: any = {
       tailorId,
       updatedAt: new Date(),
-    };
+    }
   
-    if (name !== undefined) updateData.name = name;
-    if (price !== undefined) updateData.price = price;
-    if (stuffCaetgory !== undefined) updateData.stuffCaetgory = stuffCaetgory;
+    if (name !== undefined) updateData.name = name
+    if (price !== undefined) updateData.price = price
+    if (stuffCaetgory !== undefined) updateData.stuffCaetgory = stuffCaetgory
   
-    let imageUrl = existingStuff.imageUrl;
+    let imageUrl = existingStuff.imageUrl
   
     if (image) {
-      const fileName = `${tailorId}-${Date.now()}`;
+      const fileName = `${tailorId}-${Date.now()}`
   
       if (existingStuff.imageUrl) {
         try {
-          const existingImagePath = this.extractImagePathFromUrl(existingStuff.imageUrl);
+          const existingImagePath = this.extractImagePathFromUrl(existingStuff.imageUrl)
           
           if (existingImagePath) {
             const { error: deleteError } = await supabase.storage
               .from("stuffImages")
-              .remove([existingImagePath]);
+              .remove([existingImagePath])
   
             if (deleteError) {
-              console.error("Warning: Failed to delete old image:", deleteError);
+              console.error("Warning: Failed to delete old image:", deleteError)
             }
           }
         } catch (error) {
-          console.error("Error processing old image:", error);
+          console.error("Error processing old image:", error)
         }
       }
   
@@ -99,23 +99,23 @@ export class StuffService {
           contentType: image.mimetype,
           cacheControl: '3600',
           upsert: false
-        });
+        })
   
       if (error) {
-        throw new ResponseError(500, "Gagal mengupload gambar ke database");
+        throw new ResponseError(500, "Gagal mengupload gambar ke database")
       }
   
       const publicUrlResult = supabase.storage
         .from("stuffImages")
-        .getPublicUrl(data.path);
+        .getPublicUrl(data.path)
   
-      imageUrl = publicUrlResult.data?.publicUrl;
+      imageUrl = publicUrlResult.data?.publicUrl
   
       if (!imageUrl) {
-        throw new ResponseError(500, "Gagal membuat url gambar");
+        throw new ResponseError(500, "Gagal membuat url gambar")
       }
   
-      updateData.imageUrl = imageUrl;
+      updateData.imageUrl = imageUrl
     }
   
     try {
@@ -124,27 +124,27 @@ export class StuffService {
           id: stuffId,
         },
         data: updateData,
-      });
+      })
   
-      return mapToStuffResponse(updatedStuff);
+      return mapToStuffResponse(updatedStuff)
     } catch (error) {
-      throw new ResponseError(500, "Gagal update stuff");
+      throw new ResponseError(500, "Gagal update stuff")
     }
   
   }
 
   private extractImagePathFromUrl(url: string): string | null {
     try {
-      const urlParts = url.split('/');
-      const bucketIndex = urlParts.findIndex(part => part === 'stuffImages');
+      const urlParts = url.split('/')
+      const bucketIndex = urlParts.findIndex(part => part === 'stuffImages')
       
       if (bucketIndex !== -1 && bucketIndex < urlParts.length - 1) {
-        return urlParts.slice(bucketIndex + 1).join('/');
+        return urlParts.slice(bucketIndex + 1).join('/')
       }
-      return null;
+      return null
     } catch (error) {
-      console.error("Error extracting image path:", error);
-      return null;
+      console.error("Error extracting image path:", error)
+      return null
     }
   }
 
@@ -154,17 +154,17 @@ export class StuffService {
         id: stuffId,
         tailorId: tailorId
       }
-    });
+    })
 
     if (!existingStuff) {
-      throw new ResponseError(400, 'Stuff Tidak Ditemukan');
+      throw new ResponseError(400, 'Stuff Tidak Ditemukan')
     }
 
     await prismaClient.stuff.delete({
       where: { id: stuffId }
-    });
+    })
 
-    return { success: true };
+    return { success: true }
   }
 
 

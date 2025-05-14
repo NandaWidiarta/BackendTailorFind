@@ -10,14 +10,14 @@ export class StuffController {
   async addStuff(req: Request, res: Response, next: NextFunction) {
     try {
       if (!req.file) {
-        throw new ResponseError(500, "Gambar tidak ditemukan");
+        throw new ResponseError(500, "Gambar tidak ditemukan")
       }
 
       const userReq = req as UserRequest
       const tailorId = userReq.user?.id
 
       if (!tailorId) {
-        throw new ResponseError(400, "Informasi user tidak valid");
+        throw new ResponseError(400, "Informasi user tidak valid")
       }
 
       const {
@@ -38,7 +38,7 @@ export class StuffController {
 
       res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
@@ -49,7 +49,7 @@ export class StuffController {
       const stuffId = req.params.id
 
       if (!tailorId) {
-        throw new ResponseError(400, "Informasi user tidak valid");
+        throw new ResponseError(400, "Informasi user tidak valid")
       }
       
       const {
@@ -71,7 +71,7 @@ export class StuffController {
 
       res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
@@ -86,14 +86,14 @@ export class StuffController {
       const stuffId = req.params.id
 
       if (!tailorId) {
-        throw new ResponseError(400, "Informasi user tidak valid");
+        throw new ResponseError(400, "Informasi user tidak valid")
       }
       
       const response = await this.stuffService.deleteStuff(stuffId, tailorId)
     
-      res.status(200).json(response);
+      res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 }

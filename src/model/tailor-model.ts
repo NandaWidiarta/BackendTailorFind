@@ -47,21 +47,21 @@ export type TailorResponse = {
 }
 
 export type StuffFilterParams = {
-  page?: number;
-  pageSize?: number;
-  name?: string;
-  stuffCategory?: string; 
-  maxPrice?: number;
+  page?: number
+  pageSize?: number
+  name?: string
+  stuffCategory?: string 
+  maxPrice?: number
 }
 
 export interface TailorHomeResponse extends TailorResponse {
   averageRating: number| null
-  provinceName?: string;
-  regencyName?: string;
-  districtName?: string;
-  villageName?: string;
-  unreadMessagesCount: number;
-  latestArticles: ArticleResponse[];
+  provinceName?: string
+  regencyName?: string
+  districtName?: string
+  villageName?: string
+  unreadMessagesCount: number
+  latestArticles: ArticleResponse[]
   latestStuff: StuffResponse[]
   latestCourses: CourseResponse[]
 }
@@ -129,5 +129,5 @@ export function toTailorHomeResponse(tailor: any, unread: any, article: any, stu
     latestArticles: (article || []).map(mapToArticleResponse),
     latestCourses: (course || []).map(mapToCourseResponse),
     latestStuff: (stuff || []).map(mapToStuffResponse),
-  };
+  }
 }

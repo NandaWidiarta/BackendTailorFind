@@ -24,80 +24,80 @@ export type CreateOrderRequest = {
 }
 
 export type CompleteOrderRequest = {
-  orderId: string;
-  deliveryServiceName?: string;
-  receiptNumber?: string;
+  orderId: string
+  deliveryServiceName?: string
+  receiptNumber?: string
 }
 
 export type CancelOrderRequest = {
-  orderId: string;
-  userId: string;  
-  userRole: Role;  
-  cancellationReason: string;
-  cancellationImage?: string;
+  orderId: string
+  userId: string  
+  userRole: Role  
+  cancellationReason: string
+  cancellationImage?: string
 }
 
 export interface OrderItemResponse {
-  id: string;
-  orderId: string;
-  name: string;
-  qty: number;
-  price: number;
+  id: string
+  orderId: string
+  name: string
+  qty: number
+  price: number
 }
 
 export interface UserInfoResponse {
-  firstname: string;
-  lastname: string;
-  profilePicture: string | null;
+  firstname: string
+  lastname: string
+  profilePicture: string | null
 }
 
 export interface OrderDetailResponse {
-  id: string;
-  tailorId: string;
-  customerId: string;
+  id: string
+  tailorId: string
+  customerId: string
   customerName: string
   tailorName: string
   customerProfilePicture: string | null
   tailorProfilePicture: string | null
-  roomId: string | null;
-  orderType: OrderType;
-  totalPrice: number;
-  status: OrderStatus;
-  orderDate: Date;
-  deliveryAddress?: string | null;
-  deliveryServiceName?: string | null;
-  receiptNumber?: string | null;
-  deliveryImage?: string | null;
-  cancellationReason?: string | null;
-  cancelledAt?: Date | null;
-  cancellationRequestImage?: string | null;
-  cancellationRejectedReason?: string | null;
-  isCancellationApproved?: boolean | null;
-  previousStatus?: OrderStatus | null;
-  updatedAt: Date;
-  orderItems: OrderItemResponse[];
+  roomId: string | null
+  orderType: OrderType
+  totalPrice: number
+  status: OrderStatus
+  orderDate: Date
+  deliveryAddress?: string | null
+  deliveryServiceName?: string | null
+  receiptNumber?: string | null
+  deliveryImage?: string | null
+  cancellationReason?: string | null
+  cancelledAt?: Date | null
+  cancellationRequestImage?: string | null
+  cancellationRejectedReason?: string | null
+  isCancellationApproved?: boolean | null
+  previousStatus?: OrderStatus | null
+  updatedAt: Date
+  orderItems: OrderItemResponse[]
 }
 
 export interface OrderWithRelations extends Order {
   orderItems: {
-    id: string;
-    orderId: string;
-    name: string;
-    qty: number;
-    price: number;
-  }[];
-  orderShipping?: OrderShipping | null;
-  orderCancellation?: OrderCancellation | null;
+    id: string
+    orderId: string
+    name: string
+    qty: number
+    price: number
+  }[]
+  orderShipping?: OrderShipping | null
+  orderCancellation?: OrderCancellation | null
   customer: {
-    firstname: string;
-    lastname: string | null;
-    profilePicture: string | null;
-  };
+    firstname: string
+    lastname: string | null
+    profilePicture: string | null
+  }
   tailor: {
-    firstname: string;
-    lastname: string | null;
-    profilePicture: string | null;
-  };
+    firstname: string
+    lastname: string | null
+    profilePicture: string | null
+  }
 }
 
 export const orderDetailInclude = {
@@ -106,7 +106,7 @@ export const orderDetailInclude = {
   tailor: { select: { firstname: true, lastname: true, profilePicture: true } },
   orderShipping: true,
   orderCancellation: true,
-} as const;
+} as const
 
 export function mapOrderToOrderDetailResponse(order: OrderWithRelations): OrderDetailResponse {
   return {
@@ -139,5 +139,5 @@ export function mapOrderToOrderDetailResponse(order: OrderWithRelations): OrderD
       qty: item.qty,
       price: item.price,
     }))
-  };
+  }
 }

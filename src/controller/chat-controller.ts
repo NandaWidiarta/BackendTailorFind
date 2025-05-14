@@ -21,15 +21,15 @@ export class RoomChatController  {
 
   async getAllRoom(req: Request, res: Response, next: NextFunction) {
     try {
-      const userReq = req as UserRequest;
-      const userId = userReq.user?.id;
-      const userRole = userReq.user?.role;
+      const userReq = req as UserRequest
+      const userId = userReq.user?.id
+      const userRole = userReq.user?.role
 
       if (userId && userRole) {
         const rooms = await this.chatService.getRooms(userId, userRole)
         res.status(200).json(rooms)
       } else {
-        throw new ResponseError(400, "User tidak valid");
+        throw new ResponseError(400, "User tidak valid")
       }
       
     } catch (e) {
@@ -88,35 +88,35 @@ export class RoomChatController  {
 
   async deleteRoomChat(req: Request, res: Response, next: NextFunction) {
     try {
-      const userReq = req as UserRequest;
-      const userRole = userReq.user?.role;
+      const userReq = req as UserRequest
+      const userRole = userReq.user?.role
       const { roomId } = req.params
 
       if (!userRole) {
-        throw new ResponseError(400, "User tidak valid");
+        throw new ResponseError(400, "User tidak valid")
       }
       
-      await this.chatService.deleteRoomChat(roomId, userRole);
+      await this.chatService.deleteRoomChat(roomId, userRole)
 
       res.status(200).json({
         data: "Berhasil menghapus Room Chat",
-      });
+      })
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
   async markAsRead(req: Request, res: Response, next: NextFunction) {
     try {
-      const userReq = req as UserRequest;
-      const userRole = userReq.user?.role;
+      const userReq = req as UserRequest
+      const userRole = userReq.user?.role
       const { roomId } = req.params
 
       if (userRole) {
         const rooms = await this.chatService.markAsRead(roomId, userRole)
         res.status(200).json(rooms)
       } else {
-        throw new ResponseError(400, "User tidak valid");
+        throw new ResponseError(400, "User tidak valid")
       }
       
     } catch (e) {
@@ -130,33 +130,33 @@ async function uploadFileToSupabase(
   roomId: string
 ): Promise<string | null> {
   try {
-    const extension = file.originalname.split('.').pop();
-    const fileName = `${uuid()}-${Date.now()}.${extension || ''}`;
-    const path = `${roomId}/${fileName}`;
+    const extension = file.originalname.split('.').pop()
+    const fileName = `${uuid()}-${Date.now()}.${extension || ''}`
+    const path = `${roomId}/${fileName}`
 
     const { data, error } = await supabase.storage
       .from('chat-images')
       .upload(path, file.buffer, {
         contentType: file.mimetype,
         upsert: false,
-      });
+      })
 
     if (error) {
-      console.error('Supabase upload error:', error);
-      return null;
+      console.error('Supabase upload error:', error)
+      return null
     }
 
-    let publicURL: string | null = null;
+    let publicURL: string | null = null
     if (data && data.path) {
       const { data: publicData } = supabase.storage
         .from('chat-images')
-        .getPublicUrl(data.path);
-      publicURL = publicData?.publicUrl ?? null;
+        .getPublicUrl(data.path)
+      publicURL = publicData?.publicUrl ?? null
     }
 
-    return publicURL;
+    return publicURL
   } catch (err) {
-    console.error('Exception uploading to Supabase:', err);
-    return null;
+    console.error('Exception uploading to Supabase:', err)
+    return null
   }
 }

@@ -1,14 +1,14 @@
 import { StuffCategory } from "@prisma/client";
 
 export interface StuffResponse {
-    id: string;
-    tailorId: string;
-    name: string;
-    imageUrl: string;
-    stuffCaetgory: StuffCategory;
-    price: number;
-    createdAt: Date;
-    updatedAt: Date;
+    id: string
+    tailorId: string
+    name: string
+    imageUrl: string
+    stuffCaetgory: StuffCategory
+    price: number
+    createdAt: Date
+    updatedAt: Date
 }
 
 export function mapToStuffResponse(stuff: any): StuffResponse {
@@ -21,5 +21,5 @@ export function mapToStuffResponse(stuff: any): StuffResponse {
         price: stuff.price,
         createdAt: stuff.createdAt,
         updatedAt: stuff.updatedAt,
-    };
+    }
 }

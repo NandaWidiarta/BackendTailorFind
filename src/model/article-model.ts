@@ -1,12 +1,12 @@
 export interface ArticleResponse {
-    id: string;
-    tailorId: string;
-    authorName: string;
-    imageUrl?: string | null;
-    title: string;
-    content: string;
-    createdAt: Date;
-    updatedAt: Date;
+    id: string
+    tailorId: string
+    authorName: string
+    imageUrl?: string | null
+    title: string
+    content: string
+    createdAt: Date
+    updatedAt: Date
 }
 
 export function mapToArticleResponse(article: any): ArticleResponse {
@@ -19,5 +19,5 @@ export function mapToArticleResponse(article: any): ArticleResponse {
         content: article.content,
         createdAt: article.createdAt,
         updatedAt: article.updatedAt,
-    };
+    }
 }

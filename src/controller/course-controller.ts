@@ -17,7 +17,7 @@ export class CourseController {
       const tailorId = userReq.user?.id
 
       if (!tailorId) {
-        throw new ResponseError(400, "Informasi user tidak valid");
+        throw new ResponseError(400, "Informasi user tidak valid")
       }
 
       const {
@@ -42,7 +42,7 @@ export class CourseController {
 
       res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
@@ -52,14 +52,14 @@ export class CourseController {
     next: NextFunction
   ) {
     try {
-      const { page = "1" } = req.query;
-      const currentPage = parseInt(page as string, 10) || 1;
+      const { page = "1" } = req.query
+      const currentPage = parseInt(page as string, 10) || 1
       
       const response = await this.courseService.getAllCourse(currentPage)
     
-      res.status(200).json(response);
+      res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
@@ -69,26 +69,26 @@ export class CourseController {
     next: NextFunction
   ) {
     try {
-      const { page = "1", name, pageSize, searchMode = 'all' } = req.query;
-      const currentPage = parseInt(page as string, 10) || 1;
+      const { page = "1", name, pageSize, searchMode = 'all' } = req.query
+      const currentPage = parseInt(page as string, 10) || 1
       const pageSizeInt = parseInt(pageSize as string, 8) || 8
 
       const validSearchMode = ['own', 'others', 'all'].includes(searchMode as string) 
         ? searchMode as 'own' | 'others' | 'all'
-        : 'all';
+        : 'all'
 
       const userReq = req as UserRequest
       
-      const userId = userReq.user?.id;
-      const userRole = userReq.user?.role; 
+      const userId = userReq.user?.id
+      const userRole = userReq.user?.role 
       
       const finalSearchMode = userRole === 'TAILOR' ? validSearchMode : 'all';
       
       const response = await this.courseService.searchCourse(name as string, currentPage, pageSizeInt, userId, finalSearchMode)
       
-      res.status(200).json(response);
+      res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
@@ -102,9 +102,9 @@ export class CourseController {
       
       const response = await this.courseService.getCourseDetail(courseId)
     
-      res.status(200).json(response);
+      res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
@@ -115,11 +115,11 @@ export class CourseController {
       const tailorId = userReq.user?.id
 
       if (!tailorId) {
-        throw new ResponseError(400, "User id tidak valid");
+        throw new ResponseError(400, "User id tidak valid")
       }
 
-      const {type = 'own', page = "1", pageSize } = req.query;
-      const currentPage = parseInt(page as string, 10) || 1;
+      const {type = 'own', page = "1", pageSize } = req.query
+      const currentPage = parseInt(page as string, 10) || 1
       const pageSizeInt = parseInt(pageSize as string, 8) || 8
 
       const response = await this.courseService.getAllCourseTailor(
@@ -131,7 +131,7 @@ export class CourseController {
 
       res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
@@ -142,7 +142,7 @@ export class CourseController {
       const courseId = req.params.id
 
       if (!tailorId) {
-        throw new ResponseError(400, "Informasi user tidak valid");
+        throw new ResponseError(400, "Informasi user tidak valid")
       }
       
       const {
@@ -168,7 +168,7 @@ export class CourseController {
 
       res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
@@ -183,14 +183,14 @@ export class CourseController {
       const courseId = req.params.id
 
       if (!tailorId) {
-        throw new ResponseError(400, "Informasi user tidak valid");
+        throw new ResponseError(400, "Informasi user tidak valid")
       }
       
       const response = await this.courseService.deleteCourse(courseId, tailorId)
     
       res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 }

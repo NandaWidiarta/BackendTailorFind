@@ -8,11 +8,10 @@ import { ChatType } from "../constants/chat-type";
 import { snap } from "../instance/midtrans-client";
 import { ADMIN_FEE, ADMIN_FEE_NAME } from "../constants/constant";
 import { v4 as uuid } from "uuid";
-import e from "express";
 
 export class OrderService {
-  async createOrder(request: CreateOrderRequest): Promise<{ order: OrderDetailResponse; chat: any }> {
-    const chatService = new ChatService();
+  async createOrder(request: CreateOrderRequest): Promise<{ order: OrderDetailResponse, chat: any }> {
+    const chatService = new ChatService()
 
     const newOrder = await prismaClient.order.create({
       data: {
@@ -35,54 +34,54 @@ export class OrderService {
         } : undefined,
       },
       include: orderDetailInclude,
-    }) as unknown as OrderWithRelations;
+    }) as unknown as OrderWithRelations
 
     const chat = await chatService.sendMessage(
       request.roomId,
       Role.TAILOR,
       newOrder.id,
       ChatType.ORDER
-    );
+    )
 
-    const response = mapOrderToOrderDetailResponse(newOrder);
+    const response = mapOrderToOrderDetailResponse(newOrder)
     return {
       order: response,
       chat,
-    };
+    }
   }
 
   async getOrderDetail(orderId: string): Promise<OrderDetailResponse> {
     const order = await prismaClient.order.findUnique({
       where: { id: orderId },
       include: orderDetailInclude,
-    }) as unknown as OrderWithRelations;
+    }) as unknown as OrderWithRelations
 
     if (!order) {
-      throw new ResponseError(404, "Order tidak ditemukan");
+      throw new ResponseError(404, "Order tidak ditemukan")
     }
 
-    const response = mapOrderToOrderDetailResponse(order);
+    const response = mapOrderToOrderDetailResponse(order)
 
-    return response;
+    return response
   }
 
   async getAllOrder(userId: string, role: Role): Promise<OrderDetailResponse[]> {
-    let orders;
+    let orders
 
     if (role === Role.CUSTOMER) {
       orders = await prismaClient.order.findMany({
         where: { customerId: userId },
         include: orderDetailInclude
-      }) as unknown as OrderWithRelations[];
+      }) as unknown as OrderWithRelations[]
     } else if (role === Role.TAILOR) {
       orders = await prismaClient.order.findMany({
         where: { tailorId: userId },
         include: orderDetailInclude
-      }) as unknown as OrderWithRelations[];
+      }) as unknown as OrderWithRelations[]
     } else {
       orders = await prismaClient.order.findMany({
         include: orderDetailInclude
-      }) as unknown as OrderWithRelations[];
+      }) as unknown as OrderWithRelations[]
     }
 
     await this.autoCompleteLongPendingOrders()
@@ -91,32 +90,32 @@ export class OrderService {
   }
 
   async completeOrderByTailor(request: CompleteOrderRequest, packetImage?: Express.Multer.File): Promise<OrderDetailResponse> {
-    const chatService = new ChatService();
+    const chatService = new ChatService()
 
     const order = await prismaClient.order.findUnique({
       where: { id: request.orderId }
-    });
+    })
 
     if (!order) {
-      throw new ResponseError(400, "Order tidak ditemukan");
+      throw new ResponseError(400, "Order tidak ditemukan")
     }
 
-    let imageUrl: string | null = null;
+    let imageUrl: string | null = null
     if (packetImage) {
-      const fileName = `${request.orderId}-${Date.now()}`;
+      const fileName = `${request.orderId}-${Date.now()}`
       const { data, error } = await supabase.storage
         .from("packetImage")
         .upload(fileName, packetImage.buffer, {
           contentType: packetImage.mimetype,
-        });
+        })
 
       if (error) {
-        throw new ResponseError(500, "Gagal mengupload gambar ke server");
+        throw new ResponseError(500, "Gagal mengupload gambar ke server")
       }
 
       imageUrl = data?.path
         ? supabase.storage.from("packetImage").getPublicUrl(data.path).data?.publicUrl || null
-        : null;
+        : null
     }
 
     const updatedOrder = await prismaClient.order.update({
@@ -128,11 +127,11 @@ export class OrderService {
         updatedAt: new Date(),
       },
       include: orderDetailInclude,
-    }) as unknown as OrderWithRelations;
+    }) as unknown as OrderWithRelations
 
     const existingShipping = await prismaClient.orderShipping.findUnique({
       where: { orderId: request.orderId }
-    });
+    })
 
     if (existingShipping) {
       await prismaClient.orderShipping.update({
@@ -142,7 +141,7 @@ export class OrderService {
           receiptNumber: request.receiptNumber,
           deliveryImage: imageUrl,
         },
-      });
+      })
     } else {
       await prismaClient.orderShipping.create({
         data: {
@@ -151,7 +150,7 @@ export class OrderService {
           receiptNumber: request.receiptNumber,
           deliveryImage: imageUrl,
         },
-      });
+      })
     }
 
     const roomId = await createRoomIfNeeded(updatedOrder)
@@ -163,84 +162,84 @@ export class OrderService {
       updatedOrder.orderType === OrderType.DELIVERY
         ? ChatType.ORDER_DELIVERED
         : ChatType.ORDER_COMPLETED_BY_TAILOR
-    );
+    )
 
     const finalOrder = await prismaClient.order.findUnique({
       where: { id: request.orderId },
       include: orderDetailInclude,
-    }) as unknown as OrderWithRelations;
+    }) as unknown as OrderWithRelations
 
-    return mapOrderToOrderDetailResponse(finalOrder);
+    return mapOrderToOrderDetailResponse(finalOrder)
   }
 
   async processOrder(orderId: string): Promise<OrderDetailResponse> {
     const order = await prismaClient.order.findUnique({
       where: { id: orderId },
       include: orderDetailInclude,
-    });
+    })
 
     if (!order) {
-      throw new ResponseError(400, "Order tidak ditemukan");
+      throw new ResponseError(400, "Order tidak ditemukan")
     }
 
     const updatedOrder = await prismaClient.order.update({
       where: { id: orderId },
       data: { status: OrderStatus.ON_PROCCESS },
       include: orderDetailInclude,
-    }) as unknown as OrderWithRelations;
+    }) as unknown as OrderWithRelations
 
     const admin = await prismaClient.user.findFirst({
       where: { role: Role.ADMIN },
       select: { id: true },
-    });
+    })
 
     if (!admin) {
-      throw new ResponseError(500, "Admin tidak ditemukan");
+      throw new ResponseError(500, "Admin tidak ditemukan")
     }
 
     await prismaClient.user.update({
       where: { id: admin.id },
       data: { walletBalance: { increment: updatedOrder.totalPrice } },
-    });
+    })
 
-    const chatService = new ChatService();
-    const roomId = await createRoomIfNeeded(updatedOrder);
+    const chatService = new ChatService()
+    const roomId = await createRoomIfNeeded(updatedOrder)
 
     await chatService.sendMessage(
       roomId,
       Role.ADMIN,
       updatedOrder.id,
       ChatType.PAYMENT_CUSTOMER_CONFIRMED
-    );
+    )
 
-    return mapOrderToOrderDetailResponse(updatedOrder);
+    return mapOrderToOrderDetailResponse(updatedOrder)
   }
 
-  async cancelOrder(request: CancelOrderRequest): Promise<{ order: OrderDetailResponse; chat: any }> {
+  async cancelOrder(request: CancelOrderRequest): Promise<{ order: OrderDetailResponse, chat: any }> {
     const order = await prismaClient.order.findUnique({
       where: { id: request.orderId },
       include: orderDetailInclude,
-    });
+    })
 
     if (!order) {
-      throw new ResponseError(400, "Order tidak ditemukan");
+      throw new ResponseError(400, "Order tidak ditemukan")
     }
 
     if (
       (request.userRole === Role.CUSTOMER && order.customerId !== request.userId) ||
       (request.userRole === Role.TAILOR && order.tailorId !== request.userId)
     ) {
-      throw new ResponseError(400, "User tidak sama");
+      throw new ResponseError(400, "User tidak sama")
     }
 
     if (order.status === OrderStatus.DONE) {
-      throw new ResponseError(400, "Order tidak bisa dicancel");
+      throw new ResponseError(400, "Order tidak bisa dicancel")
     }
 
     const newStatus =
       order.status === OrderStatus.NOT_YET_PAY
         ? OrderStatus.CANCELED
-        : OrderStatus.ADMIN_REVIEWING_CANCELLATION;
+        : OrderStatus.ADMIN_REVIEWING_CANCELLATION
 
     const updatedOrder = await prismaClient.order.update({
       where: { id: request.orderId },
@@ -249,11 +248,11 @@ export class OrderService {
         updatedAt: new Date(),
       },
       include: orderDetailInclude,
-    }) as unknown as OrderWithRelations;
+    }) as unknown as OrderWithRelations
 
     const existingCancellation = await prismaClient.orderCancellation.findUnique({
       where: { orderId: request.orderId },
-    });
+    })
 
     if (existingCancellation) {
       await prismaClient.orderCancellation.update({
@@ -263,7 +262,7 @@ export class OrderService {
           cancellationRequestImage: request.cancellationImage,
           previousStatus: order.orderCancellation?.previousStatus ?? order.status,
         },
-      });
+      })
     } else {
       await prismaClient.orderCancellation.create({
         data: {
@@ -272,33 +271,33 @@ export class OrderService {
           cancellationRequestImage: request.cancellationImage,
           previousStatus: order.status,
         },
-      });
+      })
     }
 
-    const chatService = new ChatService();
-    const roomId = await createRoomIfNeeded(updatedOrder);
+    const chatService = new ChatService()
+    const roomId = await createRoomIfNeeded(updatedOrder)
 
     const chat = await chatService.sendMessage(
       roomId,
       request.userRole,
       updatedOrder.id,
       order.status === OrderStatus.NOT_YET_PAY ? ChatType.ORDER_CANCELED : ChatType.REQUEST_CANCEL_ORDER
-    );
+    )
 
     return {
       order: mapOrderToOrderDetailResponse(updatedOrder),
       chat,
-    };
+    }
   }
 
   async customerCompleteOrder(orderId: string): Promise<OrderDetailResponse> {
     const order = await prismaClient.order.findUnique({
       where: { id: orderId },
       include: orderDetailInclude,
-    }) as unknown as OrderWithRelations;
+    }) as unknown as OrderWithRelations
 
     if (!order) {
-      throw new ResponseError(400, "Order tidak ditemukan");
+      throw new ResponseError(400, "Order tidak ditemukan")
     }
 
     const updatedOrder = await prismaClient.order.update({
@@ -308,15 +307,15 @@ export class OrderService {
         updatedAt: new Date(),
       },
       include: orderDetailInclude,
-    }) as unknown as OrderWithRelations;
+    }) as unknown as OrderWithRelations
 
     const admin = await prismaClient.user.findFirst({
       where: { role: Role.ADMIN },
       select: { id: true }
-    });
+    })
 
     if (!admin) {
-      throw new ResponseError(500, "Admin tidak ditemukan");
+      throw new ResponseError(500, "Admin tidak ditemukan")
     }
 
     await prismaClient.user.update({
@@ -324,26 +323,26 @@ export class OrderService {
       data: {
         walletBalance: { decrement: order.totalPrice - ADMIN_FEE }
       }
-    });
+    })
 
     await prismaClient.user.update({
       where: { id: order.tailorId },
       data: {
         walletBalance: { increment: order.totalPrice - ADMIN_FEE }
       }
-    });
+    })
 
-    const chatService = new ChatService();
-    const roomId = await createRoomIfNeeded(updatedOrder);
+    const chatService = new ChatService()
+    const roomId = await createRoomIfNeeded(updatedOrder)
 
     await chatService.sendMessage(
       roomId,
       Role.CUSTOMER,
       updatedOrder.id,
       ChatType.CUSTOMER_RECEIVED
-    );
+    )
 
-    return mapOrderToOrderDetailResponse(updatedOrder);
+    return mapOrderToOrderDetailResponse(updatedOrder)
   }
 
   async approveCancelation(orderId: string, adminId: string): Promise<OrderDetailResponse> {
@@ -356,10 +355,10 @@ export class OrderService {
         orderShipping: true,
         orderCancellation: true,
       },
-    });
+    })
 
     if (!order) {
-      throw new ResponseError(400, "Order tidak ditemukan");
+      throw new ResponseError(400, "Order tidak ditemukan")
     }
 
     const updatedOrder = await prismaClient.order.update({
@@ -374,56 +373,56 @@ export class OrderService {
     await prismaClient.orderCancellation.update({
       where: { orderId: orderId },
       data: { cancelledAt: new Date() },
-    });
+    })
 
     await prismaClient.user.update({
       where: { id: updatedOrder.customerId },
       data: {
         walletBalance: { increment: updatedOrder.totalPrice },
       },
-    });
+    })
 
     await prismaClient.user.update({
       where: { id: adminId },
       data: {
         walletBalance: { decrement: updatedOrder.totalPrice - ADMIN_FEE },
       },
-    });
+    })
 
-    const chatService = new ChatService();
-    const roomId = await createRoomIfNeeded(updatedOrder);
+    const chatService = new ChatService()
+    const roomId = await createRoomIfNeeded(updatedOrder)
 
     await chatService.sendMessage(
       roomId,
       Role.CUSTOMER,
       updatedOrder.id,
       ChatType.ORDER_CANCELED
-    );
+    )
 
     await this.autoCompleteLongPendingOrders()
 
-    const result = mapOrderToOrderDetailResponse(updatedOrder);
-    return result;
+    const result = mapOrderToOrderDetailResponse(updatedOrder)
+    return result
   }
 
   async rejectCancellation(orderId: string, rejectReason: string): Promise<OrderDetailResponse> {
     const order = await prismaClient.order.findUnique({
       where: { id: orderId },
       include: orderDetailInclude,
-    });
+    })
 
-    if (!order) throw new ResponseError(400, "Order tidak ditemukan");
+    if (!order) throw new ResponseError(400, "Order tidak ditemukan")
 
     if (!order.orderCancellation) {
-      throw new ResponseError(400, "data tidak ditemukan");
+      throw new ResponseError(400, "data tidak ditemukan")
     }
 
     if (order.status !== OrderStatus.ADMIN_REVIEWING_CANCELLATION) {
-      throw new ResponseError(400, "Order tidak dalam status review admin");
+      throw new ResponseError(400, "Order tidak dalam status review admin")
     }
 
     if (!order.orderCancellation.previousStatus) {
-      throw new ResponseError(400, "Data status sebelumnya tidak ditemukan");
+      throw new ResponseError(400, "Data status sebelumnya tidak ditemukan")
     }
 
     const updatedOrder = await prismaClient.order.update({
@@ -433,7 +432,7 @@ export class OrderService {
         updatedAt: new Date(),
       },
       include: orderDetailInclude,
-    }) as unknown as OrderWithRelations;
+    }) as unknown as OrderWithRelations
 
     await prismaClient.orderCancellation.update({
       where: { orderId },
@@ -441,21 +440,21 @@ export class OrderService {
         previousStatus: null,
         cancellationRejectedReason: rejectReason,
       },
-    });
+    })
 
-    const chatService = new ChatService();
-    const roomId = await createRoomIfNeeded(updatedOrder);
+    const chatService = new ChatService()
+    const roomId = await createRoomIfNeeded(updatedOrder)
 
     await chatService.sendMessage(
       roomId,
       Role.ADMIN,
       updatedOrder.id,
       ChatType.CANCELATION_REQUEST_REJECTED
-    );
+    )
 
     await this.autoCompleteLongPendingOrders()
 
-    return mapOrderToOrderDetailResponse(updatedOrder);
+    return mapOrderToOrderDetailResponse(updatedOrder)
   }
 
 
@@ -491,7 +490,7 @@ export class OrderService {
       return total + item.price * item.quantity
     }, 0)
 
-    const uniqueOrderId = `${order.id}${uuid().slice(0, 3)}`;
+    const uniqueOrderId = `${order.id}${uuid().slice(0, 3)}`
 
     const parameter = {
       transaction_details: {
@@ -542,8 +541,8 @@ export class OrderService {
   }
 
   async autoCompleteLongPendingOrders() {
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
     const orders = await prismaClient.order.findMany({
       where: {
@@ -557,30 +556,30 @@ export class OrderService {
       select: {
         id: true,
       },
-    });
+    })
 
     for (const order of orders) {
-      await this.customerCompleteOrder(order.id);
+      await this.customerCompleteOrder(order.id)
     }
 
-    return { totalProcessed: orders.length };
+    return { totalProcessed: orders.length }
   }
 
 }
 
 async function createRoomIfNeeded(order: { id: string, roomId: string | null, customerId: string, tailorId: string }) {
-  const chatService = new ChatService();
+  const chatService = new ChatService()
 
   if (!order.roomId) {
-    const room = await chatService.createOrGetRoom(order.customerId, order.tailorId);
+    const room = await chatService.createOrGetRoom(order.customerId, order.tailorId)
 
     await prismaClient.order.update({
       where: { id: order.id },
       data: { roomId: room.id },
-    });
+    })
 
-    return room.id;
+    return room.id
   }
 
-  return order.roomId;
+  return order.roomId
 }

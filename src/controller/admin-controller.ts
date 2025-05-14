@@ -9,8 +9,8 @@ export class AdminController {
   async approveCancelation(req: Request, res: Response, next: NextFunction) {
     try {
       const orderId = req.params.orderId
-      const userReq = req as UserRequest;
-      const adminId = userReq.user?.id;
+      const userReq = req as UserRequest
+      const adminId = userReq.user?.id
 
       if (!adminId) {
         throw new ResponseError(400, "Admin Invalid");
@@ -26,11 +26,11 @@ export class AdminController {
 
   async rejectCancelation(req: Request, res: Response, next: NextFunction) {
     try {
-      const userReq = req as UserRequest;
-      const userRole = userReq.user?.role;
+      const userReq = req as UserRequest
+      const userRole = userReq.user?.role
 
       if (userRole !== Role.ADMIN) {
-        throw new ResponseError(400, "user invalid");
+        throw new ResponseError(400, "user invalid")
       }
       const orderId = req.params.orderId
 
@@ -38,7 +38,7 @@ export class AdminController {
       const response = await this.orderService.rejectCancellation(orderId, rejectReason)
       res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
@@ -49,17 +49,17 @@ export class AdminController {
       const adminId = userReq.user?.id
 
       if (userRole !== Role.ADMIN) {
-        throw new ResponseError(400, "User Tidak Valid");
+        throw new ResponseError(400, "User Tidak Valid")
       }
 
       if (!adminId) {
-        throw new ResponseError(400, "User Tidak Valid");
+        throw new ResponseError(400, "User Tidak Valid")
       }
 
       const response = await this.orderService.getAllOrder(adminId, userRole)
       res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 }

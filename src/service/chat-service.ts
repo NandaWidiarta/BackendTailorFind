@@ -7,16 +7,16 @@ export class ChatService {
   async createOrGetRoom(customerId: string, tailorId: string): Promise<RoomChatResponse> {
     let room = await prismaClient.roomChat.findFirst({
       where: { customerId, tailorId },
-    });
+    })
 
     if (!room) {
       const [customer, tailor] = await Promise.all([
         prismaClient.user.findUnique({ where: { id: customerId } }),
         prismaClient.user.findUnique({ where: { id: tailorId } }),
-      ]);
+      ])
 
       if (!customer || !tailor) {
-        throw new Error("Customer or Tailor not found");
+        throw new Error("Customer or Tailor not found")
       }
 
       room = await prismaClient.roomChat.create({
@@ -28,13 +28,13 @@ export class ChatService {
           customerProfilePicture: customer.profilePicture,
           tailorProfilePicture: tailor.profilePicture
         },
-      });
+      })
     }
-    return room;
+    return room
   }
 
   async getRooms(userId: string, role: Role): Promise<RoomChatResponse[]> {
-    const isCustomer = role === Role.CUSTOMER;
+    const isCustomer = role === Role.CUSTOMER
 
     const rooms = await prismaClient.roomChat.findMany({
       where: {
@@ -46,26 +46,26 @@ export class ChatService {
         customer: { select: { id: true, firstname: true, lastname: true, profilePicture: true, email: true, phoneNumber: true } },
         tailor: { select: { id: true, firstname: true, lastname: true, profilePicture: true, email: true, phoneNumber: true } }
       }
-    });
+    })
 
-    return rooms.map(mapToRoomChatResponse);
+    return rooms.map(mapToRoomChatResponse)
   }
 
   async getChatsInRoom(roomId: string, userType: Role): Promise<ChatResponse[]> {
-    const room = await prismaClient.roomChat.findUnique({ where: { id: roomId } });
+    const room = await prismaClient.roomChat.findUnique({ where: { id: roomId } })
 
-    const lastHiddenAt  = userType === Role.CUSTOMER
+    const lastHiddenAt = userType === Role.CUSTOMER
       ? room?.lastHiddenAtCustomer
-      : room?.lastHiddenAtTailor;
+      : room?.lastHiddenAtTailor
 
-    await this.markAsRead(roomId, userType);
+    await this.markAsRead(roomId, userType)
 
     const chats = await prismaClient.chat.findMany({
-      where: { roomId, ...(lastHiddenAt  && { createdAt: { gt: lastHiddenAt  } }) },
+      where: { roomId, ...(lastHiddenAt && { createdAt: { gt: lastHiddenAt } }) },
       orderBy: { createdAt: 'asc' },
     })
 
-    return chats.map(mapToChatResponse);
+    return chats.map(mapToChatResponse)
   }
 
   async sendMessage(
@@ -99,7 +99,7 @@ export class ChatService {
       }
     })
 
-    return mapToChatResponse(newChat);
+    return mapToChatResponse(newChat)
   }
 
   async markAsRead(roomId: string, userType: Role) {
@@ -109,7 +109,7 @@ export class ChatService {
         unreadCountCustomer: userType === Role.CUSTOMER ? 0 : undefined,
         unreadCountTailor: userType === Role.TAILOR ? 0 : undefined,
       }
-    });
+    })
 
     await prismaClient.chat.updateMany({
       where: {
@@ -120,12 +120,12 @@ export class ChatService {
       data: {
         readAt: new Date(),
       }
-    });
+    })
   }
 
 
   async deleteRoomChat(roomId: string, userType: Role) {
-    const now = new Date();
+    const now = new Date()
 
     await prismaClient.roomChat.update({
       where: { id: roomId },
@@ -135,12 +135,12 @@ export class ChatService {
         deletedByTailorAt: userType === Role.TAILOR ? now : undefined,
         lastHiddenAtTailor: userType === Role.TAILOR ? now : undefined,
       },
-    });
+    })
 
-    const room = await prismaClient.roomChat.findUnique({ where: { id: roomId } });
+    const room = await prismaClient.roomChat.findUnique({ where: { id: roomId } })
 
     if (room?.deletedByCustomerAt && room?.deletedByTailorAt) {
-      await prismaClient.roomChat.delete({ where: { id: roomId } });
+      await prismaClient.roomChat.delete({ where: { id: roomId } })
     }
   }
 

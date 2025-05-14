@@ -11,10 +11,10 @@ export class OrderController {
   async createOrder(req: Request, res: Response, next: NextFunction) {
     try {
       const request = req.body as CreateOrderRequest
-      const response = await this.orderService.createOrder(request);
-      res.status(200).json(response);
+      const response = await this.orderService.createOrder(request)
+      res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
@@ -22,9 +22,9 @@ export class OrderController {
     try {
       const orderId = req.params.orderId
       const response = await this.orderService.getOrderDetail(orderId)
-      res.status(200).json(response);
+      res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
@@ -40,7 +40,7 @@ export class OrderController {
   
       const response = await this.orderService.getAllOrder(userId, userRole)
 
-      res.status(200).json(response);
+      res.status(200).json(response)
     } catch (e) {
       next(e)
     }
@@ -50,9 +50,9 @@ export class OrderController {
     try {
       const orderId = req.params.orderId
       const response = await this.orderService.processOrder(orderId)
-      res.status(200).json(response);
+      res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
@@ -63,9 +63,9 @@ export class OrderController {
         {orderId, deliveryServiceName, receiptNumber },
         req.file
       )
-      res.status(200).json(response);
+      res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
@@ -75,41 +75,41 @@ export class OrderController {
       const response = await this.orderService.customerCompleteOrder(
         orderId
       )
-      res.status(200).json(response);
+      res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
   async cancelOrder(req: Request, res: Response, next: NextFunction) {
     try {
-      const userReq = req as UserRequest;
-      const userId = userReq.user?.id;
-      const userRole = userReq.user?.role;
+      const userReq = req as UserRequest
+      const userId = userReq.user?.id
+      const userRole = userReq.user?.role
       const file = req.file
   
       if (!userId || !userRole) {
-        throw new ResponseError(400, "user invalid");
+        throw new ResponseError(400, "user invalid")
       }
   
-      const { orderId } = req.params;
+      const { orderId } = req.params
       if (!orderId) {
-        throw new ResponseError(400, "OrderId diperlukan");
+        throw new ResponseError(400, "OrderId diperlukan")
       }
 
       const { cancellationReason } = req.body
-      let imageUrl: string | null | undefined = undefined;
+      let imageUrl: string | null | undefined = undefined
 
 
       if (file) {
         try {
-          const result = await uploadFileToSupabase(file, orderId);
-          imageUrl = result ?? undefined;
+          const result = await uploadFileToSupabase(file, orderId)
+          imageUrl = result ?? undefined
           if (!imageUrl) {
-            throw new Error("Failed to upload image");
+            throw new Error("Failed to upload image")
           }
         } catch (uploadErr) {
-          throw new ResponseError(500, "Gagal mengupload gambar ke server");
+          throw new ResponseError(500, "Gagal mengupload gambar ke server")
         }
       }
   
@@ -119,37 +119,37 @@ export class OrderController {
         userRole: userRole,
         cancellationReason: cancellationReason,
         cancellationImage: imageUrl
-      });
+      })
   
-      res.status(200).json(response);
+      res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
   async getMidtransToken(req: Request, res: Response, next: NextFunction) {
     try {
       const { orderId } = req.params
-      const response = await this.orderService.createMidtransSnapToken(orderId);
-      res.status(200).json(response);
+      const response = await this.orderService.createMidtransSnapToken(orderId)
+      res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
   async withdraw(req: Request, res: Response, next: NextFunction) {
     try {
-      const userReq = req as UserRequest;
-      const userId = userReq.user?.id;
+      const userReq = req as UserRequest
+      const userId = userReq.user?.id
       if (!userId) {
-        throw new ResponseError(400, "User Tidak Ditemukan");
+        throw new ResponseError(400, "User Tidak Ditemukan")
       }
 
       const { balance } = req.body
 
-      const response = await this.orderService.withdraw(userId as string, balance as number);
+      const response = await this.orderService.withdraw(userId as string, balance as number)
 
-      res.status(200).json(response);
+      res.status(200).json(response)
     } catch (e) {
       next(e)
     }
@@ -157,9 +157,9 @@ export class OrderController {
 
   async autoCompleteLongPendingOrders(req: Request, res: Response, next: NextFunction) {
     try {
-      const response = await this.orderService.autoCompleteLongPendingOrders();
+      const response = await this.orderService.autoCompleteLongPendingOrders()
 
-      res.status(200).json(response);
+      res.status(200).json(response)
     } catch (e) {
       next(e)
     }
@@ -172,32 +172,32 @@ async function uploadFileToSupabase(
   orderId: string
 ): Promise<string | null> {
   try {
-    const extension = file.originalname.split('.').pop();
-    const fileName = `${orderId}-${Date.now()}.${extension || ''}`;
+    const extension = file.originalname.split('.').pop()
+    const fileName = `${orderId}-${Date.now()}.${extension || ''}`
 
     const { data, error } = await supabase.storage
       .from('paymentProof')
       .upload(fileName, file.buffer, {
         contentType: file.mimetype,
         upsert: false, 
-      });
+      })
 
     if (error) {
-      console.error('Supabase upload error:', error);
-      return null;
+      console.error('Supabase upload error:', error)
+      return null
     }
 
-    let publicURL: string | null = null;
+    let publicURL: string | null = null
     if (data && data.path) {
       const { data: publicData } = supabase.storage
         .from('paymentProof')
-        .getPublicUrl(data.path);
-      publicURL = publicData?.publicUrl ?? null;
+        .getPublicUrl(data.path)
+      publicURL = publicData?.publicUrl ?? null
     }
 
-    return publicURL;
+    return publicURL
   } catch (err) {
-    console.error('Exception uploading to Supabase:', err);
-    return null;
+    console.error('Exception uploading to Supabase:', err)
+    return null
   }
 }

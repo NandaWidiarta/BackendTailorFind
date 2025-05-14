@@ -1,16 +1,16 @@
 export interface CourseResponse {
-    id: string;
-    tailorId: string;
-    authorName: string;
-    imageUrl: string;
-    courseName: string;
-    shortDescription: string;
-    registrationLink: string;
-    description: string;
-    place?: string | null;
-    courseDate?: string | null;
-    createdAt: Date;
-    updatedAt: Date;
+    id: string
+    tailorId: string
+    authorName: string
+    imageUrl: string
+    courseName: string
+    shortDescription: string
+    registrationLink: string
+    description: string
+    place?: string | null
+    courseDate?: string | null
+    createdAt: Date
+    updatedAt: Date
 }
 
 export function mapToCourseResponse(course: any): CourseResponse {
@@ -27,5 +27,5 @@ export function mapToCourseResponse(course: any): CourseResponse {
         courseDate: course.courseDate,
         createdAt: course.createdAt,
         updatedAt: course.updatedAt
-    };
+    }
 }

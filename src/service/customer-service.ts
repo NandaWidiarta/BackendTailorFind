@@ -30,31 +30,31 @@ export class CustomerService {
       data: request,
     })
 
-    
+
     if (ratingImage) {
-      let imageUrl: string | null = null;
-      const fileName = `${ratingReview.id}-${Date.now()}`;
+      let imageUrl: string | null = null
+      const fileName = `${ratingReview.id}-${Date.now()}`
       const { data, error } = await supabase.storage
         .from("RatingReviewImage")
         .upload(fileName, ratingImage.buffer, {
           contentType: ratingImage.mimetype,
-        });
+        })
 
       if (error) {
-        throw new ResponseError(500, "Gagal mengupload gambar ke server");
+        throw new ResponseError(500, "Gagal mengupload gambar ke server")
       }
 
       imageUrl = data?.path
         ? supabase.storage.from("RatingReviewImage").getPublicUrl(data.path).data
-            ?.publicUrl || null
-        : null;
+          ?.publicUrl || null
+        : null
 
       if (imageUrl) {
         await prismaClient.ratingReview.update({
           where: { id: ratingReview.id },
           data: { image: imageUrl },
           select: { id: true, image: true },
-        });
+        })
       }
     }
 
@@ -76,19 +76,19 @@ export class CustomerService {
   }
 
   async getHomeData(customerId?: string) {
-    let unreadMessagesCount: number | null = null;
-  
+    let unreadMessagesCount: number | null = null
+
     if (customerId) {
       const rooms = await prismaClient.roomChat.findMany({
         where: { customerId },
         select: { unreadCountCustomer: true },
-      });
+      })
       unreadMessagesCount = rooms.reduce(
         (total, room) => total + room.unreadCountCustomer,
         0
-      );
+      )
     }
-  
+
     const [topTailors, latestArticles, latestCourses] = await Promise.all([
       prismaClient.tailorProfile.findMany({
         orderBy: { averageRating: "desc" },
@@ -109,14 +109,14 @@ export class CustomerService {
         orderBy: { createdAt: "desc" },
         take: 5,
       }),
-    ]);
-  
+    ])
+
     return {
       unreadMessagesCount,
       topTailors: topTailors.map(mapTailorProfileResponse),
       latestArticles: latestArticles.map(mapToArticleResponse),
       latestCourses: latestCourses.map(mapToCourseResponse),
-    };
+    }
   }
 
   async getTailors(page: number = 1, pageSize: number = 8) {
@@ -143,9 +143,9 @@ export class CustomerService {
       orderBy: { createdAt: "desc" },
     })
 
-    const totalPages = Math.ceil(totalTailors / pageSize);
+    const totalPages = Math.ceil(totalTailors / pageSize)
 
-    const formattedTailors = tailors.map(mapTailorFromUser);
+    const formattedTailors = tailors.map(mapTailorFromUser)
 
     return {
       formattedTailors,
@@ -155,7 +155,7 @@ export class CustomerService {
         currentPage: page,
         pageSize,
       },
-    };
+    }
   }
 
   async getFilteredTailors(params: TailorFilterParams) {
@@ -172,14 +172,14 @@ export class CustomerService {
       workEstimation,
       priceRange,
       gender
-    } = params;
+    } = params
 
     const whereConditions: any = {
       role: Role.TAILOR,
-    };
+    }
 
 
-    const AND: any[] = [];
+    const AND: any[] = []
 
     if (search) {
       AND.push({
@@ -197,7 +197,7 @@ export class CustomerService {
             },
           },
         ],
-      });
+      })
     }
 
     if (provinceId) {
@@ -205,46 +205,46 @@ export class CustomerService {
         tailorProfile: {
           provinceId,
         },
-      });
+      })
     }
     if (regencyId) {
       AND.push({
         tailorProfile: {
           regencyId,
         },
-      });
+      })
     }
     if (districtId) {
       AND.push({
         tailorProfile: {
           districtId,
         },
-      });
+      })
     }
     if (villageId) {
       AND.push({
         tailorProfile: {
           villageId,
         },
-      });
+      })
     }
 
     if (specialization) {
-      const specs = Array.isArray(specialization) 
-        ? specialization 
-        : specialization.split(',');
-      
+      const specs = Array.isArray(specialization)
+        ? specialization
+        : specialization.split(',')
+
       AND.push({
         tailorProfile: {
           specialization: {
             hasEvery: specs,
           },
         },
-      });
+      })
     }
 
     if (averageRating) {
-      const avg = parseFloat(averageRating);
+      const avg = parseFloat(averageRating)
       if (!isNaN(avg)) {
         AND.push({
           tailorProfile: {
@@ -252,7 +252,7 @@ export class CustomerService {
               gte: avg,
             },
           },
-        });
+        })
       }
     }
 
@@ -264,7 +264,7 @@ export class CustomerService {
             mode: "insensitive",
           },
         },
-      });
+      })
     }
 
     if (priceRange) {
@@ -275,27 +275,27 @@ export class CustomerService {
             mode: "insensitive",
           },
         },
-      });
+      })
     }
 
     if (gender) {
       AND.push({
         tailorProfile: {
-          gender: gender as Gender, 
+          gender: gender as Gender,
         },
-      });
+      })
     }
 
     if (AND.length > 0) {
-      whereConditions.AND = AND;
+      whereConditions.AND = AND
     }
 
     const totalTailors = await prismaClient.user.count({
       where: whereConditions,
-    });
+    })
 
-    const skip = (page - 1) * pageSize;
-    const take = pageSize;
+    const skip = (page - 1) * pageSize
+    const take = pageSize
 
     const tailors = await prismaClient.user.findMany({
       where: whereConditions,
@@ -312,11 +312,11 @@ export class CustomerService {
       skip,
       take,
 
-    });
+    })
 
-    const totalPages = Math.ceil(totalTailors / pageSize);
+    const totalPages = Math.ceil(totalTailors / pageSize)
 
-    const formattedTailors = tailors.map(mapTailorFromUser);
+    const formattedTailors = tailors.map(mapTailorFromUser)
 
     return {
       formattedTailors,
@@ -326,7 +326,7 @@ export class CustomerService {
         currentPage: page,
         pageSize,
       },
-    };
+    }
   }
 
 
@@ -355,22 +355,22 @@ export class CustomerService {
                 id: true,
                 firstname: true,
                 lastname: true,
-                profilePicture: true 
+                profilePicture: true
               }
             }
           }
         }
       }
-    });
-  
+    })
+
     if (!tailor) {
-      throw new ResponseError(400, "Data tidak ditemukan");
+      throw new ResponseError(400, "Data tidak ditemukan")
     }
-  
-    const reviewsCount = tailor.receivedReviews.length;
-  
-    const { password, token, ...tailorWithoutSensitiveInfo } = tailor;
-  
+
+    const reviewsCount = tailor.receivedReviews.length
+
+    const { password, token, ...tailorWithoutSensitiveInfo } = tailor
+
     const formattedTailor = {
       id: tailorWithoutSensitiveInfo.id,
       firstname: tailorWithoutSensitiveInfo.firstname,
@@ -423,38 +423,38 @@ export class CustomerService {
         updatedAt: article.updatedAt
       })) || [],
       courses: tailorWithoutSensitiveInfo.tailorProfile?.courses
-    };
-  
-    return formattedTailor;
+    }
+
+    return formattedTailor
   }
 
 
   async updateCustomerProfile(
     userId: string,
     userData: {
-      firstname?: string;
-      lastname?: string;
-      email?: string;
-      phoneNumber?: string;
-      profilePicture?: string | null;
+      firstname?: string
+      lastname?: string
+      email?: string
+      phoneNumber?: string
+      profilePicture?: string | null
     }
-  ) : Promise <UpdateCustomerProfileResponse> {
-    const { profilePicture, ...others } = userData;
+  ): Promise<UpdateCustomerProfileResponse> {
+    const { profilePicture, ...others } = userData
 
     const data = {
       ...others,
       ...(typeof profilePicture === 'string' && profilePicture.trim() !== ''
         ? { profilePicture }
         : {})
-    };
-  
+    }
+
     const updatedUser = await prismaClient.user.update({
       where: { id: userId },
       data
-    });
+    })
 
-    return mapUserToProfileResponse(updatedUser);
+    return mapUserToProfileResponse(updatedUser)
   }
-  
+
 
 }

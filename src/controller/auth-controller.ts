@@ -14,9 +14,9 @@ export class AuthController {
 
     async registerCustomer(req: Request, res: Response, next: NextFunction) {
         try {
-            const request: CreateCustomerRequest = req.body as CreateCustomerRequest;
+            const request: CreateCustomerRequest = req.body as CreateCustomerRequest
             const profilePicture = req.file
-            const response = await this.authService.registerCustomer(request, profilePicture);
+            const response = await this.authService.registerCustomer(request, profilePicture)
             res.status(200).json(response)
         } catch (e) {
             next(e)
@@ -27,7 +27,7 @@ export class AuthController {
         try {
             const request: CreateTailorRequest = {
                 ...req.body,
-                specialization: JSON.parse(req.body.specialization || "[]"), // Pastikan specialization di-parse jadi array
+                specialization: JSON.parse(req.body.specialization || "[]"), 
             }
 
             const profilePictureFile = Array.isArray(req.files)
@@ -66,60 +66,60 @@ export class AuthController {
             const response = await this.authService.forgotPassword(email);
             res.status(200).json(response)
         } catch (e) {
-            next(e);
+            next(e)
         }
     }
 
     async resetPassword(req: Request, res: Response, next: NextFunction) {
         try {
-            const { newPassword } = req.body;
-            const userReq = req as UserRequest;
-            const userId = userReq.user?.id;
+            const { newPassword } = req.body
+            const userReq = req as UserRequest
+            const userId = userReq.user?.id
             if (!userId) {
-                throw new ResponseError(400, "User id kosong ");
+                throw new ResponseError(400, "User id kosong ")
             }
-            const response = await this.authService.resetPassword(newPassword, userId);
+            const response = await this.authService.resetPassword(newPassword, userId)
             res.status(200).json(response)
         } catch (e) {
-            next(e);
+            next(e)
         }
     }
 
     async logout(req: Request, res: Response, next: NextFunction) {
         try {
-            const response = await this.authService.logout();
+            const response = await this.authService.logout()
 
             res.status(200).json(response)
         } catch (e) {
-            next(e);
+            next(e)
         }
     }
 
     async getDetailUserLoggedIn(req: Request, res: Response, next: NextFunction) {
         const userReq = req as UserRequest;
-        const userEmail = userReq.user?.email;
+        const userEmail = userReq.user?.email
         if (!userEmail) {
-            throw new ResponseError(400, "Terjadi Kesalahan");
+            throw new ResponseError(400, "Terjadi Kesalahan")
         }
-        const response = await this.authService.getDetailUserByEmail(userEmail);
+        const response = await this.authService.getDetailUserByEmail(userEmail)
 
         res.status(200).json(response)
     }
 
     async getUserDetailById(req: Request, res: Response, next: NextFunction) {
         try {
-            const userReq = req as UserRequest;
-            const userId = userReq.user?.id;
-            const userRole = userReq.user?.role;
+            const userReq = req as UserRequest
+            const userId = userReq.user?.id
+            const userRole = userReq.user?.role
             if (!userId && !userRole) {
-                throw new ResponseError(400, "User Tidak Ditemukan");
+                throw new ResponseError(400, "User Tidak Ditemukan")
             }
 
-            const response = await this.authService.getUserDetailById(userId as string, userRole as Role);
+            const response = await this.authService.getUserDetailById(userId as string, userRole as Role)
 
             res.status(200).json(response)
         } catch (e) {
-            next(e);
+            next(e)
         }
     }
 }

@@ -1,5 +1,5 @@
 import express from "express";
-import { RoomChatController } from "../controller/room-chat-controller";
+import { RoomChatController } from "../controller/chat-controller";
 import upload from "../middleware/multer";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { OrderController } from "../controller/order-controller";
@@ -15,8 +15,8 @@ tailorApiRouter.post("/rooms", chatController.createOrGetRoom.bind(chatControlle
 tailorApiRouter.get("/rooms", chatController.getAllRoom.bind(chatController))
 tailorApiRouter.get("/rooms/:roomId/chats", chatController.getChatsInRoom.bind(chatController))
 tailorApiRouter.post("/rooms/:roomId/chats", upload.single('file'), chatController.sendMessage.bind(chatController))
-tailorApiRouter.delete("/rooms/:roomId", chatController.deleteRoomChat.bind(chatController));
-tailorApiRouter.post("/rooms/mark-read/:roomId", chatController.markAsRead.bind(chatController));
+tailorApiRouter.delete("/rooms/:roomId", chatController.deleteRoomChat.bind(chatController))
+tailorApiRouter.post("/rooms/mark-read/:roomId", chatController.markAsRead.bind(chatController))
 
 //order
 tailorApiRouter.post("/order/create", orderController.createOrder.bind(orderController))
@@ -59,14 +59,14 @@ tailorApiRouter.post(
   "/certificates",
   upload.fields([{ name: "certificate", maxCount: 5 }]),
   tailorController.addCertificate.bind(tailorController)
-);
+)
 
 tailorApiRouter.get("/certificates", tailorController.getCertificate.bind(tailorController))
 tailorApiRouter.delete("/certificates", tailorController.deleteCertificate.bind(tailorController))
-tailorApiRouter.get("/review", tailorController.getReviewData.bind(tailorController));
+tailorApiRouter.get("/review", tailorController.getReviewData.bind(tailorController))
 
 tailorApiRouter.post("/reset-password", authController.resetPassword.bind(authController))
-tailorApiRouter.post("/forgot-password", authController.forgotPassword.bind(authController));
+tailorApiRouter.post("/forgot-password", authController.forgotPassword.bind(authController))
 
-tailorApiRouter.get("/user-detail", authController.getUserDetailById.bind(authController));
-tailorApiRouter.post("/withdraw", orderController.withdraw.bind(orderController));
+tailorApiRouter.get("/user-detail", authController.getUserDetailById.bind(authController))
+tailorApiRouter.post("/withdraw", orderController.withdraw.bind(orderController))

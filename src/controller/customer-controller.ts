@@ -22,51 +22,51 @@ export class CustomerController {
     next: NextFunction
   ) {
     try {
-      const rating = parseInt(req.body.rating);
-      const review = req.body.review;
-      const tailorId = req.body.tailorId;
-      const customerId = req.body.customerId;
+      const rating = parseInt(req.body.rating)
+      const review = req.body.review
+      const tailorId = req.body.tailorId
+      const customerId = req.body.customerId
 
       if (isNaN(rating) || rating < 1 || rating > 5) {
-        throw new ResponseError(400, "Invalid rating value");
+        throw new ResponseError(400, "Invalid rating value")
       }
 
       const response = await this.customerService.addRatingReview(
         { rating, review, tailorId, customerId },
         req.file
-      );
+      )
 
-      res.status(200).json(response);
+      res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
   async getHomeData(req: Request, res: Response, next: NextFunction) {
     try {
-      const userReq = req as UserRequest;
-      const userId = userReq.user?.id;
+      const userReq = req as UserRequest
+      const userId = userReq.user?.id
       if (!userId) {
-        throw new ResponseError(400, "User id kosong");
+        throw new ResponseError(400, "User id kosong")
       }
 
-      const result = await this.customerService.getHomeData(userId);
-      res.status(200).json(response);
+      const result = await this.customerService.getHomeData(userId)
+      res.status(200).json(result)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
   async getTailors(req: Request, res: Response, next: NextFunction) {
     try {
-      const { page = "1" } = req.query;
-      const currentPage = parseInt(page as string, 10) || 1;
+      const { page = "1" } = req.query
+      const currentPage = parseInt(page as string, 10) || 1
 
-      const response = await this.customerService.getTailors(currentPage);
+      const response = await this.customerService.getTailors(currentPage)
 
-      res.status(200).json(response);
+      res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
@@ -88,10 +88,10 @@ export class CustomerController {
         workEstimation,
         priceRange,
         gender
-      } = req.query;
+      } = req.query
 
-      const currentPage = parseInt(page as string, 10) || 1;
-      const pageSize = 8;
+      const currentPage = parseInt(page as string, 10) || 1
+      const pageSize = 8
 
       const result = await this.customerService.getFilteredTailors({
         page: currentPage,
@@ -106,11 +106,11 @@ export class CustomerController {
         workEstimation: workEstimation as string,
         priceRange: priceRange as string,
         gender: gender as Gender
-      });
+      })
 
-      res.status(200).json(result);
+      res.status(200).json(result)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
@@ -120,13 +120,13 @@ export class CustomerController {
     next: NextFunction
   ) {
     try {
-      const { id } = req.params;
+      const { id } = req.params
 
-      const response = await this.customerService.getTailorById(id);
+      const response = await this.customerService.getTailorById(id)
 
-      res.status(200).json(response);
+      res.status(200).json(response)
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 
@@ -136,17 +136,17 @@ export class CustomerController {
     next: NextFunction
   ) {
     try {
-      const userReq = req as UserRequest;
-      const userId = userReq.user?.id;
+      const userReq = req as UserRequest
+      const userId = userReq.user?.id
       if (!userId) {
-        throw new ResponseError(400, "User id kosong");
+        throw new ResponseError(400, "User id kosong")
       }
-      const { firstname, lastname, email, phoneNumber } = req.body;
+      const { firstname, lastname, email, phoneNumber } = req.body
       const imageFile = req.file
 
-      let profilePicture: string | null = null;
+      let profilePicture: string | null = null
       if (imageFile) {
-        profilePicture = await uploadFileToSupabase(imageFile, userReq.user?.email ?? "email");
+        profilePicture = await uploadFileToSupabase(imageFile, userReq.user?.email ?? "email")
       }
 
       const updatedUser = await this.customerService.updateCustomerProfile(userId, {
@@ -155,65 +155,48 @@ export class CustomerController {
         email,
         phoneNumber,
         profilePicture
-      });
+      })
 
       res.status(200).json({
         message: "Customer profile updated successfully",
         data: updatedUser,
-      });
+      })
     } catch (e) {
-      next(e);
+      next(e)
     }
   }
 }
-
-export const getHome: RequestHandler = async (req, res, next) => {
-  try {
-    const user = req as UserRequest;
-    const userId = user.user?.id
-    if (!userId) {
-      return next();
-    }
-    const customerService = new CustomerService()
-    const result = await customerService.getHomeData(userId);
-    res.status(200).json(result);
-    return
-  } catch (error) {
-    next(error);
-  }
-};
-
 
 async function uploadFileToSupabase(
   file: Express.Multer.File,
   userEmail: string
 ): Promise<string | null> {
   try {
-    const extension = file.originalname.split('.').pop();
-    const fileName = `${userEmail}-${Date.now()}.${extension || ''}`;
+    const extension = file.originalname.split('.').pop()
+    const fileName = `${userEmail}-${Date.now()}.${extension || ''}`
 
     const { data, error } = await supabase.storage
       .from('profile')
       .upload(fileName, file.buffer, {
         contentType: file.mimetype
-      });
+      })
 
     if (error) {
-      console.error('Supabase upload error:', error);
-      return null;
+      console.error('Supabase upload error:', error)
+      return null
     }
 
-    let publicURL: string | null = null;
+    let publicURL: string | null = null
     if (data && data.path) {
       const { data: publicData } = supabase.storage
         .from('profile')
-        .getPublicUrl(data.path);
-      publicURL = publicData?.publicUrl ?? null;
+        .getPublicUrl(data.path)
+      publicURL = publicData?.publicUrl ?? null
     }
 
-    return publicURL;
+    return publicURL
   } catch (err) {
-    console.error('Exception uploading to Supabase:', err);
-    return null;
+    console.error('Exception uploading to Supabase:', err)
+    return null
   }
 }
