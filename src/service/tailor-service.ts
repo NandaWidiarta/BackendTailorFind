@@ -50,8 +50,7 @@ export class TailorService {
             phoneNumber: true,
             profilePicture: true,
             role: true,
-            createdAt: true,
-            token: true
+            createdAt: true
           },
         },
         province: { select: { name: true } },

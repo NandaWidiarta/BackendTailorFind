@@ -61,7 +61,6 @@ export class AuthService {
                 lastname: registerRequest.lastname,
                 email: email,
                 phoneNumber: registerRequest.phoneNumber,
-                password: '',
                 role: Role.CUSTOMER,
                 profilePicture: profilePictureUrl
             }
@@ -155,7 +154,6 @@ export class AuthService {
                 lastname: registerRequest.lastname,
                 email: email,
                 phoneNumber: registerRequest.phoneNumber,
-                password: "",
                 role: Role.TAILOR,
                 profilePicture: registerRequest.profilePicture,
                 tailorProfile: {
@@ -301,7 +299,7 @@ export class AuthService {
         })
 
         if (user) {
-            const { password, walletBalance, ...rest } = user
+            const { walletBalance, ...rest } = user
             return {
                 ...rest,
                 walletBalance: walletBalance.toString(),

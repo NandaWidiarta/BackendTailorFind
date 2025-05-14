@@ -89,8 +89,7 @@ export function toTailorResponse(
     certificate: user.tailorProfile?.certificate ?? [],
     gender: user.tailorProfile.gender,
     role: user.role,
-    createdAt: user.createdAt,
-    token: user.token ?? null,
+    createdAt: user.createdAt
   }
 }
 

@@ -369,30 +369,28 @@ export class CustomerService {
 
     const reviewsCount = tailor.receivedReviews.length
 
-    const { password, token, ...tailorWithoutSensitiveInfo } = tailor
-
     const formattedTailor = {
-      id: tailorWithoutSensitiveInfo.id,
-      firstname: tailorWithoutSensitiveInfo.firstname,
-      lastname: tailorWithoutSensitiveInfo.lastname,
-      email: tailorWithoutSensitiveInfo.email,
-      phoneNumber: tailorWithoutSensitiveInfo.phoneNumber,
-      role: tailorWithoutSensitiveInfo.role,
-      createdAt: tailorWithoutSensitiveInfo.createdAt,
-      provinceName: tailorWithoutSensitiveInfo.tailorProfile?.province?.name,
-      regencyName: tailorWithoutSensitiveInfo.tailorProfile?.regency?.name,
-      districtName: tailorWithoutSensitiveInfo.tailorProfile?.district?.name,
-      villageName: tailorWithoutSensitiveInfo.tailorProfile?.village?.name,
-      addressDetail: tailorWithoutSensitiveInfo.tailorProfile?.addressDetail,
-      workEstimation: tailorWithoutSensitiveInfo.tailorProfile?.workEstimation,
-      priceRange: tailorWithoutSensitiveInfo.tailorProfile?.priceRange,
-      specialization: tailorWithoutSensitiveInfo.tailorProfile?.specialization,
-      businessDescription: tailorWithoutSensitiveInfo.tailorProfile?.businessDescription,
-      profilePicture: tailorWithoutSensitiveInfo.profilePicture,
-      certificate: tailorWithoutSensitiveInfo.tailorProfile?.certificate,
-      averageRating: tailorWithoutSensitiveInfo.tailorProfile?.averageRating,
+      id: tailor.id,
+      firstname: tailor.firstname,
+      lastname: tailor.lastname,
+      email: tailor.email,
+      phoneNumber: tailor.phoneNumber,
+      role: tailor.role,
+      createdAt: tailor.createdAt,
+      provinceName: tailor.tailorProfile?.province?.name,
+      regencyName: tailor.tailorProfile?.regency?.name,
+      districtName: tailor.tailorProfile?.district?.name,
+      villageName: tailor.tailorProfile?.village?.name,
+      addressDetail: tailor.tailorProfile?.addressDetail,
+      workEstimation: tailor.tailorProfile?.workEstimation,
+      priceRange: tailor.tailorProfile?.priceRange,
+      specialization: tailor.tailorProfile?.specialization,
+      businessDescription: tailor.tailorProfile?.businessDescription,
+      profilePicture: tailor.profilePicture,
+      certificate: tailor.tailorProfile?.certificate,
+      averageRating: tailor.tailorProfile?.averageRating,
       reviewsCount: reviewsCount,
-      reviews: tailorWithoutSensitiveInfo.receivedReviews.map(review => ({
+      reviews: tailor.receivedReviews.map(review => ({
         id: review.id,
         rating: review.rating,
         review: review.review,
@@ -404,7 +402,7 @@ export class CustomerService {
           imageUrl: review.customer.profilePicture
         }
       })),
-      stuff: tailorWithoutSensitiveInfo.tailorProfile?.stuff.map(item => ({
+      stuff: tailor.tailorProfile?.stuff.map(item => ({
         id: item.id,
         name: item.name,
         imageUrl: item.imageUrl,
@@ -413,16 +411,16 @@ export class CustomerService {
         createdAt: item.createdAt,
         updatedAt: item.updatedAt
       })) || [],
-      articles: tailorWithoutSensitiveInfo.tailorProfile?.article.map(article => ({
+      articles: tailor.tailorProfile?.article.map(article => ({
         id: article.id,
         title: article.title,
         content: article.content,
         imageUrl: article.imageUrl,
-        authorName: tailorWithoutSensitiveInfo.firstname + tailorWithoutSensitiveInfo.lastname,
+        authorName: tailor.firstname + tailor.lastname,
         createdAt: article.createdAt,
         updatedAt: article.updatedAt
       })) || [],
-      courses: tailorWithoutSensitiveInfo.tailorProfile?.courses
+      courses: tailor.tailorProfile?.courses
     }
 
     return formattedTailor
