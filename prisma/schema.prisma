@@ -69,8 +69,8 @@ model RoomChat {
   customerId String  
   tailorId   String  
   createdAt  DateTime @default(now())
-  customerName       String?  @db.VarChar(200) 
-  tailorName         String?  @db.VarChar(200) 
+  customerName       String?  @db.VarChar(210) 
+  tailorName         String?  @db.VarChar(210) 
 
   customer   User @relation("CustomerRooms", fields: [customerId], references: [id])
   tailor     User @relation("TailorRooms", fields: [tailorId], references: [id])
