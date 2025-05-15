@@ -4,8 +4,6 @@ import { ResponseError } from "../error/response-error";
 import { CreateCustomerRequest, CustomerResponse, LoginRequest, toCustomerResponse } from "../model/customer-model";
 import { CreateTailorRequest, TailorResponse, toTailorResponse } from "../model/tailor-model";
 import { supabase, supabaseAdmin } from "../supabase-client";
-import { CustomerValidation } from "../validation/customer-validation";
-import { Validation } from "../validation/validation";
 
 export class AuthService {
     async registerCustomer(registerRequest: CreateCustomerRequest, profilePictureFile?: Express.Multer.File): Promise<CustomerResponse> {
@@ -182,13 +180,12 @@ export class AuthService {
     }
 
     async login(request: LoginRequest) {
-        const loginRequest = Validation.validate(CustomerValidation.LOGIN, request)
 
-        const email = loginRequest.email.toLowerCase()
+        const email = request.email.toLowerCase()
 
         const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
             email: email,
-            password: loginRequest.password
+            password: request.password
         })
 
         if (authError) {

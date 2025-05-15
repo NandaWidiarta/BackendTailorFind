@@ -8,8 +8,6 @@ import {
   TailorHomeResponse,
   toCustomerResponse,
 } from "../model/customer-model";
-import { CustomerValidation } from "../validation/customer-validation";
-import { Validation } from "../validation/validation";
 import bcrypt from "bcrypt";
 import { v4 as uuid } from "uuid";
 import {
