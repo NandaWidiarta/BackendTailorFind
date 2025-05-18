@@ -1,4 +1,3 @@
-import { AdminController } from "../controller/admin-controller";
 import { ArticleController } from "../controller/article-controller";
 import { AuthController } from "../controller/auth-controller";
 import { CourseController } from "../controller/course-controller";
@@ -26,6 +25,5 @@ export const articleController = new ArticleController(new ArticleService())
 export const stuffController = new StuffController(new StuffService())
 export const chatController = new RoomChatController(new ChatService())
 export const orderController = new OrderController(new OrderService())
-export const adminController = new AdminController(new OrderService())
 export const customerController = new CustomerController(new CustomerService())
 export const tailorController = new TailorController(new TailorService())

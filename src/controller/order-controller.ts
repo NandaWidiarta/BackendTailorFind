@@ -30,12 +30,14 @@ export class OrderController {
 
   async getAllOrder(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId = req.params.userId
       const userReq = req as UserRequest
       const userRole = userReq.user?.role
+      const adminId = userReq.user?.id
+      const paramUserId = req.params.userId;
+      const userId = userRole === Role.ADMIN ? adminId : paramUserId;
   
       if (!userId || !userRole) {
-        throw new ResponseError(400, "User Tidak Valid")
+        throw new ResponseError(400, "User Tidak Valid");
       }
   
       const response = await this.orderService.getAllOrder(userId, userRole)
@@ -46,10 +48,10 @@ export class OrderController {
     }
   }
 
-  async processOrder(req: Request, res: Response, next: NextFunction) {
+  async payment(req: Request, res: Response, next: NextFunction) {
     try {
       const orderId = req.params.orderId
-      const response = await this.orderService.processOrder(orderId)
+      const response = await this.orderService.payment(orderId)
       res.status(200).json(response)
     } catch (e) {
       next(e)
@@ -159,6 +161,41 @@ export class OrderController {
     try {
       const response = await this.orderService.autoCompleteLongPendingOrders()
 
+      res.status(200).json(response)
+    } catch (e) {
+      next(e)
+    }
+  }
+  async approveCancelation(req: Request, res: Response, next: NextFunction) {
+    try {
+      const orderId = req.params.orderId
+      const userReq = req as UserRequest
+      const adminId = userReq.user?.id
+
+      if (!adminId) {
+        throw new ResponseError(400, "Admin Invalid");
+      }
+
+      const response = await this.orderService.approveCancelation(orderId, adminId)
+
+      res.status(200).json(response)
+    } catch (e) {
+      next(e)
+    }
+  }
+
+  async rejectCancelation(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userReq = req as UserRequest
+      const userRole = userReq.user?.role
+
+      if (userRole !== Role.ADMIN) {
+        throw new ResponseError(400, "user invalid")
+      }
+      const orderId = req.params.orderId
+
+      const { rejectReason } = req.body
+      const response = await this.orderService.rejectCancellation(orderId, rejectReason)
       res.status(200).json(response)
     } catch (e) {
       next(e)

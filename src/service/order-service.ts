@@ -172,7 +172,7 @@ export class OrderService {
     return mapOrderToOrderDetailResponse(finalOrder)
   }
 
-  async processOrder(orderId: string): Promise<OrderDetailResponse> {
+  async payment(orderId: string): Promise<OrderDetailResponse> {
     const order = await prismaClient.order.findUnique({
       where: { id: orderId },
       include: orderDetailInclude,

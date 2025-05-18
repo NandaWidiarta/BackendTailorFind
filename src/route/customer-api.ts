@@ -22,7 +22,7 @@ customerApiRouter.get("/order/all/:userId", orderController.getAllOrder.bind(ord
 customerApiRouter.post("/order/cancel/:orderId", upload.single('file'), orderController.cancelOrder.bind(orderController))
 customerApiRouter.post("/order/complete/:orderId", orderController.completeOrderByCustomer.bind(orderController))
 customerApiRouter.post("/order/midtrans-token/:orderId", orderController.getMidtransToken.bind(orderController))
-customerApiRouter.post("/order/payment-complete/:orderId", orderController.processOrder.bind(orderController))
+customerApiRouter.post("/order/payment-complete/:orderId", orderController.payment.bind(orderController))
 
 customerApiRouter.get("/home", customerController.getHomeData.bind(customerController))
 customerApiRouter.post("/logout", authController.logout.bind(authController))
