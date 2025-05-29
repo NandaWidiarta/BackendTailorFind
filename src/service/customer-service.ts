@@ -63,10 +63,13 @@ export class CustomerService {
       },
     })
 
+    const rawAverage = avgRating._avg.rating ?? 0;
+    const roundedAverage = Math.round(rawAverage * 10) / 10;
+
     await prismaClient.tailorProfile.update({
       where: { userId: request.tailorId },
       data: {
-        averageRating: avgRating._avg.rating ?? 0,
+        averageRating: roundedAverage,
       },
     })
 
