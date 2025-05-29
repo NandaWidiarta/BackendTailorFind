@@ -20,7 +20,7 @@ export class ArticleService {
 
     if (error) throw new ResponseError(500, "Gagal mengupload gambar ke database")
 
-    const imageUrl = data?.path ? supabase.storage.from("articleImage").getPublicUrl(data.path).data?.publicUrl || null : null
+    const imageUrl = data?.path ? supabase.storage.from("articleImages").getPublicUrl(data.path).data?.publicUrl || null : null
     if (!imageUrl) throw new ResponseError(500, "Gagal membuat url gambar")
 
     const newArticle = await prismaClient.article.create({
