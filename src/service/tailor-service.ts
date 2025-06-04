@@ -7,7 +7,7 @@ import {
   LoginRequest,
   TailorHomeResponse,
   toCustomerResponse,
-} from "../model/customer-model";
+} from "../dto/customer-dto";
 import bcrypt from "bcrypt";
 import { v4 as uuid } from "uuid";
 import {
@@ -16,7 +16,7 @@ import {
   TailorResponse,
   toTailorHomeResponse,
   toTailorResponse,
-} from "../model/tailor-model";
+} from "../dto/tailor-dto";
 import { supabase } from "../supabase-client";
 import { Role } from "@prisma/client";
 

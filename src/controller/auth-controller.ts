@@ -1,11 +1,11 @@
 import { LocationService } from "../service/location-service";
 import e, { Request, Response, NextFunction } from "express";
 import { AuthService } from "../service/auth-service";
-import { CreateCustomerRequest, LoginRequest } from "../model/customer-model";
+import { CreateCustomerRequest, LoginRequest } from "../dto/customer-dto";
 import { UserRequest } from "../type/user-request";
 import { ResponseError } from "../error/response-error";
 import { Role } from "@prisma/client";
-import { CreateTailorRequest } from "../model/tailor-model";
+import { CreateTailorRequest } from "../dto/tailor-dto";
 
 export class AuthController {
     constructor(

@@ -1,6 +1,6 @@
 import { Role, User, Gender } from "@prisma/client";
 
-export type CustomerResponse = {
+export interface CustomerResponse {
     id: string
     firstName: string
     lastName?: string
@@ -11,7 +11,7 @@ export type CustomerResponse = {
     profilePicture: string | null
 }
 
-export type CreateCustomerRequest = {
+export interface CreateCustomerRequest {
     firstname: string
     lastname?: string | null
     email: string
@@ -22,7 +22,7 @@ export type CreateCustomerRequest = {
     profilePicture: string | null
 }
 
-export type CustomersResponse = {
+export interface CustomersResponse {
     firstname: string
     lastname?: string | null
     email: string
@@ -31,12 +31,12 @@ export type CustomersResponse = {
     token?: string | null
 }
 
-export type LoginRequest = {
+export interface LoginRequest {
     email: string
     password: string
 }
 
-export type RatingReviewRequest = {
+export interface RatingReviewRequest {
     rating: number
     review?: string
     tailorId: string

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { CreateOrderRequest } from "../model/order-model";
+import { CreateOrderRequest } from "../dto/order-dto";
 import { OrderService } from "../service/order-service";
 import { UserRequest } from "../type/user-request";
 import { ResponseError } from "../error/response-error";

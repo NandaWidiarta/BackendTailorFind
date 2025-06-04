@@ -1,9 +1,9 @@
 import { Role, User, Gender } from "@prisma/client";
-import { ArticleResponse, mapToArticleResponse } from "./article-model";
-import { CourseResponse, mapToCourseResponse } from "./course-model";
-import { mapToStuffResponse, StuffResponse } from "./stuff-model";
+import { ArticleResponse, mapToArticleResponse } from "./article-dto";
+import { CourseResponse, mapToCourseResponse } from "./course-dto";
+import { mapToStuffResponse, StuffResponse } from "./stuff-dto";
 
-export type CreateTailorRequest = {
+export interface CreateTailorRequest {
   firstname: string
   lastname?: string | null
   gender: Gender
@@ -23,7 +23,7 @@ export type CreateTailorRequest = {
   certificate?: string[]
 }
 
-export type TailorResponse = {
+export interface TailorResponse {
   id: string
   firstname: string
   lastname?: string | null
@@ -46,7 +46,7 @@ export type TailorResponse = {
   token?: string | null
 }
 
-export type StuffFilterParams = {
+export interface StuffFilterParams {
   page?: number
   pageSize?: number
   name?: string

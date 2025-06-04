@@ -1,8 +1,8 @@
 import { Role } from "@prisma/client";
 import { prismaClient } from "../application/database";
 import { ResponseError } from "../error/response-error";
-import { CreateCustomerRequest, CustomerResponse, LoginRequest, toCustomerResponse } from "../model/customer-model";
-import { CreateTailorRequest, TailorResponse, toTailorResponse } from "../model/tailor-model";
+import { CreateCustomerRequest, CustomerResponse, LoginRequest, toCustomerResponse } from "../dto/customer-dto";
+import { CreateTailorRequest, TailorResponse, toTailorResponse } from "../dto/tailor-dto";
 import { supabase, supabaseAdmin } from "../supabase-client";
 
 export class AuthService {

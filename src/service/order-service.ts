@@ -1,6 +1,6 @@
 import { Chat, OrderStatus, OrderType, Role } from "@prisma/client";
 import { prismaClient } from "../application/database";
-import { CancelOrderRequest, CompleteOrderRequest, CreateOrderRequest, mapOrderToOrderDetailResponse, orderDetailInclude, OrderDetailResponse, OrderWithRelations } from "../model/order-model";
+import { CancelOrderRequest, CompleteOrderRequest, CreateOrderRequest, mapOrderToOrderDetailResponse, orderDetailInclude, OrderDetailResponse, OrderWithRelations } from "../dto/order-dto";
 import { supabase } from "../supabase-client";
 import { ResponseError } from "../error/response-error";
 import { ChatService } from "./chat-service";

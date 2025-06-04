@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { prismaClient } from "../application/database";
 import { ResponseError } from "../error/response-error";
-import { ArticleResponse, mapToArticleResponse } from "../model/article-model";
+import { ArticleResponse, mapToArticleResponse } from "../dto/article-dto";
 import { supabase } from "../supabase-client";
 
 export class ArticleService {

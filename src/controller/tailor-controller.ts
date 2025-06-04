@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { CreateTailorRequest } from "../model/tailor-model";
+import { CreateTailorRequest } from "../dto/tailor-dto";
 import { TailorService } from "../service/tailor-service";
-import { LoginRequest } from "../model/customer-model";
+import { LoginRequest } from "../dto/customer-dto";
 import { UserRequest } from "../type/user-request";
 import { ResponseError } from "../error/response-error";
 

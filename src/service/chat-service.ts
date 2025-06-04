@@ -1,7 +1,7 @@
 import { Role } from "@prisma/client";
 import { prismaClient } from "../application/database";
 import { ChatType } from "../constants/chat-type";
-import { ChatResponse, mapToChatResponse, mapToRoomChatResponse, RoomChatResponse } from "../model/chat-model";
+import { ChatResponse, mapToChatResponse, mapToRoomChatResponse, RoomChatResponse } from "../dto/chat-dto";
 
 export class ChatService {
   async createOrGetRoom(customerId: string, tailorId: string): Promise<RoomChatResponse> {

@@ -13,14 +13,14 @@ import {
   TailorFilterParams,
   toCustomerResponse,
   UpdateCustomerProfileResponse,
-} from "../model/customer-model";
+} from "../dto/customer-dto";
 import bcrypt from "bcrypt";
 import { v4 as uuid } from "uuid";
 import { supabase } from "../supabase-client";
 import { Gender } from "@prisma/client";
 import { snap } from "../instance/midtrans-client";
-import { mapToArticleResponse } from "../model/article-model";
-import { mapToCourseResponse } from "../model/course-model";
+import { mapToArticleResponse } from "../dto/article-dto";
+import { mapToCourseResponse } from "../dto/course-dto";
 
 export class CustomerService {
   async addRatingReview(request: RatingReviewRequest, ratingImage?: Express.Multer.File,): Promise<String> {

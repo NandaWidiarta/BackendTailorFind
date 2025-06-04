@@ -3,7 +3,7 @@ import { prismaClient } from "../application/database";
 import { ResponseError } from "../error/response-error";
 import { supabase } from "../supabase-client";
 import { Prisma } from "@prisma/client";
-import { CourseResponse, mapToCourseResponse } from "../model/course-model";
+import { CourseResponse, mapToCourseResponse } from "../dto/course-dto";
 
 export class CourseService {
   async addCourse(

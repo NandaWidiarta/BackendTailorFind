@@ -3,7 +3,7 @@ import {
   CreateCustomerRequest,
   LoginRequest,
   RatingReviewRequest,
-} from "../model/customer-model";
+} from "../dto/customer-dto";
 import { CustomerService } from "../service/customer-service";
 import { UserRequest } from "../type/user-request";
 import { ResponseError } from "../error/response-error";

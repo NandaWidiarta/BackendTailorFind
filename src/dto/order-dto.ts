@@ -1,12 +1,12 @@
 import { Order, OrderCancellation, OrderShipping, OrderStatus, OrderType, Role } from "@prisma/client"
 
-export type CreateOrderItemRequest = {
+export interface CreateOrderItemRequest {
   name: string
   qty: number
   price: number
 }
 
-export type CreateOrderRequest = {
+export interface CreateOrderRequest {
   tailorId: string
   customerId: string
   roomId: string
@@ -23,13 +23,13 @@ export type CreateOrderRequest = {
   orderItems: CreateOrderItemRequest[]
 }
 
-export type CompleteOrderRequest = {
+export interface CompleteOrderRequest {
   orderId: string
   deliveryServiceName?: string
   receiptNumber?: string
 }
 
-export type CancelOrderRequest = {
+export interface CancelOrderRequest {
   orderId: string
   userId: string  
   userRole: Role  

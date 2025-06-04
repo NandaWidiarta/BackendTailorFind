@@ -2,7 +2,7 @@ import { StuffCategory } from "@prisma/client";
 import { ResponseError } from "../error/response-error";
 import { supabase } from "../supabase-client";
 import { prismaClient } from "../application/database";
-import { mapToStuffResponse, StuffResponse } from "../model/stuff-model";
+import { mapToStuffResponse, StuffResponse } from "../dto/stuff-dto";
 
 export class StuffService {
   async addStuff(
