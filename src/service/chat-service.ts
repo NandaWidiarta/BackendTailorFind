@@ -2,35 +2,49 @@ import { Role } from "@prisma/client";
 import { prismaClient } from "../application/database";
 import { ChatType } from "../constants/chat-type";
 import { ChatResponse, mapToChatResponse, mapToRoomChatResponse, RoomChatResponse } from "../dto/chat-dto";
+import { ResponseError } from "../error/response-error";
 
 export class ChatService {
-  async createOrGetRoom(customerId: string, tailorId: string): Promise<RoomChatResponse> {
-    let room = await prismaClient.roomChat.findFirst({
+  async createOrGetRoom(
+    customerId: string,
+    tailorId: string,
+    isCreateRoom: boolean = false
+  ){
+    const existingRoom = await prismaClient.roomChat.findFirst({
       where: { customerId, tailorId },
     })
 
-    if (!room) {
-      const [customer, tailor] = await Promise.all([
-        prismaClient.user.findUnique({ where: { id: customerId } }),
-        prismaClient.user.findUnique({ where: { id: tailorId } }),
-      ])
+    if (existingRoom) {
+      return existingRoom;
+    }
 
-      if (!customer || !tailor) {
-        throw new Error("Customer or Tailor not found")
-      }
+    const [customer, tailor] = await Promise.all([
+      prismaClient.user.findUnique({ where: { id: customerId } }),
+      prismaClient.user.findUnique({ where: { id: tailorId } }),
+    ])
 
-      room = await prismaClient.roomChat.create({
+    if (!customer || !tailor) {
+      throw new ResponseError(400, "Customer atau Tailor tidak ditemukan")
+    }
+
+    if (isCreateRoom) {
+      const newRoom = await prismaClient.roomChat.create({
         data: {
           customerId,
           tailorId,
           customerName: customer.firstname + (customer.lastname ? ` ${customer.lastname}` : ""),
           tailorName: tailor.firstname + (tailor.lastname ? ` ${tailor.lastname}` : ""),
           customerProfilePicture: customer.profilePicture,
-          tailorProfilePicture: tailor.profilePicture
+          tailorProfilePicture: tailor.profilePicture,
         },
       })
+      return newRoom;
+    } else {
+      return {
+        tailorName: tailor.firstname + (tailor.lastname ? ` ${tailor.lastname}` : ""),
+        tailorProfilePicture: tailor.profilePicture,
+      }
     }
-    return room
   }
 
   async getRooms(userId: string, role: Role): Promise<RoomChatResponse[]> {

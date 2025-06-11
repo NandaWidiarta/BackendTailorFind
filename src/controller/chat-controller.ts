@@ -7,12 +7,13 @@ import { UserRequest } from "../type/user-request";
 import { ResponseError } from "../error/response-error";
 
 
-export class RoomChatController  {
-  constructor ( private readonly chatService: ChatService ) {}
+export class RoomChatController {
+  constructor(private readonly chatService: ChatService) { }
   async createOrGetRoom(req: Request, res: Response, next: NextFunction) {
     try {
-      const { customerId, tailorId } = req.body
-      const room = await this.chatService.createOrGetRoom(customerId, tailorId)
+      const { customerId, tailorId, isCreateRoom } = req.body
+      const shouldCreateRoom = !!isCreateRoom
+      const room = await this.chatService.createOrGetRoom(customerId, tailorId, shouldCreateRoom)
       res.status(200).json(room)
     } catch (e) {
       next(e)

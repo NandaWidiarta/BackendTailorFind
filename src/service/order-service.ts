@@ -571,14 +571,18 @@ async function createRoomIfNeeded(order: { id: string, roomId: string | null, cu
   const chatService = new ChatService()
 
   if (!order.roomId) {
-    const room = await chatService.createOrGetRoom(order.customerId, order.tailorId)
+    const room = await chatService.createOrGetRoom(order.customerId, order.tailorId, true)
 
-    await prismaClient.order.update({
-      where: { id: order.id },
-      data: { roomId: room.id },
-    })
+    if ('id' in room && room.id) {
+      await prismaClient.order.update({
+        where: { id: order.id },
+        data: { roomId: room.id },
+      })
 
-    return room.id
+      return room.id
+    } else {
+      throw new Error("Gagal membuat atau mendapatkan Room ID yang valid")
+    }
   }
 
   return order.roomId
