@@ -207,7 +207,7 @@ export class OrderService {
 
     await chatService.sendMessage(
       roomId,
-      Role.ADMIN,
+      Role.CUSTOMER,
       updatedOrder.id,
       ChatType.PAYMENT_CUSTOMER_CONFIRMED
     )
@@ -225,12 +225,6 @@ export class OrderService {
       throw new ResponseError(400, "Order tidak ditemukan")
     }
 
-    if (
-      (request.userRole === Role.CUSTOMER && order.customerId !== request.userId) ||
-      (request.userRole === Role.TAILOR && order.tailorId !== request.userId)
-    ) {
-      throw new ResponseError(400, "User tidak sama")
-    }
 
     if (order.status === OrderStatus.DONE) {
       throw new ResponseError(400, "Order tidak bisa dicancel")
@@ -378,7 +372,7 @@ export class OrderService {
     await prismaClient.user.update({
       where: { id: updatedOrder.customerId },
       data: {
-        walletBalance: { increment: updatedOrder.totalPrice },
+        walletBalance: { increment: updatedOrder.totalPrice - ADMIN_FEE },
       },
     })
 
@@ -447,7 +441,7 @@ export class OrderService {
 
     await chatService.sendMessage(
       roomId,
-      Role.ADMIN,
+      Role.TAILOR,
       updatedOrder.id,
       ChatType.CANCELATION_REQUEST_REJECTED
     )

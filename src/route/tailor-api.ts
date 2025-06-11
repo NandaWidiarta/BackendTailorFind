@@ -23,7 +23,6 @@ tailorApiRouter.post("/order/create", orderController.createOrder.bind(orderCont
 tailorApiRouter.get("/order/:orderId", orderController.getDetailOrder.bind(orderController))
 tailorApiRouter.get("/order/all/:userId", orderController.getAllOrder.bind(orderController))
 tailorApiRouter.post("/order/complete", upload.single('file'), orderController.completeOrderByTailor.bind(orderController))
-tailorApiRouter.post("/order/cancel/:orderId", orderController.cancelOrder.bind(orderController))
 
 //article
 tailorApiRouter.post("/article/add", upload.single('file'), articleController.addArticle.bind(articleController))

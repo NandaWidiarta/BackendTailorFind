@@ -257,27 +257,6 @@ export class CustomerService {
       }
     }
 
-    if (workEstimation) {
-      AND.push({
-        tailorProfile: {
-          workEstimation: {
-            contains: workEstimation,
-            mode: "insensitive",
-          },
-        },
-      })
-    }
-
-    if (priceRange) {
-      AND.push({
-        tailorProfile: {
-          priceRange: {
-            contains: priceRange,
-            mode: "insensitive",
-          },
-        },
-      })
-    }
 
     if (gender) {
       AND.push({
@@ -291,31 +270,87 @@ export class CustomerService {
       whereConditions.AND = AND
     }
 
-    const totalTailors = await prismaClient.user.count({
+    const allCandidates = await prismaClient.user.findMany({
       where: whereConditions,
+      select: {
+        id: true,
+        tailorProfile: {
+          select: {
+            priceRange: true,
+            workEstimation: true,
+          },
+        },
+      },
+    });
+
+    const filteredCandidates = allCandidates.filter(tailor => {
+      if (priceRange) {
+        try {
+          const price = parseInt(priceRange, 10);
+          if (isNaN(price)) return false
+
+          const priceRangeDB = tailor.tailorProfile?.priceRange
+          if (!priceRangeDB) return false
+
+          const [min, max] = priceRangeDB.split('-').map(Number)
+          if (price < min || price > max) {
+            return false
+          }
+        } catch (e) {
+          return false
+        }
+      }
+
+      if (workEstimation) {
+        try {
+          const days = parseInt(workEstimation, 10)
+          if (isNaN(days)) return false
+
+          const workEstimationDB = tailor.tailorProfile?.workEstimation
+          if (!workEstimationDB) return false
+
+          const [min, max] = workEstimationDB.match(/\d+/g)?.map(Number) || [0, 0]
+          if (days < min || days > max) {
+            return false
+          }
+        } catch (e) {
+          return false
+        }
+      }
+
+      return true
     })
 
+    const filteredIds = filteredCandidates.map(t => t.id)
+
+    const totalTailors = filteredIds.length
+    const totalPages = Math.ceil(totalTailors / pageSize)
+
     const skip = (page - 1) * pageSize
-    const take = pageSize
+    const paginatedIds = filteredIds.slice(skip, skip + pageSize)
+
+    if (paginatedIds.length === 0) {
+      return {
+        formattedTailors: [],
+        meta: { totalData: totalTailors, totalPages, currentPage: page, pageSize },
+      }
+    }
 
     const tailors = await prismaClient.user.findMany({
-      where: whereConditions,
+      where: {
+        id: { in: paginatedIds },
+      },
       include: {
         tailorProfile: {
           include: {
             province: true,
             regency: true,
             district: true,
-            village: true
-          }
-        }
+            village: true,
+          },
+        },
       },
-      skip,
-      take,
-
     })
-
-    const totalPages = Math.ceil(totalTailors / pageSize)
 
     const formattedTailors = tailors.map(mapTailorFromUser)
 
