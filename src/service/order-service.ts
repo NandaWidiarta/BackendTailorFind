@@ -388,7 +388,7 @@ export class OrderService {
 
     await chatService.sendMessage(
       roomId,
-      Role.CUSTOMER,
+      Role.TAILOR,
       updatedOrder.id,
       ChatType.ORDER_CANCELED
     )
