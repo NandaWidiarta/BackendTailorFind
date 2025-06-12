@@ -9,7 +9,7 @@ export class ChatService {
     customerId: string,
     tailorId: string,
     isCreateRoom: boolean = false
-  ){
+  ) {
     const existingRoom = await prismaClient.roomChat.findFirst({
       where: { customerId, tailorId },
     })
@@ -102,14 +102,14 @@ export class ChatService {
       data: {
         latestMessage: type == ChatType.TEXT ? message : type,
         latestMessageTime: new Date(),
-        unreadCountCustomer: senderType === Role.TAILOR || senderType === Role.ADMIN
+        unreadCountCustomer: senderType === Role.TAILOR
           ? { increment: 1 }
           : undefined,
-        unreadCountTailor: senderType === Role.CUSTOMER || senderType === Role.ADMIN
+        unreadCountTailor: senderType === Role.CUSTOMER
           ? { increment: 1 }
           : undefined,
-        deletedByCustomerAt: senderType === Role.TAILOR ? null : undefined,
-        deletedByTailorAt: senderType === Role.CUSTOMER ? null : undefined,
+        deletedByCustomerAt: null,
+        deletedByTailorAt: null,
       }
     })
 
