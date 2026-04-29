@@ -1,0 +1,14 @@
+<flowchart>
+  <swimlane>
+    <lane name="Lane 1">
+      <step name="Step 1">
+        <task>Task 1</task>
+      </step>
+    </lane>
+    <lane name="Lane 2">
+      <step name="Step 2">
+        <task>Task 2</task>
+      </step>
+    </lane>
+  </swimlane>
+</flowchart>
