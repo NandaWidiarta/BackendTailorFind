@@ -1,0 +1,56 @@
+| Table Name            | Column Name             | Data Type (SQL Server) | Max Length (VARCHAR) | Is Nullable | Description     |
+|-----------------------|-------------------------|-------------------------|----------------------|-------------|------------------|
+| User                  | UserID                  | INT                     |                      | NO          | Unique identifier for user |
+|                       | Username                | VARCHAR                 | 50                   | NO          | The user's name   |
+|                       | Password                | VARCHAR                 | 255                  | NO          | Hashed password    |
+|                       | Email                   | VARCHAR                 | 100                  | NO          | User email address |
+| TailorProfile         | ProfileID               | INT                     |                      | NO          | Unique identifier for tailor profile |
+|                       | UserID                  | INT                     |                      | NO          | Reference to user  |
+|                       | TailorDescription       | VARCHAR                 | 500                  | YES         | Description of tailor  |
+| RoomChat              | ChatRoomID              | INT                     |                      | NO          | Unique identifier for chat room |
+|                       | TailorProfileID         | INT                     |                      | NO          | Reference to tailor profile |
+|                       | UserID                  | INT                     |                      | NO          | Reference to user  |
+| Chat                  | ChatID                  | INT                     |                      | NO          | Unique identifier for chat |
+|                       | ChatRoomID              | INT                     |                      | NO          | Reference to chat room |
+|                       | Message                 | TEXT                    |                      | YES         | The message content |
+|                       | SenderID                | INT                     |                      | NO          | ID of sender     |
+| RatingReview          | ReviewID                | INT                     |                      | NO          | Unique identifier for review |
+|                       | UserID                  | INT                     |                      | NO          | ID of the user who submitted review |
+|                       | TailorProfileID         | INT                     |                      | NO          | ID of the reviewed tailor |
+|                       | Rating                  | INT                     |                      | NO          | Rating given by user |
+|                       | Comment                 | TEXT                    |                      | YES         | Review comment     |
+| Province              | ProvinceID              | INT                     |                      | NO          | Unique identifier for province |
+|                       | ProvinceName            | VARCHAR                 | 100                  | NO          | Name of the province |
+| Regency               | RegencyID               | INT                     |                      | NO          | Unique identifier for regency |
+|                       | ProvinceID              | INT                     |                      | NO          | Reference to province  |
+|                       | RegencyName             | VARCHAR                 | 100                  | NO          | Name of the regency  |
+| District              | DistrictID              | INT                     |                      | NO          | Unique identifier for district |
+|                       | RegencyID               | INT                     |                      | NO          | Reference to regency |
+|                       | DistrictName            | VARCHAR                 | 100                  | NO          | Name of the district |
+| Village               | VillageID               | INT                     |                      | NO          | Unique identifier for village |
+|                       | DistrictID              | INT                     |                      | NO          | Reference to district |
+|                       | VillageName             | VARCHAR                 | 100                  | NO          | Name of the village  |
+| Order                 | OrderID                 | INT                     |                      | NO          | Unique identifier for order |
+|                       | UserID                  | INT                     |                      | NO          | Reference to user  |
+|                       | OrderDate               | DATETIME                |                      | NO          | Date of the order  |
+|                       | TotalAmount             | DECIMAL(18, 2)         |                      | NO          | Total price of order |
+| OrderShipping         | ShippingID              | INT                     |                      | NO          | Unique identifier for shipping |
+|                       | OrderID                 | INT                     |                      | NO          | Reference to order  |
+|                       | ShippingAddress         | VARCHAR                 | 255                  | NO          | Address for shipping |
+|                       | ShippingDate            | DATETIME                |                      | NO          | When the order was shipped |
+| OrderCancellation     | CancellationID          | INT                     |                      | NO          | Unique identifier for cancellation |
+|                       | OrderID                 | INT                     |                      | NO          | Reference to order  |
+|                       | CancellationReason       | TEXT                    |                      | YES         | Reason for cancellation |
+| OrderItem            | ItemID                 | INT                     |                      | NO          | Unique identifier for order item |
+|                       | OrderID                 | INT                     |                      | NO          | Reference to order  |
+|                       | ProductID               | INT                     |                      | NO          | ID of the product  |
+|                       | Quantity                | INT                     |                      | NO          | Quantity ordered   |
+| Article               | ArticleID               | INT                     |                      | NO          | Unique identifier for article |
+|                       | Title                   | VARCHAR                 | 255                  | NO          | Title of the article |
+|                       | Content                 | TEXT                    |                      | YES         | The content of the article |
+| Course                | CourseID                | INT                     |                      | NO          | Unique identifier for course |
+|                       | Title                   | VARCHAR                 | 255                  | NO          | Title of the course |
+|                       | Description             | TEXT                    |                      | YES         | Description of the course  |
+| Stuff                 | StuffID                 | INT                     |                      | NO          | Unique identifier for stuff |
+|                       | Name                    | VARCHAR                 | 255                  | NO          | Name of the stuff |
+|                       | Details                 | TEXT                    |                      | YES         | Details about the stuff |
